@@ -1,0 +1,26 @@
+{
+    "id": "556BF03B",
+    "path": "//cbsp.nl/Productie/primair/BOUW/Werk/301_Herontwerp_package/TEST/COMBINED/PGRealEstate/R/data.R",
+    "project_path": "R/data.R",
+    "type": "r_source",
+    "hash": "463129686",
+    "contents": "",
+    "dirty": false,
+    "created": 1737014795522.0,
+    "source_on_save": false,
+    "relative_order": 8,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "30,5",
+        "scrollLine": "2"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1737017109,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1737017109147,
+    "read_only": false,
+    "read_only_alternatives": []
+}
