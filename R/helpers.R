@@ -74,7 +74,7 @@ calculate_hedonic_imputation <- function(dataset_temp
   average_Imputations <- c()
   number_observations_total <- c()
 
-  Period_var_temp <- NULL # To prevent that the following note occurs: 'no visible binding for global variable 'Period_var_temp' '
+  Period_var_temp <- NULL # To prevent that the following note occurs: 'no visible binding for global variable 'Period_var_temp'
   for (p in 1:number_of_periods){
 
     # Estimate coefficients of the 1th period
@@ -706,9 +706,9 @@ select_state_space_model <- function(selection = 5, series, regressors=NULL, ini
 #' @param startvalues =  startvalues for 5 hyperparameters: meas, level, slope, seas, scaling. default = NULL: optimal estimation of these values.
 #' @param resting_points = Should analyses values be returned? (default = FALSE)
 #' @return Trend line
-#' @examples
-#' series <- c(85, 97, 100, 104, 111)
-#' calculate_trend_line_KFAS(series)
+# @examples
+#series <- c(85, 97, 100, 104, 111)
+#calculate_trend_line_KFAS(series)
 
 calculate_trend_line_KFAS <- function(original_series
                                       , periodicity = 4
@@ -773,9 +773,9 @@ calculate_trend_line_KFAS <- function(original_series
   # Addd resting_points
   if(resting_points == TRUE){
     if(is.null(startvalues) == TRUE){
-      Analyses_complete <- bind_rows(startvalues_analyse, parameters_analyse, model_analyse)
+      Analyses_complete <- rbind(startvalues_analyse, parameters_analyse, model_analyse)
     } else {
-      Analyses_complete <- bind_rows(parameters_analyse, model_analyse)
+      Analyses_complete <- rbind(parameters_analyse, model_analyse)
     }
     trend_line <- list(trend_line = trend_line, resting_points = Analyses_complete)
   }
@@ -910,6 +910,8 @@ calculate_hedonic_imputationmatrix <- function(dataset
   independent_variables <- c(continious_variables, categorical_variables)
 
   # Rename period_variable and transform to character
+
+  Period_var_temp <- NULL # To prevent that the following note occurs: 'no visible binding for global variable 'Period_var_temp'
   dataset <- dplyr::rename(dataset, Period_var_temp = period_variable)
   dataset$Period_var_temp <- as.character(dataset$Period_var_temp)
 

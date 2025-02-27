@@ -41,6 +41,8 @@
 #' @param number_preliminary_periods = number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3
 #' @param resting_points = Should analyses values be returned? (default = FALSE)
 #' @param bootstrap = the number of iterations for calculating a confidence interval (usually 500) (default = NULL -> no intervals)
+#' @importFrom stats qnorm
+#' @importFrom stats window
 #' @return
 #' $Matrix_HMTS_index = table with index series based on estimations with time series re-estimations
 #' $Matrix_HMTS = table with estimated values based on time series re-estimations
@@ -236,6 +238,7 @@ calculate_HMTS <- function(
 
   # Add resting points to output
 
+  Imputations <- NULL # deze regel is als test toegevoed omdat ie nergens geinitialiseerd is en dus later verwijderen of anders definieren
 
   if(resting_points == TRUE){
     if(is.null(state_space_model) == FALSE){

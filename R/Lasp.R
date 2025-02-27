@@ -41,7 +41,7 @@
 #' table with index, imputation averages, number of observations and confidence intervals per period
 #' @export
 #' @examples
-#' test
+#'
 #' Tbl_Laspeyres <- Calculate_laspeyres(dataset = data_constraxion
 #'                                 , period_variable = c("period")
 #'                                 , dependent_variable = c('price')
@@ -69,7 +69,7 @@ Calculate_laspeyres <- function(dataset
 
   # Rename period_variable and transform to character
 
-  dataset <- dplyr::rename(dataset, Period_var_temp = period_variable)
+  dataset <- dplyr::rename(dataset, Period_var_temp = all_of(period_variable))
   dataset$Period_var_temp <- as.character(dataset$Period_var_temp)
 
   # Data processing categorical variables
@@ -161,7 +161,7 @@ Calculate_laspeyres <- function(dataset
 
       # Calculate Laspeyres imputations and numbers
       Tbl_average_imputation_bootstrap <-
-        calculate_hedonic_imputation(dataset_temp = dataset_bootstrap
+          calculate_hedonic_imputation(dataset_temp = dataset_bootstrap
                                      , Period_temp = 'Period_var_temp'
                                      , dependent_variable_temp = dependent_variable
                                      , independent_variables_temp = independent_variables
