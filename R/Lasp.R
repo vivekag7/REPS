@@ -41,7 +41,7 @@
 #' table with index, imputation averages, number of observations and confidence intervals per period
 #' @export
 #' @examples
-#'
+#' test
 #' Tbl_Laspeyres <- Calculate_laspeyres(dataset = data_constraxion
 #'                                 , period_variable = c("period")
 #'                                 , dependent_variable = c('price')
