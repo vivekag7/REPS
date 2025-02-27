@@ -11,8 +11,9 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.1
 Depends: 
-    R (>= 4.4.0), dplyr, KFAS, stats, stringr
+    R (>= 4.4.0), dplyr, KFAS, stats
 Standardizable: FALSE
-Suggests: 
+Suggests:
+    stringr (>= 1.5.1), 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
