@@ -2,22 +2,22 @@
 % Please edit documentation in R/helpers.R
 \name{calculate_hedonic_imputation}
 \alias{calculate_hedonic_imputation}
-\title{Title Calculation of a hedonic imputation}
+\title{Calculate imputation averages with the 1th period as base period}
 \usage{
 calculate_hedonic_imputation(
-  dataset_temp,
-  Period_temp,
-  dependent_variable_temp,
-  independent_variables_temp,
-  log_dependent_temp,
-  number_of_observations_temp,
-  period_list_temp
+  dataset_temp = dataset,
+  period_temp = "period_var_temp",
+  dependent_variable_temp = dependent_variable,
+  independent_variables_temp = independent_variables,
+  log_dependent_temp = log_dependent,
+  number_of_observations_temp = number_of_observations,
+  period_list_temp = period_list
 )
 }
 \arguments{
 \item{dataset_temp}{= table with data (hoeft no selectie te zijn van benodigde variables)}
 
-\item{Period_temp}{= 'Period'}
+\item{period_temp}{= 'Period'}
 
 \item{dependent_variable_temp}{= usually the sale price}
 
@@ -31,7 +31,10 @@ calculate_hedonic_imputation(
 table with imputation averages per period
 }
 \description{
-Title Calculation of a hedonic imputation
+Prices are estimated based on a provided hedonic model
+The model values are calculated for each period in the data
+With these values, new prices of base period observations are estimated.
+With this function, imputations according to the Laspeyres and Paasche method can be estimated.
 }
 \author{
 Farley Ishaak

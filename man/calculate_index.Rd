@@ -43,4 +43,3 @@ E.g. if the series contains months (2019jan, 2019feb), the reference period can 
 \author{
 Farley Ishaak
 }
-\keyword{internal}
