@@ -12,8 +12,7 @@ calculate_fisher(
   categorical_variables,
   log_dependent = FALSE,
   reference_period = NULL,
-  number_of_observations = FALSE,
-  n_bootstraps = NULL
+  number_of_observations = FALSE
 )
 }
 \arguments{
@@ -32,8 +31,6 @@ calculate_fisher(
 \item{reference_period}{period or group of periods that will be set to 100 (numeric/string)}
 
 \item{number_of_observations}{number of observations per period (default = TRUE)}
-
-\item{n_bootstraps}{the number of iterations for calculating a confidence interval (usually 500) (default = NULL -> no intervals)}
 }
 \value{
 table with index, imputation averages, number of observations and confidence intervals per period
@@ -60,8 +57,7 @@ Tbl_Fisher <- calculate_fisher(dataset = data_constraxion
                                 , categorical_variables = c('neighbourhood_code')
                                 , log_dependent = TRUE
                                 , reference_period = 2015
-                                , number_of_observations = TRUE
-                                , n_bootstraps = 50)
+                                , number_of_observations = TRUE)
 }
 \author{
 Farley Ishaak (FIHK)

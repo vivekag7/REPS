@@ -14,8 +14,7 @@ calculate_paasche(
   reference_period = NULL,
   index = TRUE,
   number_of_observations = FALSE,
-  imputation = FALSE,
-  n_bootstraps = NULL
+  imputation = FALSE
 )
 }
 \arguments{
@@ -38,8 +37,6 @@ calculate_paasche(
 \item{number_of_observations}{number of observations per period (default = TRUE)}
 
 \item{imputation}{display the underlying average imputation values? (default = FALSE)}
-
-\item{n_bootstraps}{the number of iterations for calculating a confidence interval (usually 500) (default = NULL -> no intervals)}
 }
 \value{
 table with index, imputation averages, number of observations and confidence intervals per period
@@ -68,8 +65,7 @@ Tbl_Paasche <- calculate_paasche(dataset = data_constraxion
                                 , index = TRUE
                                 , reference_period = 2015
                                 , number_of_observations = TRUE
-                                , imputation = TRUE
-                                , n_bootstraps = 50)
+                                , imputation = TRUE)
 }
 \author{
 Farley Ishaak (FIHK)

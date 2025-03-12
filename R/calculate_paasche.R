@@ -23,7 +23,6 @@
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @param number_of_observations number of observations per period (default = TRUE)
 #' @param imputation display the underlying average imputation values? (default = FALSE)
-#' @param n_bootstraps the number of iterations for calculating a confidence interval (usually 500) (default = NULL -> no intervals)
 #' @return
 #' table with index, imputation averages, number of observations and confidence intervals per period
 #' @export
@@ -38,8 +37,7 @@
 #'                                 , index = TRUE
 #'                                 , reference_period = 2015
 #'                                 , number_of_observations = TRUE
-#'                                 , imputation = TRUE
-#'                                 , n_bootstraps = 50)
+#'                                 , imputation = TRUE)
 
 
 calculate_paasche <- function(dataset
@@ -51,8 +49,7 @@ calculate_paasche <- function(dataset
                               , reference_period = NULL
                               , index = TRUE
                               , number_of_observations = FALSE
-                              , imputation = FALSE
-                              , n_bootstraps = NULL) {
+                              , imputation = FALSE) {
 
   # Merge independent variables
   # independent_variables <- c(continious_variables, categorical_variables)
@@ -86,8 +83,6 @@ calculate_paasche <- function(dataset
   Index <- c(0)
   number <- c(0)
 
-  ### w -> imputation_period
-  ### w 2x gebruikt als variabele, ook bij bootstrap gedeelte.
   for (imputation_period in 1:number_of_periods) {
 
     # Select the last and first period
@@ -108,8 +103,6 @@ calculate_paasche <- function(dataset
 
       # Insert imputations into table
       tbl_imputations <- merge(tbl_imputations, tbl_average_imputation, "period", all.x = TRUE)
-      # tbl_imputations <- tbl_imputations |>
-      #   dplyr::left_join(tbl_average_imputation, by = "period")
 
       # Rename variable to base year
       names(tbl_imputations)[ncol(tbl_imputations)] <- paste0("Base_", period_list[number_of_periods_temp])
@@ -135,174 +128,8 @@ calculate_paasche <- function(dataset
   number <- number[imputation_period:1]
 
   # Rescale the index
-  # if (is.null(reference_period) == FALSE) {
   if (!is.null(reference_period)) {
     Index <- calculate_index(period_list, Index, reference_period)
-  }
-
-  ## Bootstrap
-  # if (is.null(n_bootstraps) == FALSE) {
-  if (!is.null(n_bootstraps)) {
-
-    # Show progress
-    print("Start Bootstrap")
-    starting_time <- as.POSIXct(Sys.time())
-
-    # Count number of skipped iterations
-    skipped <- 0
-
-    # Start at iteration 1
-    current_bootstrap <- 1
-
-    while (current_bootstrap <= n_bootstraps) {
-
-      # Create a new dataset equally large to the original data
-      for (bootstrap_period in 1:number_of_periods) { #  per period a new dataset based on sample of original dataset
-        subset <- which(dataset$period_var_temp == period_list[bootstrap_period]) # which records from original data have corresponding periods
-        subset_length <- length(subset)
-
-        bootstrapsubset <- subset[ceiling(stats::runif(subset_length) * subset_length)] # sample with return
-        if (bootstrap_period == 1) bootstrapset <-  bootstrapsubset
-        if (bootstrap_period > 1)  bootstrapset <- c(bootstrapset, bootstrapsubset)
-      }
-
-      dataset_bootstrap <- dataset[bootstrapset, ]
-
-      # Check if the bootstrapset is equally large as the original dataset
-      # if (nrow(dataset_bootstrap) != nrow(dataset) || ncol(dataset_bootstrap) != ncol(dataset)) {
-      #   print("Error: the number of rows and/or columns is not equal to the number in the original dataset.")
-      # }
-
-      if (nrow(dataset_bootstrap) != nrow(dataset) ||
-          ncol(dataset_bootstrap) != ncol(dataset)) {
-        ## Dit print een error message, maar de berekning gaat door. aangepast naar stop(..)
-        # print("Error: the number of rows and/or columns is not equal to the number in the original dataset.")
-        stop(paste0("The number of rows and/or columns is not equal",
-                    "to the number in the original dataset."))
-      }
-
-      # Check if the bootstrapset per period is equally large to the original dataset
-      # n <-c(0)
-      # n.BS<-c(0)
-
-      length_dataset_period <- c(0)
-      length_bootstrapped_dataset_period <- c(0)
-
-      for (test_period in 1:number_of_periods) {
-        test1 <- dataset[dataset$period_var_temp == period_list[test_period], ]
-        test2 <- dataset_bootstrap[dataset_bootstrap$period_var_temp == period_list[test_period], ]
-        length_dataset_period[test_period] <- nrow(test1)
-        length_bootstrapped_dataset_period[test_period] <- nrow(test2)
-      }
-      if (sum(length_dataset_period == length_bootstrapped_dataset_period) != number_of_periods) {
-        # print("Error: the number is not equal in all periods")
-        stop("The number is not equal in all periods")
-      }
-
-      # Test per period if each categorical variable has a minimum of 1 observation
-      # If not: skip the bootstrap iteration
-
-      # Reset the skip
-      skip <- FALSE
-
-      # for each categorical variable
-      for (cat_variable in categorical_variables) {
-
-        # Create a frequency table per period per level
-        dataset_var <- table(dataset_bootstrap[, c("period_var_temp", cat_variable)])
-
-        # Show an error if a cel has no observations
-        if (0 %in% dataset_var) {
-          skip <- TRUE
-        }
-      }
-
-      # Skip this iteration and record how many are skipped
-      if (skip == TRUE) {
-        skipped <- skipped + 1
-        next
-      }
-
-      ## Index calculation
-
-      # Prepare table for imputations
-      ## Dit wordt nergens gebruikt.
-      # Tbl_Imputations_bootstrap <- data.frame(Period = period_list)
-
-      # Prepare vector for index and numbers
-      index_bootstrap <- c(0)
-
-      # Reset the number of periods
-      number_of_periods_temp <- number_of_periods
-
-      ## w -> bootstrap_period
-      for (bootstrap_period in 1:number_of_periods){
-
-        # Select the last and first period
-        period_list_paasche <- c(period_list[number_of_periods_temp], period_list[1])
-        dataset_bootstrap_temp <- dataset_bootstrap[which(dataset_bootstrap$period_var_temp %in% period_list_paasche), ]
-
-        # Calculate Paasche imputations and numbers
-        tbl_average_imputation_bootstrap <-
-          calculate_hedonic_imputation(dataset_temp = dataset_bootstrap_temp
-                                       , period_temp = "period_var_temp"
-                                       , dependent_variable_temp = dependent_variable
-                                       , independent_variables_temp = independent_variables
-                                       , log_dependent_temp = log_dependent
-                                       , number_of_observations_temp = number_of_observations
-                                       , period_list_temp = period_list_paasche)
-
-        # Insert last index figure into vector
-        index_bootstrap[bootstrap_period] <- tbl_average_imputation_bootstrap$average_imputation[1] / tbl_average_imputation_bootstrap$average_imputation[2] * 100
-
-        # Stepwise delete last period
-        number_of_periods_temp <- number_of_periods_temp - 1
-      }
-
-      # Reverse the index series (last period was calculated first)
-      index_bootstrap <- index_bootstrap[imputation_period:1]
-
-      # Rescale the index
-      if (is.null(reference_period) == FALSE) {
-        index_bootstrap <- calculate_index(period_list, index_bootstrap, reference_period)
-      }
-
-      # Calculate first and second moment: (EX)^2 and EX^2
-      # if(h == 1)  Sum.square <- Index_bootstrap^2
-      # if(h > 1) Sum.square <- Sum.square + (Index_bootstrap)^2
-      #
-      # if(h == 1)  Sum <- Index_bootstrap
-      # if(h > 1) Sum <- Sum + Index_bootstrap
-
-      if (current_bootstrap == 1)  sum_square <- index_bootstrap^2
-      if (current_bootstrap > 1) sum_square <- sum_square + (index_bootstrap)^2
-
-      if (current_bootstrap == 1)  sum <- index_bootstrap
-      if (current_bootstrap > 1) sum <- sum + index_bootstrap
-
-      # Show progress
-      show_progress_loop(current_bootstrap, n_bootstraps)
-
-      # Add one iteration
-      current_bootstrap <- current_bootstrap + 1
-
-    }
-
-    # Calculate variance
-    # M1 <- Sum/(bootstrap)
-    # M2 <- Sum.square/(bootstrap)
-    # variance <- M2 - M1^2
-    #
-    # # Calculate lower and upper bound of the confidence interval
-    # Lower_bound <- Index - 1.96 * sqrt(variance)
-    # Upper_bound <- Index + 1.96 * sqrt(variance)
-
-    bounds <-  calculate_bounds(tbl_average_imputation$period, bootstraps = n_bootstraps, Index, sum, sum_square)
-
-    print(paste0("Bootstrap is done! Duration: "
-                 , round(difftime(as.POSIXct(Sys.time()), starting_time, units = "mins"), 0)
-                 , " min. "))
-
   }
 
   # Create table
@@ -316,14 +143,7 @@ calculate_paasche <- function(dataset
   if (index == TRUE) {
     paasche$Index <- Index
   }
-  if (is.null(n_bootstraps) == FALSE) {
-    # Paasche$variance <- variance
-    # Paasche$Lower_bound <- Lower_bound
-    # Paasche$Upper_bound <- Upper_bound
-    paasche$variance <- bounds$variance
-    paasche$lower_bound <- bounds$lower_bound
-    paasche$upper_bound <- bounds$upper_bound
-  }
+
   if (imputation == TRUE) {
     number_of_periods_plus_1 <- number_of_periods + 1
     tbl_imputations <- tbl_imputations[, c(1, number_of_periods_plus_1:column_start)] # Reverse the table (last period was calculated first)
