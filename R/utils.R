@@ -3,4 +3,4 @@
 utils::globalVariables(c("dataset", "dependent_variable","continious_variables", 
                          "independent_variables", "log_dependent", 
                          "number_of_observations", "period_list", 
-                         "period_var_temp","period", "value"))
+                         "period_var_temp","period", "value", "bind_rows"))

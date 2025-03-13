@@ -10,8 +10,13 @@ License: GPL-2
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.1
-Depends: 
-    R (>= 4.4.0), dplyr, stats, assertthat
+Depends:
+    R (>= 4.4.0)
+Imports:
+    dplyr,
+    stats,
+    assertthat,
+    KFAS
 Standardizable: FALSE
 Suggests:
     stringr (>= 1.5.1), 

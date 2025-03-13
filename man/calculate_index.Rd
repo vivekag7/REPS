@@ -4,12 +4,7 @@
 \alias{calculate_index}
 \title{Transform series into index}
 \usage{
-calculate_index(
-  periods,
-  values,
-  reference_period = NULL,
-  from_growth_rate = FALSE
-)
+calculate_index(periods, values, reference_period = NULL)
 }
 \arguments{
 \item{periods}{= vector/variable with periods (numeric/string)}
@@ -17,8 +12,6 @@ calculate_index(
 \item{values}{= vector/variable with to be transformed values (numeric)}
 
 \item{reference_period}{= period or group of periods that will be set to 100 (numeric/string)}
-
-\item{from_growth_rate}{= is the index calculated from a growth rate (deviation from 1)? If not, then the index is calculated from a series of values (default = FALSE)}
 }
 \value{
 Index series
