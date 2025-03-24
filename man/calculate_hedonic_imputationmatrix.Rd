@@ -59,20 +59,7 @@ Parameter 'production_since':
 To simulate a series, where 1 period a time expires (as in production), a manual choice in the past is possible.
 Untill this period, all periods are imputed. After that, 1 period is added.
 }
-\examples{
-Tbl_imputation_matrix <- calculate_hedonic_imputationmatrix(dataset = data_constraxion
-                                                     , period_variable = c("period")
-                                                     , dependent_variable = c('price')
-                                                     , continuous_variables = c('floor_area')
-                                                     , categorical_variables = c('province')
-                                                     , log_dependent = FALSE
-                                                     , periods_in_year = 4
-                                                     , number_of_observations = FALSE
-                                                     , production_since = "2020Q1"
-                                                     , number_preliminary_periods = 3)
-
-Tbl_hedonic_Imputations <- as.data.frame(Tbl_imputation_matrix$Matrix_HMTS)
-}
 \author{
 Farley Ishaak
 }
+\keyword{internal}

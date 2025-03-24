@@ -11,10 +11,7 @@
 #' @param periodicity = if month, then  12. If quarter, then 4, etc. (defaul = 4)
 #' @param resting_points = Should analyses values be returned? (default = FALSE)
 #' @return Trend line
-#' @export
-#' @examples
-#' series <- c(85, 97, 100, 104, 111)
-#' calculate_trend_line_KFAS(series)
+#' @keywords internal
 
 calculate_trend_line_kfas <- function(original_series
                                       , periodicity
@@ -62,9 +59,6 @@ calculate_trend_line_kfas <- function(original_series
 #' @param model = state space modelnumber
 #' @return newmodel
 #' @keywords internal
-#' @export
-#' @examples
-#' defaultupdatefn(pars = startvalues, model = 5)
 
 defaultupdatefn <- function(pars, model){
   
@@ -106,17 +100,6 @@ defaultupdatefn <- function(pars, model){
 #' @param FUN = function called: defaultupdatefn
 #' @return New initial startvalues
 #' @keywords internal
-#' @export
-#' @examples
-#' startvalues_old <- set_startvalues(log(0.1), log(0.1), log(0.1),log(0.1),log(0.1))
-#' modelsel <- select_state_space_model(selection = modelnumber
-#'                                             , series = Origineel_TS
-#'                                             , regressors = regressor
-#'                                             , initial.values.all = startvalues_old)
-#' model_SS <- model <- modelsel$model
-#' startvalues_temp <- modelsel$initial.values
-#' startvalues_temp <- determine_initial_parameters(model, initial.values = startvalues_temp)
-#' startvalues_new <- startvalues_temp$initial.values2
 
 determine_initial_parameters <- function(model, initial_values, FUN=defaultupdatefn) {
   
@@ -179,8 +162,7 @@ determine_initial_parameters <- function(model, initial_values, FUN=defaultupdat
 #' @param initial_values = $initial.values as output of the model
 #' @return parameter for the time series model
 #' @keywords internal
-#' @examples
-#' estimate.TS.parameters(model = model, initial.values = startvalues)
+
 
 estimate_ts_parameters <- function(model, initial_values){
   
@@ -254,21 +236,6 @@ estimate_ts_parameters <- function(model, initial_values){
 #' @param initial_values_all = =  startvalues for 5 hyperparameters: meas, level, slope, seas, scaling
 #' @return modelvalues (level, slope) of the chosen state space model and the provided time series
 #' @keywords internal
-#' @export
-#' @examples
-#' # Create a quarterly time series
-#' series <- ts(c(100, 102, 105, 110, 115, 120),
-#'              start = c(2020, 1), frequency = 4)
-#'
-#' # Define initial values for meas, level, slope, seas, scaling
-#' initial_values_all <- c(meas = 1, level = 0.5, slope = 0.1, seas = 0.2, scaling = 0.3)
-#'
-#' # Select the state space model
-#' result <- select_state_space_model(series, initial_values_all)
-#'
-#' # Inspect the model and initial values
-#' result$model
-#' result$initial_values
 
 
 select_state_space_model <- function(series, initial_values_all) {
@@ -288,9 +255,6 @@ select_state_space_model <- function(series, initial_values_all) {
 #'
 #' @return starting values for hyperparameters
 #' @keywords internal
-#' @export
-#' @examples
-#' set_startvalues(85, 97, 100, 104, 111)
 
 set_startvalues <- function(a, b, c, d, e) {
   
@@ -311,8 +275,6 @@ set_startvalues <- function(a, b, c, d, e) {
 #' @param fittedmodel = model values as output of the function estimate.TS.parameters()
 #' @return sub-list $signalsubconf[,1] provides the estimated trend line
 #' @keywords internal
-#' @examples
-#' smooth.TS(fittedmodel = model)
 
 smooth_ts <- function(fittedmodel) {
   out_KFS    <- KFAS::KFS(fittedmodel, filtering='state', smoothing='state')

@@ -18,9 +18,6 @@ parameter for the time series model
 Estimate parameters to estimate trend lines
 This function is used in the function: calculate_trend_line_KFAS()#'
 }
-\examples{
-estimate.TS.parameters(model = model, initial.values = startvalues)
-}
 \author{
 Pim Ouwehand, Farley Ishaak
 }

@@ -20,17 +20,6 @@ New initial startvalues
 Determine startvalues within state space models
 This function is used in the function: calculate_trend_line_KFAS()
 }
-\examples{
-startvalues_old <- set_startvalues(log(0.1), log(0.1), log(0.1),log(0.1),log(0.1))
-modelsel <- select_state_space_model(selection = modelnumber
-                                            , series = Origineel_TS
-                                            , regressors = regressor
-                                            , initial.values.all = startvalues_old)
-model_SS <- model <- modelsel$model
-startvalues_temp <- modelsel$initial.values
-startvalues_temp <- determine_initial_parameters(model, initial.values = startvalues_temp)
-startvalues_new <- startvalues_temp$initial.values2
-}
 \author{
 Pim Ouwehand, Farley Ishaak
 }

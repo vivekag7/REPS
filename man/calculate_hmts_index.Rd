@@ -79,23 +79,6 @@ $Matrix_HMTS_index = table with index series based on estimated imputations (hed
 $Matrix_HMTS = table with estimated imputations (time series model)l
 $Matrix_HMTS_analyse = table with diagnostic values of the time series model per base period
 }
-\examples{
-HMTS <- calculate_HMTS_index(
-      dataset = Tbl_data
-      , period_variable = 'Year_quarter'
-      , dependent_variable = Par_dependent_variable
-      , continuous_variables = Par_continuous_variables
-      , categorical_variables = Par_categorical_variables
-      , log_dependent = TRUE
-      , reference_period = NULL
-      , periods_in_year = 4
-      , production_since = 201904
-      , number_preliminary_periods = 2
-      , resting_points = TRUE)
-
-Tbl_index <- as.data.frame(HMTS$Index)
-Tbl_analysis <- as.data.frame(HMTS$Matrix_HMTS_analysis)
-}
 \author{
 Farley Ishaak
 }

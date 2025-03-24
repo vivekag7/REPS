@@ -17,21 +17,6 @@ modelvalues (level, slope) of the chosen state space model and the provided time
 \description{
 This function is used in the function: calculate_trend_line_KFAS()
 }
-\examples{
-# Create a quarterly time series
-series <- ts(c(100, 102, 105, 110, 115, 120),
-             start = c(2020, 1), frequency = 4)
-
-# Define initial values for meas, level, slope, seas, scaling
-initial_values_all <- c(meas = 1, level = 0.5, slope = 0.1, seas = 0.2, scaling = 0.3)
-
-# Select the state space model
-result <- select_state_space_model(series, initial_values_all)
-
-# Inspect the model and initial values
-result$model
-result$initial_values
-}
 \author{
 Pim Ouwehand
 }

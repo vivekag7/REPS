@@ -153,6 +153,7 @@ calculate_hedonic_imputation <- function(dataset_temp = dataset
 #' @param values = vector/variable with to be transformed values (numeric)
 #' @param reference_period = period or group of periods that will be set to 100 (numeric/string)
 #' @return Index series
+#' @keywords internal
 
 calculate_index <- function(periods
                             , values
@@ -307,23 +308,7 @@ calculate_bounds <- function(period, bootstraps, index, sum, sum_square) {
 #' $Matrix_HMTS_analysis = table with analysis values of the time series model per base period
 #' @keywords internal
 #' @return table with periods, index and number of observations. If resting_points = TRUE, then list with tables. See general description and examples.
-#' @export
-#' @examples
-#' HMTS <- calculate_HMTS_index(
-#'       dataset = Tbl_data
-#'       , period_variable = 'Year_quarter'
-#'       , dependent_variable = Par_dependent_variable
-#'       , continuous_variables = Par_continuous_variables
-#'       , categorical_variables = Par_categorical_variables
-#'       , log_dependent = TRUE
-#'       , reference_period = NULL
-#'       , periods_in_year = 4
-#'       , production_since = 201904
-#'       , number_preliminary_periods = 2
-#'       , resting_points = TRUE)
-#'
-#' Tbl_index <- as.data.frame(HMTS$Index)
-#' Tbl_analysis <- as.data.frame(HMTS$Matrix_HMTS_analysis)
+
 
 calculate_hmts_index <- function(
     dataset,
@@ -445,11 +430,7 @@ calculate_hmts_index <- function(
 #' @author Farley Ishaak (FIHK)
 #' @param values = series with numeric values
 #' @return geometric average
-#' @export
-#' @examples
-#' a <- c(1,2,3,4)
-#' calculate_geometric_average(a)
-#' # [1] 2.213364
+#' @keywords internal
 
 calculate_geometric_average <- function(values){
   
@@ -495,20 +476,7 @@ calculate_geometric_average <- function(values){
 #' $Matrix_HMS_index = table with index series based on estimations with the hedonic model
 #' $Matrix_HMS = table with estimated values based on the hedonic model
 #' $Matrix_HMTS_analysis = table with analysis values of the time series model per base period
-#' @export
-#' @examples
-#' Tbl_imputation_matrix <- calculate_hedonic_imputationmatrix(dataset = data_constraxion
-#'                                                      , period_variable = c("period")
-#'                                                      , dependent_variable = c('price')
-#'                                                      , continuous_variables = c('floor_area')
-#'                                                      , categorical_variables = c('province')
-#'                                                      , log_dependent = FALSE
-#'                                                      , periods_in_year = 4
-#'                                                      , number_of_observations = FALSE
-#'                                                      , production_since = "2020Q1"
-#'                                                      , number_preliminary_periods = 3)
-#'
-#' Tbl_hedonic_Imputations <- as.data.frame(Tbl_imputation_matrix$Matrix_HMTS)
+#' @keywords internal
 
 calculate_hedonic_imputationmatrix <- function(dataset
                                                , period_variable

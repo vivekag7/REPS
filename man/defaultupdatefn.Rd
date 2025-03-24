@@ -17,9 +17,6 @@ newmodel
 \description{
 This function is used in the function: calculate_trend_line_KFAS()
 }
-\examples{
-defaultupdatefn(pars = startvalues, model = 5)
-}
 \author{
 Pim Ouwehand
 }

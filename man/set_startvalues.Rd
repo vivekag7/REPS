@@ -12,7 +12,4 @@ starting values for hyperparameters
 \description{
 Set starting values for hyperparameters in state space models
 }
-\examples{
-set_startvalues(85, 97, 100, 104, 111)
-}
 \keyword{internal}

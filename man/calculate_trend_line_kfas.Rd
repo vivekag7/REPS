@@ -20,10 +20,7 @@ Trend line
 Calculate the trend line with the state space method for a provided time series (chronological order is assumed).
 The series are calculated with the package KFAS.
 }
-\examples{
-series <- c(85, 97, 100, 104, 111)
-calculate_trend_line_KFAS(series)
-}
 \author{
 Pim Ouwehand, Farley Ishaak
 }
+\keyword{internal}

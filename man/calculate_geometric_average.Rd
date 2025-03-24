@@ -15,11 +15,7 @@ geometric average
 \description{
 The equation for the calculation is:: exp(mean(log(reeks_values)))
 }
-\examples{
-a <- c(1,2,3,4)
-calculate_geometric_average(a)
-# [1] 2.213364
-}
 \author{
 Farley Ishaak (FIHK)
 }
+\keyword{internal}

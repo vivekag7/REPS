@@ -16,9 +16,6 @@ sub-list $signalsubconf[,1] provides the estimated trend line
 Calculate a trend line based on a provided model.
 This function is used in the function: calculate_trend_line_KFAS()
 }
-\examples{
-smooth.TS(fittedmodel = model)
-}
 \author{
 Pim Ouwehand, Farley Ishaak
 }
