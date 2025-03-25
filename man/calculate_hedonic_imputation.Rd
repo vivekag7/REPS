@@ -15,17 +15,17 @@ calculate_hedonic_imputation(
 )
 }
 \arguments{
-\item{dataset_temp}{= table with data (hoeft no selectie te zijn van benodigde variables)}
+\item{dataset_temp}{table with data (hoeft no selectie te zijn van benodigde variables)}
 
-\item{period_temp}{= 'Period'}
+\item{period_temp}{'Period'}
 
-\item{dependent_variable_temp}{= usually the sale price}
+\item{dependent_variable_temp}{usually the sale price}
 
-\item{independent_variables_temp}{= vector with quality determining variables}
+\item{independent_variables_temp}{vector with quality determining variables}
 
-\item{log_dependent_temp}{= should the dependent variable be transformed to its logarithm? default = TRUE}
+\item{log_dependent_temp}{should the dependent variable be transformed to its logarithm? default = TRUE}
 
-\item{period_list_temp}{= list with all available periods}
+\item{period_list_temp}{list with all available periods}
 }
 \value{
 table with imputation averages per period

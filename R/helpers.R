@@ -8,12 +8,12 @@
 #' With this function, imputations according to the Laspeyres and Paasche method can be estimated.
 #'
 #' @author Farley Ishaak
-#' @param dataset_temp = table with data (hoeft no selectie te zijn van benodigde variables)
-#' @param period_temp = 'Period'
-#' @param dependent_variable_temp = usually the sale price
-#' @param independent_variables_temp = vector with quality determining variables
-#' @param log_dependent_temp = should the dependent variable be transformed to its logarithm? default = TRUE
-#' @param period_list_temp = list with all available periods
+#' @param dataset_temp table with data (hoeft no selectie te zijn van benodigde variables)
+#' @param period_temp 'Period'
+#' @param dependent_variable_temp usually the sale price
+#' @param independent_variables_temp vector with quality determining variables
+#' @param log_dependent_temp should the dependent variable be transformed to its logarithm? default = TRUE
+#' @param period_list_temp list with all available periods
 #' @return
 #' table with imputation averages per period
 #' @keywords internal
@@ -149,9 +149,9 @@ calculate_hedonic_imputation <- function(dataset_temp = dataset
 #' E.g. if the series contains months (2019jan, 2019feb), the reference period can be a year (2019).
 #'
 #' @author Farley Ishaak
-#' @param periods = vector/variable with periods (numeric/string)
-#' @param values = vector/variable with to be transformed values (numeric)
-#' @param reference_period = period or group of periods that will be set to 100 (numeric/string)
+#' @param periods vector/variable with periods (numeric/string)
+#' @param values vector/variable with to be transformed values (numeric)
+#' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @return Index series
 #' @keywords internal
 
@@ -207,10 +207,10 @@ calculate_index <- function(periods
 
 ### This is the third internal function
 
-#' Title
+#' Function for showing progress loop
 #'
-#' @param single_iteration = a single iteration (usually 1 letter: i or p)
-#' @param total_iterations = the total number of iterations in the loop
+#' @param single_iteration a single iteration (usually 1 letter: i or p)
+#' @param total_iterations the total number of iterations in the loop
 #'
 #' @return this returns a progress text
 #' @keywords internal
@@ -220,42 +220,6 @@ show_progress_loop <- function(single_iteration
   cat(sprintf("\rProgress: %3d%%", round(single_iteration / total_iterations * 100)))
   if (single_iteration == total_iterations) message("\n Done!")
   
-}
-
-### This is the fourth internal function --> deze kan verwijderd worden.
-
-#' Calculate Confidence Interval Bounds
-#'
-#' This internal function calculates the confidence interval bounds based on bootstrap estimates.
-#'
-#' @param period A vector indicating the period associated with the data.
-#' @param bootstraps An integer representing the number of bootstrap samples.
-#' @param index The estimated index value.
-#' @param sum The sum of bootstrap estimates.
-#' @param sum_square The sum of squared bootstrap estimates.
-#'
-#' @return A data frame with the period, variance, lower bound, and upper bound of the confidence interval.
-#' @keywords internal
-calculate_bounds <- function(period, bootstraps, index, sum, sum_square) {
-  # Calculate variance
-  moment_1 <- sum / bootstraps
-  moment_2 <- sum_square / bootstraps
-  variance <- moment_2 - moment_1^2
-  
-  
-  ### Ipv 1.96 hardcoderen (is niet precies), nu op basis van de
-  ### kwantielen van de normale verdeling. Alpha staat nu standaard op 0.05
-  alpha = 0.05
-  probability <- 1 - (alpha / 2)
-  
-  # Calculate lower and upper bound of the confidence interval
-  lower_bound <- index - stats::qnorm(probability) * sqrt(variance)
-  upper_bound <- index + stats::qnorm(probability) * sqrt(variance)
-  
-  bounds <- data.frame(period = period, variance = variance, lower_bound = lower_bound,
-                       upper_bound = upper_bound)
-  
-  return(bounds)
 }
 
 ## HTMS helper 1
@@ -279,33 +243,33 @@ calculate_bounds <- function(period, bootstraps, index, sum, sum_square) {
 #'
 #' Parameter 'resting_points':
 #' If TRUE, the output is a list of tables. These tables can be called with a $ after the output.
-#' $Index = table with periods, index and number of observations
-#' $Window = table with the index figures within the chosen window
-#' $Chosen_index_series = table with index series before the window splice
-#' $Matrix_HMTS_index = table with index series based on re-estimated imputations (time series model)
-#' $Matrix_HMTS = table with re-estimated imputations (time series model)
-#' $Matrix_HMTS_index = table with index series based on estimated imputations (hedonic model)
-#' $Matrix_HMTS = table with estimated imputations (time series model)l
-#' $Matrix_HMTS_analyse = table with diagnostic values of the time series model per base period
+#' $Index table with periods, index and number of observations
+#' $Window table with the index figures within the chosen window
+#' $Chosen_index_series table with index series before the window splice
+#' $Matrix_HMTS_index table with index series based on re-estimated imputations (time series model)
+#' $Matrix_HMTS table with re-estimated imputations (time series model)
+#' $Matrix_HMTS_index table with index series based on estimated imputations (hedonic model)
+#' $Matrix_HMTS table with estimated imputations (time series model)l
+#' $Matrix_HMTS_analyse table with diagnostic values of the time series model per base period
 #'
 #' @author Farley Ishaak
-#' @param period_variable = variable in the dataset with the period
-#' @param dependent_variable = usually the sale price
-#' @param continuous_variables = vector with quality-determining continues variables (numeric, no dummies)
-#' @param categorical_variables = vector with categorical variables (also dummy)
-#' @param log_dependent = should the dependent variable be transformed to its logarithm? default = TRUE
-#' @param reference_period = period or group of periods that will be set to 100 (numeric/string)
-#' @param number_of_observations = number of observations per period (default = TRUE)
-#' @param periods_in_year = if month, then 12. If quarter, then 4, etc. (default = 4)
-#' @param production_since = 1 period in the format of the period_variable. See description above (default = NULL)
-#' @param number_preliminary_periods = number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3
-#' @param resting_points = Should analyses values be returned? (default = FALSE)
+#' @param period_variable variable in the dataset with the period
+#' @param dependent_variable usually the sale price
+#' @param continuous_variables vector with quality-determining continues variables (numeric, no dummies)
+#' @param categorical_variables vector with categorical variables (also dummy)
+#' @param log_dependent should the dependent variable be transformed to its logarithm? default = TRUE
+#' @param reference_period period or group of periods that will be set to 100 (numeric/string)
+#' @param number_of_observations number of observations per period (default = TRUE)
+#' @param periods_in_year if month, then 12. If quarter, then 4, etc. (default = 4)
+#' @param production_since 1 period in the format of the period_variable. See description above (default = NULL)
+#' @param number_preliminary_periods number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3
+#' @param resting_points Should analyses values be returned? (default = FALSE)
 #' @return
-#' $Matrix_HMTS_index = table with index series based on estimations with time series re-estimations
-#' $Matrix_HMTS = table with estimated values based on time series re-estimations
-#' $Matrix_HMS_index = table with index series based on estimations with the hedonic model
-#' $Matrix_HMS = table with estimated values based on the hedonic model
-#' $Matrix_HMTS_analysis = table with analysis values of the time series model per base period
+#' $Matrix_HMTS_index table with index series based on estimations with time series re-estimations
+#' $Matrix_HMTS table with estimated values based on time series re-estimations
+#' $Matrix_HMS_index table with index series based on estimations with the hedonic model
+#' $Matrix_HMS table with estimated values based on the hedonic model
+#' $Matrix_HMTS_analysis table with analysis values of the time series model per base period
 #' @keywords internal
 #' @return table with periods, index and number of observations. If resting_points = TRUE, then list with tables. See general description and examples.
 
@@ -324,7 +288,7 @@ calculate_hmts_index <- function(
     number_of_observations = NULL,
     resting_points) {
   
-  period_list <- sort(unique(dataset$period_var_temp))
+  period_list <- sort(unique(dataset$period_variable))
   number_of_periods <- length(period_list)
   
   if (is.null(number_preliminary_periods) == TRUE) {
@@ -332,7 +296,7 @@ calculate_hmts_index <- function(
   }
   
   imputations_complete <- calculate_hedonic_imputationmatrix(dataset = dataset
-                                                             , period_variable = "period_var_temp"
+                                                             , period_variable = period_variable
                                                              , dependent_variable = dependent_variable
                                                              , continuous_variables = continuous_variables
                                                              , categorical_variables = categorical_variables
@@ -428,7 +392,7 @@ calculate_hmts_index <- function(
 #' The equation for the calculation is:: exp(mean(log(reeks_values)))
 #'
 #' @author Farley Ishaak (FIHK)
-#' @param values = series with numeric values
+#' @param values series with numeric values
 #' @return geometric average
 #' @keywords internal
 
@@ -461,9 +425,9 @@ calculate_geometric_average <- function(values){
 #'
 #' @author Farley Ishaak
 #' @param dataset table with data (does not need to be a selection of relevant variables)
-#' @param period_variable = variable in the dataset with the period
-#' @param dependent_variable = usually the sale price
-#' @param continuous_variables = vector with quality-determining continues variables (numeric, no dummies)
+#' @param period_variable variable in the dataset with the period
+#' @param dependent_variable usually the sale price
+#' @param continuous_variables vector with quality-determining continues variables (numeric, no dummies)
 #' @param categorical_variables = vector with categorical variables (also dummy)
 #' @param log_dependent = should the dependent variable be transformed to its logarithm? default = TRUE
 #' @param number_of_observations = number of observations per period (default = TRUE)
@@ -471,11 +435,11 @@ calculate_geometric_average <- function(values){
 #' @param production_since = 1 period in the format of the period_variable. See description above (default = NULL)
 #' @param number_preliminary_periods = number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3
 #' @return
-#' $Matrix_HMTS_index = table with index series based on estimations with time series re-estimations
-#' $Matrix_HMTS = table with estimated values based on time series re-estimations
-#' $Matrix_HMS_index = table with index series based on estimations with the hedonic model
-#' $Matrix_HMS = table with estimated values based on the hedonic model
-#' $Matrix_HMTS_analysis = table with analysis values of the time series model per base period
+#' $Matrix_HMTS_index table with index series based on estimations with time series re-estimations
+#' $Matrix_HMTS table with estimated values based on time series re-estimations
+#' $Matrix_HMS_index table with index series based on estimations with the hedonic model
+#' $Matrix_HMS table with estimated values based on the hedonic model
+#' $Matrix_HMTS_analysis table with analysis values of the time series model per base period
 #' @keywords internal
 
 calculate_hedonic_imputationmatrix <- function(dataset
@@ -539,7 +503,7 @@ calculate_hedonic_imputationmatrix <- function(dataset
     
     difference_length_series <- number_periods - number_periods_production_since
     
-    dataset_base <- subset(dataset_temp, period_var_temp == period_list[current_period])
+    dataset_base <- subset(dataset_temp, dataset_temp[[period_variable]] == period_list[current_period])
     
     if (number_of_observations == TRUE) {
       number_observations_total[current_period] <- nrow(dataset_base)
@@ -551,7 +515,7 @@ calculate_hedonic_imputationmatrix <- function(dataset
     hmts_analysis <- c()
     
     for (reporting_period in 1:number_periods_production_since) {
-      dataset_dynamic <- subset(dataset_temp, period_var_temp == period_list[reporting_period])
+      dataset_dynamic <- subset(dataset_temp, dataset_temp[[period_variable]] == period_list[reporting_period])
       fitmdl <- stats::lm(model, dataset_dynamic)
       
       for (var in names(fitmdl$xlevels)) {

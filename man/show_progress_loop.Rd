@@ -2,19 +2,19 @@
 % Please edit documentation in R/helpers.R
 \name{show_progress_loop}
 \alias{show_progress_loop}
-\title{Title}
+\title{Function for showing progress loop}
 \usage{
 show_progress_loop(single_iteration, total_iterations)
 }
 \arguments{
-\item{single_iteration}{= a single iteration (usually 1 letter: i or p)}
+\item{single_iteration}{a single iteration (usually 1 letter: i or p)}
 
-\item{total_iterations}{= the total number of iterations in the loop}
+\item{total_iterations}{the total number of iterations in the loop}
 }
 \value{
 this returns a progress text
 }
 \description{
-Title
+Function for showing progress loop
 }
 \keyword{internal}

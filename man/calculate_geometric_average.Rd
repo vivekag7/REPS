@@ -7,7 +7,7 @@
 calculate_geometric_average(values)
 }
 \arguments{
-\item{values}{= series with numeric values}
+\item{values}{series with numeric values}
 }
 \value{
 geometric average

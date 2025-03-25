@@ -7,11 +7,11 @@
 calculate_index(periods, values, reference_period = NULL)
 }
 \arguments{
-\item{periods}{= vector/variable with periods (numeric/string)}
+\item{periods}{vector/variable with periods (numeric/string)}
 
-\item{values}{= vector/variable with to be transformed values (numeric)}
+\item{values}{vector/variable with to be transformed values (numeric)}
 
-\item{reference_period}{= period or group of periods that will be set to 100 (numeric/string)}
+\item{reference_period}{period or group of periods that will be set to 100 (numeric/string)}
 }
 \value{
 Index series

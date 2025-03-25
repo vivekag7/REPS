@@ -20,34 +20,34 @@ calculate_hmts_index(
 )
 }
 \arguments{
-\item{period_variable}{= variable in the dataset with the period}
+\item{period_variable}{variable in the dataset with the period}
 
-\item{dependent_variable}{= usually the sale price}
+\item{dependent_variable}{usually the sale price}
 
-\item{continuous_variables}{= vector with quality-determining continues variables (numeric, no dummies)}
+\item{continuous_variables}{vector with quality-determining continues variables (numeric, no dummies)}
 
-\item{categorical_variables}{= vector with categorical variables (also dummy)}
+\item{categorical_variables}{vector with categorical variables (also dummy)}
 
-\item{log_dependent}{= should the dependent variable be transformed to its logarithm? default = TRUE}
+\item{log_dependent}{should the dependent variable be transformed to its logarithm? default = TRUE}
 
-\item{reference_period}{= period or group of periods that will be set to 100 (numeric/string)}
+\item{reference_period}{period or group of periods that will be set to 100 (numeric/string)}
 
-\item{periods_in_year}{= if month, then 12. If quarter, then 4, etc. (default = 4)}
+\item{periods_in_year}{if month, then 12. If quarter, then 4, etc. (default = 4)}
 
-\item{production_since}{= 1 period in the format of the period_variable. See description above (default = NULL)}
+\item{production_since}{1 period in the format of the period_variable. See description above (default = NULL)}
 
-\item{number_preliminary_periods}{= number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3}
+\item{number_preliminary_periods}{number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3}
 
-\item{number_of_observations}{= number of observations per period (default = TRUE)}
+\item{number_of_observations}{number of observations per period (default = TRUE)}
 
-\item{resting_points}{= Should analyses values be returned? (default = FALSE)}
+\item{resting_points}{Should analyses values be returned? (default = FALSE)}
 }
 \value{
-$Matrix_HMTS_index = table with index series based on estimations with time series re-estimations
-$Matrix_HMTS = table with estimated values based on time series re-estimations
-$Matrix_HMS_index = table with index series based on estimations with the hedonic model
-$Matrix_HMS = table with estimated values based on the hedonic model
-$Matrix_HMTS_analysis = table with analysis values of the time series model per base period
+$Matrix_HMTS_index table with index series based on estimations with time series re-estimations
+$Matrix_HMTS table with estimated values based on time series re-estimations
+$Matrix_HMS_index table with index series based on estimations with the hedonic model
+$Matrix_HMS table with estimated values based on the hedonic model
+$Matrix_HMTS_analysis table with analysis values of the time series model per base period
 
 table with periods, index and number of observations. If resting_points = TRUE, then list with tables. See general description and examples.
 }
@@ -70,14 +70,14 @@ Until this period, all periods are imputed. After that, 1 period is added.
 
 Parameter 'resting_points':
 If TRUE, the output is a list of tables. These tables can be called with a $ after the output.
-$Index = table with periods, index and number of observations
-$Window = table with the index figures within the chosen window
-$Chosen_index_series = table with index series before the window splice
-$Matrix_HMTS_index = table with index series based on re-estimated imputations (time series model)
-$Matrix_HMTS = table with re-estimated imputations (time series model)
-$Matrix_HMTS_index = table with index series based on estimated imputations (hedonic model)
-$Matrix_HMTS = table with estimated imputations (time series model)l
-$Matrix_HMTS_analyse = table with diagnostic values of the time series model per base period
+$Index table with periods, index and number of observations
+$Window table with the index figures within the chosen window
+$Chosen_index_series table with index series before the window splice
+$Matrix_HMTS_index table with index series based on re-estimated imputations (time series model)
+$Matrix_HMTS table with re-estimated imputations (time series model)
+$Matrix_HMTS_index table with index series based on estimated imputations (hedonic model)
+$Matrix_HMTS table with estimated imputations (time series model)l
+$Matrix_HMTS_analyse table with diagnostic values of the time series model per base period
 }
 \author{
 Farley Ishaak

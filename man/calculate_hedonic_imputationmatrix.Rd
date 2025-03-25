@@ -20,11 +20,11 @@ calculate_hedonic_imputationmatrix(
 \arguments{
 \item{dataset}{table with data (does not need to be a selection of relevant variables)}
 
-\item{period_variable}{= variable in the dataset with the period}
+\item{period_variable}{variable in the dataset with the period}
 
-\item{dependent_variable}{= usually the sale price}
+\item{dependent_variable}{usually the sale price}
 
-\item{continuous_variables}{= vector with quality-determining continues variables (numeric, no dummies)}
+\item{continuous_variables}{vector with quality-determining continues variables (numeric, no dummies)}
 
 \item{categorical_variables}{= vector with categorical variables (also dummy)}
 
@@ -39,11 +39,11 @@ calculate_hedonic_imputationmatrix(
 \item{number_preliminary_periods}{= number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3}
 }
 \value{
-$Matrix_HMTS_index = table with index series based on estimations with time series re-estimations
-$Matrix_HMTS = table with estimated values based on time series re-estimations
-$Matrix_HMS_index = table with index series based on estimations with the hedonic model
-$Matrix_HMS = table with estimated values based on the hedonic model
-$Matrix_HMTS_analysis = table with analysis values of the time series model per base period
+$Matrix_HMTS_index table with index series based on estimations with time series re-estimations
+$Matrix_HMTS table with estimated values based on time series re-estimations
+$Matrix_HMS_index table with index series based on estimations with the hedonic model
+$Matrix_HMS table with estimated values based on the hedonic model
+$Matrix_HMTS_analysis table with analysis values of the time series model per base period
 }
 \description{
 Based on a hedonic model, a series of imputated values is calculated in below steps:

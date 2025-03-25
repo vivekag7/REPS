@@ -63,13 +63,6 @@ calculate_paasche <- function(dataset
                   dplyr::across(dplyr::all_of(categorical_variables),
                                 as.factor))
 
-  # dataset <- dplyr::rename(dataset, Period_var_temp = period_variable)
-  # dataset$Period_var_temp <- as.character(dataset$Period_var_temp)
-
-  # Data processing categorical variables
-  # dataset <- dplyr::mutate(dataset, dplyr::across(dplyr::all_of(categorical_variables), as.factor)) # Transform columns to factor
-
-
   ## Calculate index
 
   # Create list of periods
