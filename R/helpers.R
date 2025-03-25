@@ -288,7 +288,7 @@ calculate_hmts_index <- function(
     number_of_observations = NULL,
     resting_points) {
   
-  period_list <- sort(unique(dataset$period_variable))
+  period_list <- sort(unique(dataset$period_var_temp))
   number_of_periods <- length(period_list)
   
   if (is.null(number_preliminary_periods) == TRUE) {
@@ -296,7 +296,7 @@ calculate_hmts_index <- function(
   }
   
   imputations_complete <- calculate_hedonic_imputationmatrix(dataset = dataset
-                                                             , period_variable = period_variable
+                                                             , period_variable = "period_var_temp"
                                                              , dependent_variable = dependent_variable
                                                              , continuous_variables = continuous_variables
                                                              , categorical_variables = categorical_variables
