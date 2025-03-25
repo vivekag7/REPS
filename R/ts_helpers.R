@@ -19,11 +19,11 @@ calculate_trend_line_kfas <- function(original_series
   
   original_series <- log(original_series)
   
-  origineel_ts <- stats::ts(original_series, start = 1, frequency = periodicity, names = "origineel_ts")
+  original_ts <- stats::ts(original_series, start = 1, frequency = periodicity, names = "origineel_ts")
   
   startvalues_old <- set_startvalues(log(0.1), log(0.1), log(0.1), log(0.1), log(0.1))
   
-  modelsel <- select_state_space_model(series = origineel_ts,
+  modelsel <- select_state_space_model(series = original_ts,
                                        initial_values_all = startvalues_old)
   
   model_ss <- model <- modelsel$model
@@ -41,7 +41,7 @@ calculate_trend_line_kfas <- function(original_series
   
   
   if (resting_points == TRUE) {
-    analysis_complete <- bind_rows(startvalues_analysis, parameters_analysis, model_analysis)
+    analysis_complete <- dplyr::bind_rows(startvalues_analysis, parameters_analysis, model_analysis)
     trend_line <- list(trend_line = trend_line, resting_points = analysis_complete)
   }
   
@@ -241,9 +241,8 @@ estimate_ts_parameters <- function(model, initial_values){
 select_state_space_model <- function(series, initial_values_all) {
   
   periodicity <- stats::tsp(series)[3]
-  
+  SSMtrend <- KFAS::SSMtrend
   model <- KFAS::SSModel(series ~ SSMtrend(2, Q = list(0, matrix(NA))), H = matrix(NA))
-  
   initial_values <- initial_values_all[c(3, 1)]
   
   return(list(model = model, initial_values = initial_values))

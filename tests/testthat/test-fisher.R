@@ -1,4 +1,4 @@
-test_that("Output Fisher is valid", {
+test_that("Test Fisher", {
   save_refs <- FALSE  # Set to TRUE to save reference output
   ref_file <- test_path("test_data", "fisher_output.rds")
   

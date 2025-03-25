@@ -1,4 +1,4 @@
-test_that("Output Paasche is valid", {
+test_that("Test Paasche", {
   save_refs <- FALSE  # Set to TRUE to save reference output
   ref_file <- test_path("test_data", "paasche_output.rds")
   

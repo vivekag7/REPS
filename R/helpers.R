@@ -367,9 +367,9 @@ calculate_hmts_index <- function(
   imputations$index <- matrix_hmts$index <- matrix_hmts_index$index <- window$index <- calculate_index(period_list, geometric_averages, reference_period = reference_period)
   
   if (number_of_observations == TRUE) {
-    results <- dplyr::select(imputations, "period", "index", "number_observations")
+    results <- dplyr::select(dplyr::all_of(imputations, c("period", "index", "number_observations")))
   } else {
-    results <- dplyr::select(imputations, "period", "index")
+    results <- dplyr::select(dplyr::all_of(imputations, c("period", "index")))
   }
   
   if (resting_points == TRUE) {
