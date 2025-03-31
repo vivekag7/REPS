@@ -84,8 +84,8 @@ calculate_hmts <- function(
   validate_input(dataset, period_variable, dependent_variable, continuous_variables, categorical_variables, log_dependent)
   
   dataset <- dataset |>
-    dplyr::rename(period_var_temp = period_variable) |>
-    dplyr::mutate(period_var_temp = as.character(period_var_temp),
+    dplyr::rename(period = period_variable) |>
+    dplyr::mutate(period = as.character(period),
                   dplyr::across(dplyr::all_of(categorical_variables),
                                 as.factor))
   

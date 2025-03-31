@@ -19,7 +19,7 @@ calculate_trend_line_kfas <- function(original_series
   
   original_series <- log(original_series)
   
-  original_ts <- stats::ts(original_series, start = 1, frequency = periodicity, names = "origineel_ts")
+  original_ts <- stats::ts(original_series, start = 1, frequency = as.numeric(periodicity), names = "origineel_ts")
   
   startvalues_old <- set_startvalues(log(0.1), log(0.1), log(0.1), log(0.1), log(0.1))
   
