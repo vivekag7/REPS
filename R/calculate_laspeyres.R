@@ -65,6 +65,8 @@ calculate_laspeyres <- function(dataset
  
   
   assertthat::assert_that(assertthat::has_name(dataset, c(period_variable, dependent_variable, continious_variables, categorical_variables)))
+  periods_in_year <- as.numeric(periods_in_year)
+  number_preliminary_periods <- as.numeric(number_preliminary_periods)
   independent_variables <- c(continious_variables, categorical_variables)
   
   
