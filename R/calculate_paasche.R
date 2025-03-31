@@ -54,6 +54,8 @@ calculate_paasche <- function(dataset
   # Merge independent variables
   # independent_variables <- c(continious_variables, categorical_variables)
   assertthat::assert_that(assertthat::has_name(dataset, c(period_variable, dependent_variable, continious_variables, categorical_variables)))
+  periods_in_year <- as.numeric(periods_in_year)
+  number_preliminary_periods <- as.numeric(number_preliminary_periods)
   independent_variables <- c(continious_variables, categorical_variables)
 
   # Rename period_variable and transform to character
