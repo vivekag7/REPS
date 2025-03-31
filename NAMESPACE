@@ -3,6 +3,7 @@
 export(calculate_fisher)
 export(calculate_hmts)
 export(calculate_laspeyres)
+export(calculate_method_index)
 export(calculate_paasche)
 importFrom(assertthat,assert_that)
 importFrom(dplyr,across)

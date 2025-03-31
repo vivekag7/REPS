@@ -565,12 +565,12 @@ calculate_hedonic_imputationmatrix <- function(dataset
 
 ### This is the fourth internal function
 
-validate_input <- function(dataset, period_variable, dependent_variable, continious_variables, categorical_variables, log_dependent) {
+validate_input <- function(dataset, period_variable, dependent_variable, continuous_variables, categorical_variables, log_dependent) {
   # Dataset contains all necessary columns
-  assertthat::assert_that(assertthat::has_name(dataset, c(period_variable, dependent_variable, continious_variables, categorical_variables)))
+  assertthat::assert_that(assertthat::has_name(dataset, c(period_variable, dependent_variable, continuous_variables, categorical_variables)))
   
   # Dependent and continuous variables only contain numeric values
-  numeric_cols <- c(dependent_variable, continious_variables)
+  numeric_cols <- c(dependent_variable, continuous_variables)
   for (col in numeric_cols) {
     assertthat::assert_that(is.numeric(dataset[[col]]), msg = paste("Column", col, "is not (fully) numeric."))
   }

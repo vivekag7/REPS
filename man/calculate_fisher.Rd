@@ -8,7 +8,7 @@ calculate_fisher(
   dataset,
   period_variable,
   dependent_variable,
-  continious_variables,
+  continuous_variables,
   categorical_variables,
   log_dependent = FALSE,
   reference_period = NULL,
@@ -22,7 +22,7 @@ calculate_fisher(
 
 \item{dependent_variable}{usually the sale price}
 
-\item{continious_variables}{vector with quality determining numeric variables (no dummies)}
+\item{continuous_variables}{vector with quality determining numeric variables (no dummies)}
 
 \item{categorical_variables}{vector with quality determining categorical variables (also dummies)}
 
@@ -53,7 +53,7 @@ This is taken care of in the function.
 Tbl_Fisher <- calculate_fisher(dataset = data_constraxion
                                 , period_variable = c("period")
                                 , dependent_variable = c('price')
-                                , continious_variables = c('floor_area')
+                                , continuous_variables = c('floor_area')
                                 , categorical_variables = c('neighbourhood_code')
                                 , log_dependent = TRUE
                                 , reference_period = 2015

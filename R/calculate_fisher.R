@@ -16,7 +16,7 @@
 #' @param dataset table with data (does not need to be a selection of relevant variables)
 #' @param period_variable variable in the table with periods
 #' @param dependent_variable usually the sale price
-#' @param continious_variables vector with quality determining numeric variables (no dummies)
+#' @param continuous_variables vector with quality determining numeric variables (no dummies)
 #' @param categorical_variables vector with quality determining categorical variables (also dummies)
 #' @param log_dependent should the dependent variable be transformed to its logarithm? default = TRUE
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
@@ -29,7 +29,7 @@
 #' Tbl_Fisher <- calculate_fisher(dataset = data_constraxion
 #'                                 , period_variable = c("period")
 #'                                 , dependent_variable = c('price')
-#'                                 , continious_variables = c('floor_area')
+#'                                 , continuous_variables = c('floor_area')
 #'                                 , categorical_variables = c('neighbourhood_code')
 #'                                 , log_dependent = TRUE
 #'                                 , reference_period = 2015
@@ -39,7 +39,7 @@
 calculate_fisher <- function(dataset
                              , period_variable
                              , dependent_variable
-                             , continious_variables
+                             , continuous_variables
                              , categorical_variables
                              , log_dependent = FALSE
                              , reference_period = NULL
@@ -49,7 +49,7 @@ calculate_fisher <- function(dataset
   laspeyres <- calculate_laspeyres(dataset = dataset
                                    , period_variable = period_variable
                                    , dependent_variable = dependent_variable
-                                   , continious_variables = continious_variables
+                                   , continuous_variables = continuous_variables
                                    , categorical_variables = categorical_variables
                                    , log_dependent = log_dependent
                                    , reference_period = NULL
@@ -61,7 +61,7 @@ calculate_fisher <- function(dataset
   paasche <- calculate_paasche(dataset = dataset
                                , period_variable = period_variable
                                , dependent_variable = dependent_variable
-                               , continious_variables = continious_variables
+                               , continuous_variables = continuous_variables
                                , categorical_variables = categorical_variables
                                , log_dependent = log_dependent
                                , reference_period = NULL
