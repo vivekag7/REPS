@@ -92,7 +92,7 @@ calculate_paasche <- function(dataset
                                    , number_of_observations_temp = number_of_observations
                                    , period_list_temp = period_list_paasche)
     if (imputation == TRUE) {
-      # Behoud alleen de kolommen nodig voor imputatie
+      # Retain columns that are necessary for imputations
       tbl_merge <- tbl_average_imputation[, c("period", "average_imputation")]
       
       # Insert imputations into table

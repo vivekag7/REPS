@@ -1,4 +1,4 @@
-test_that("calculate_geometric_average works correctly", {
+test_that("calculate_geometric_average", {
   a <- c(1, 2, 3, 4)
   expect_equal(round(calculate_geometric_average(a), 4), round(2.213364, 4))
   
@@ -10,7 +10,7 @@ test_that("calculate_geometric_average works correctly", {
   expect_error(calculate_geometric_average(c("a", "b", "c")), "Values is not \\(fully\\) numeric")
 })
 
-test_that("calculate_index returns expected index series", {
+test_that("calculate_index", {
   periods <- c("2020Q1", "2020Q2", "2020Q3")
   values <- c(100, 110, 90)
   
@@ -30,7 +30,77 @@ test_that("calculate_index returns expected index series", {
   expect_error(calculate_index(c("2020Q1", "2020Q2"), c(100, 110, 120)), "not of the same length")
 })
 
-test_that("show_progress_loop runs silently", {
+test_that("show_progress_loop", {
   expect_output(show_progress_loop(1, 5), "Progress:") 
   expect_message(show_progress_loop(5, 5), "Done!")    
 })
+
+test_that("validate_input works correctly", {
+  # Valid input should not throw an error
+  expect_silent(validate_input(
+    dataset = data_constraxion,
+    period_variable = c("period"),
+    dependent_variable = c("price"),
+    continious_variables = c("floor_area"),
+    categorical_variables = c("neighbourhood_code"),
+    log_dependent = TRUE
+  ))
+  
+  expect_error(validate_input(
+    dataset = data_constraxion[, -which(names(data_constraxion) == "period")],
+    period_variable = c("period"),
+    dependent_variable = c("price"),
+    continious_variables = c("floor_area"),
+    categorical_variables = c("neighbourhood_code"),
+    log_dependent = TRUE
+  ), "does not have all of these name")
+  
+  
+  # Error: non-numeric continuous variable
+  data_non_numeric <- data_constraxion
+  data_non_numeric$floor_area <- as.character(data_non_numeric$floor_area)
+  expect_error(validate_input(
+    dataset = data_non_numeric,
+    period_variable = c("period"),
+    dependent_variable = c("price"),
+    continious_variables = c("floor_area"),
+    categorical_variables = c("neighbourhood_code"),
+    log_dependent = TRUE
+  ), "not \\(fully\\) numeric")
+  
+  # Error: log_dependent is not a boolean
+  expect_error(validate_input(
+    dataset = data_constraxion,
+    period_variable = c("period"),
+    dependent_variable = c("price"),
+    continious_variables = c("floor_area"),
+    categorical_variables = c("neighbourhood_code"),
+    log_dependent = "TRUE"
+  ), "log_dependent.*boolean")
+  
+  # Error: negative price while log_dependent = FALSE
+  data_negative_price <- data_constraxion
+  data_negative_price$price[1] <- -100000
+  expect_error(validate_input(
+    dataset = data_negative_price,
+    period_variable = c("period"),
+    dependent_variable = c("price"),
+    continious_variables = c("floor_area"),
+    categorical_variables = c("neighbourhood_code"),
+    log_dependent = FALSE
+  ), "contains negative values")
+  
+  # Error: invalid period format
+  data_bad_period <- data_constraxion
+  data_bad_period$period <- c("2020-01", "2020-02", rep("2020Q1", nrow(data_bad_period) - 2))
+  expect_error(validate_input(
+    dataset = data_bad_period,
+    period_variable = c("period"),
+    dependent_variable = c("price"),
+    continious_variables = c("floor_area"),
+    categorical_variables = c("neighbourhood_code"),
+    log_dependent = TRUE
+  ), "correct format")
+})
+
+
