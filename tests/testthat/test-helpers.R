@@ -1,4 +1,4 @@
-test_that("calculate_geometric_average", {
+test_that("Test calculate_geometric_average", {
   a <- c(1, 2, 3, 4)
   expect_equal(round(calculate_geometric_average(a), 4), round(2.213364, 4))
   
@@ -10,7 +10,7 @@ test_that("calculate_geometric_average", {
   expect_error(calculate_geometric_average(c("a", "b", "c")), "Values is not \\(fully\\) numeric")
 })
 
-test_that("calculate_index", {
+test_that("Test calculate_index", {
   periods <- c("2020Q1", "2020Q2", "2020Q3")
   values <- c(100, 110, 90)
   
@@ -30,12 +30,12 @@ test_that("calculate_index", {
   expect_error(calculate_index(c("2020Q1", "2020Q2"), c(100, 110, 120)), "not of the same length")
 })
 
-test_that("show_progress_loop", {
+test_that("Test show_progress_loop", {
   expect_output(show_progress_loop(1, 5), "Progress:") 
   expect_message(show_progress_loop(5, 5), "Done!")    
 })
 
-test_that("validate_input works correctly", {
+test_that("Test validate_input", {
   # Valid input should not throw an error
   expect_silent(validate_input(
     dataset = data_constraxion,
@@ -101,6 +101,149 @@ test_that("validate_input works correctly", {
     categorical_variables = c("neighbourhood_code"),
     log_dependent = TRUE
   ), "correct format")
+})
+
+test_that("Test calculate_hedonic_imputation", {
+  save_refs <- FALSE  # Set to TRUE to save reference output
+  ref_file <- test_path("test_data", "hedonic_imputation_output.rds")
+  
+  # Input variables
+  period_variable <- c("period")
+  dependent_variable <- c("price")
+  continious_variables <- c("floor_area")
+  categorical_variables <- c("neighbourhood_code")
+  independent_variables <- c(continious_variables, categorical_variables)
+  log_dependent <- TRUE
+  number_of_observations <- TRUE
+  
+  
+  # Prepare dataset in right format
+  dataset <- data_constraxion |>
+    dplyr::rename(period_var_temp = dplyr::all_of(period_variable)) |>
+    dplyr::mutate(
+      period_var_temp = as.character(period_var_temp),
+      dplyr::across(dplyr::all_of(categorical_variables), as.factor)
+    )
+  
+  period_list <- sort(unique(dataset$period_var_temp), decreasing = FALSE)
+  
+  # Run function
+  tbl_output <- calculate_hedonic_imputation(
+    dataset_temp = dataset,
+    period_temp = "period_var_temp",
+    dependent_variable_temp = dependent_variable,
+    independent_variables_temp = independent_variables,
+    log_dependent_temp = log_dependent,
+    number_of_observations_temp = number_of_observations,
+    period_list_temp = period_list
+  )
+  
+  if (save_refs) {
+    dir.create(dirname(ref_file), showWarnings = FALSE, recursive = TRUE)
+    saveRDS(tbl_output, ref_file)
+    succeed("Reference output saved.")
+  } else {
+    ref_tbl <- readRDS(ref_file)
+    expect_equal(tbl_output, ref_tbl, tolerance = 1e-8)
+  }
+})
+
+test_that("Test calculate_hmts_index", {
+  save_refs <- FALSE  # Set to TRUE to save the reference output
+  ref_file <- test_path("test_data", "hmts_index_output.rds")
+  
+  # Parameters
+  period_variable <- "period"
+  dependent_variable <- "price"
+  continuous_variables <- c("floor_area")
+  categorical_variables <- c("neighbourhood_code")
+  log_dependent <- TRUE
+  reference_period <- 2015
+  periods_in_year <- 4
+  production_since <- NULL
+  number_preliminary_periods <- 2
+  number_of_observations <- TRUE
+  resting_points <- FALSE  # Set to FALSE as requested
+  
+  # Prepare dataset as expected by the function
+  dataset <- data_constraxion |>
+    dplyr::rename(period = dplyr::all_of(period_variable)) |>
+    dplyr::mutate(
+      period = as.character(period),
+      dplyr::across(dplyr::all_of(categorical_variables), as.factor)
+    )
+  
+  # Run the function
+  tbl_output <- calculate_hmts_index(
+    dataset = dataset,
+    period_variable = period_variable,
+    dependent_variable = dependent_variable,
+    continuous_variables = continuous_variables,
+    categorical_variables = categorical_variables,
+    log_dependent = log_dependent,
+    reference_period = reference_period,
+    periods_in_year = periods_in_year,
+    production_since = production_since,
+    number_preliminary_periods = number_preliminary_periods,
+    number_of_observations = number_of_observations,
+    resting_points = resting_points
+  )
+  
+  if (save_refs) {
+    dir.create(dirname(ref_file), showWarnings = FALSE, recursive = TRUE)
+    saveRDS(tbl_output, ref_file)
+    succeed("Reference output saved.")
+  } else {
+    ref_tbl <- readRDS(ref_file)
+    expect_equal(tbl_output, ref_tbl, tolerance = 1e-8)
+  }
+})
+
+test_that("Test calculate_hedonic_imputationmatrix", {
+  save_refs <- FALSE  # Set to TRUE to save the reference output
+  ref_file <- test_path("test_data", "hedonic_imputation_matrix_output.rds")
+  
+  # Parameters used by the function
+  period_variable <- "period"
+  dependent_variable <- "price"
+  continuous_variables <- c("floor_area")
+  categorical_variables <- c("neighbourhood_code")
+  log_dependent <- TRUE
+  periods_in_year <- 4
+  number_of_observations <- TRUE
+  production_since <- NULL
+  number_preliminary_periods <- 2
+  
+  # Prepare dataset as expected
+  dataset <- data_constraxion |>
+    dplyr::rename(period = dplyr::all_of(period_variable)) |>
+    dplyr::mutate(
+      period = as.character(period),
+      dplyr::across(dplyr::all_of(categorical_variables), as.factor)
+    )
+  
+  # Run the function
+  matrix_output <- calculate_hedonic_imputationmatrix(
+    dataset = dataset,
+    period_variable = "period",
+    dependent_variable = dependent_variable,
+    continuous_variables = continuous_variables,
+    categorical_variables = categorical_variables,
+    log_dependent = log_dependent,
+    periods_in_year = periods_in_year,
+    number_of_observations = number_of_observations,
+    production_since = production_since,
+    number_preliminary_periods = number_preliminary_periods
+  )
+  
+  if (save_refs) {
+    dir.create(dirname(ref_file), showWarnings = FALSE, recursive = TRUE)
+    saveRDS(matrix_output, ref_file)
+    succeed("Reference output saved.")
+  } else {
+    ref_tbl <- readRDS(ref_file)
+    expect_equal(matrix_output, ref_tbl, tolerance = 1e-8)
+  }
 })
 
 

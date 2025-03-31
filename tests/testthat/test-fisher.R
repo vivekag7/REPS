@@ -16,7 +16,7 @@ test_that("Test Fisher", {
   if (save_refs) {
     dir.create(dirname(ref_file), showWarnings = FALSE, recursive = TRUE)
     saveRDS(tbl_fisher, ref_file)
-    succeed("Reference file saved.")  # Test passes automatically
+    succeed("Reference file saved.")  
   } else {
     ref_tbl <- readRDS(ref_file)
     expect_equal(tbl_fisher, ref_tbl, tolerance = 1e-8)

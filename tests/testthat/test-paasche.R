@@ -17,7 +17,7 @@ test_that("Test Paasche", {
   if (save_refs) {
     dir.create(dirname(ref_file), showWarnings = FALSE, recursive = TRUE)
     saveRDS(tbl_paasche, ref_file)
-    succeed("Reference file saved.")  # Test passes automatically
+    succeed("Reference file saved.")
   } else {
     ref_tbl <- readRDS(ref_file)
     expect_equal(tbl_paasche, ref_tbl, tolerance = 1e-8)

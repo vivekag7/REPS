@@ -562,6 +562,9 @@ calculate_hedonic_imputationmatrix <- function(dataset
   
 }
 
+
+### This is the fourth internal function
+
 validate_input <- function(dataset, period_variable, dependent_variable, continious_variables, categorical_variables, log_dependent) {
   # Dataset contains all necessary columns
   assertthat::assert_that(assertthat::has_name(dataset, c(period_variable, dependent_variable, continious_variables, categorical_variables)))
