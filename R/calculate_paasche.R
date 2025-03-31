@@ -58,7 +58,7 @@ calculate_paasche <- function(dataset
 
   # Rename period_variable and transform to character
   dataset <- dataset |>
-    dplyr::rename(period_var_temp = period_variable) |>
+    dplyr::rename(period_var_temp = all_of(period_variable)) |>
     dplyr::mutate(period_var_temp = as.character(period_var_temp),
                   dplyr::across(dplyr::all_of(categorical_variables),
                                 as.factor))
@@ -91,15 +91,17 @@ calculate_paasche <- function(dataset
                                    , log_dependent_temp = log_dependent
                                    , number_of_observations_temp = number_of_observations
                                    , period_list_temp = period_list_paasche)
-
     if (imputation == TRUE) {
-
+      # Behoud alleen de kolommen nodig voor imputatie
+      tbl_merge <- tbl_average_imputation[, c("period", "average_imputation")]
+      
       # Insert imputations into table
-      tbl_imputations <- merge(tbl_imputations, tbl_average_imputation, "period", all.x = TRUE)
-
+      tbl_imputations <- merge(tbl_imputations, tbl_merge, by = "period", all.x = TRUE)
+      
       # Rename variable to base year
       names(tbl_imputations)[ncol(tbl_imputations)] <- paste0("Base_", period_list[number_of_periods_temp])
     }
+    
 
     if (number_of_observations == TRUE) {
 
