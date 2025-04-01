@@ -7,12 +7,12 @@
 defaultupdatefn(pars, model)
 }
 \arguments{
-\item{pars}{= startvalues}
+\item{pars}{startvalues}
 
-\item{model}{= state space modelnumber}
+\item{model}{state space modelnumber}
 }
 \value{
-newmodel
+Newmodel
 }
 \description{
 This function is used in the function: calculate_trend_line_KFAS()
@@ -20,4 +20,4 @@ This function is used in the function: calculate_trend_line_KFAS()
 \author{
 Pim Ouwehand
 }
-\keyword{internal}
+\keyword{Internal}

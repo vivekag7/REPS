@@ -1,25 +1,24 @@
 ### This is the first internal function
 
-#' Calculate imputation averages with the 1th period as base period
+#' Calculate imputation averages with the 1st period as base period
 #'
-#' Prices are estimated based on a provided hedonic model
+#' Prices are estimated based on a provided Hedonic model
 #' The model values are calculated for each period in the data
 #' With these values, new prices of base period observations are estimated.
 #' With this function, imputations according to the Laspeyres and Paasche method can be estimated.
 #'
 #' @author Farley Ishaak
-#' @param dataset_temp table with data (hoeft no selectie te zijn van benodigde variables)
-#' @param period_temp 'Period'
+#' @param dataset_temp table with data 
+#' @param period_temp 'period'
 #' @param dependent_variable_temp usually the sale price
 #' @param independent_variables_temp vector with quality determining variables
 #' @param log_dependent_temp should the dependent variable be transformed to its logarithm? default = TRUE
 #' @param period_list_temp list with all available periods
 #' @return
-#' table with imputation averages per period
+#' Table with imputation averages per period
 #' @keywords internal
 
-# the parameters worden (bij bedoeld gebruik) opgegeven in a bovenliggende functie
-  
+
 calculate_hedonic_imputation <- function(dataset_temp = dataset
                                          , period_temp = "period_var_temp"
                                          , dependent_variable_temp = dependent_variable
@@ -50,7 +49,7 @@ calculate_hedonic_imputation <- function(dataset_temp = dataset
   
   ## Model
   
-  # Compile model
+  # Construct the regression formula from independent variables.
   for (indep_var in 1: length(independent_variables_temp)) {
     if (indep_var == 1) {
       model <- paste0(dependent_variable_temp, "~", independent_variables_temp[indep_var])
@@ -67,7 +66,7 @@ calculate_hedonic_imputation <- function(dataset_temp = dataset
   
   for (current_period in 1:number_of_periods) {
     
-    # Estimate coefficients of the 1th period
+    # Estimate coefficients of the 1st period
     if (current_period == 1) {
       rekenbestand <- subset(dataset_temp, period_var_temp == period_list_temp[1])
       fitmdl <- stats::lm(model, rekenbestand)
@@ -139,7 +138,7 @@ calculate_hedonic_imputation <- function(dataset_temp = dataset
 #'
 #' N.B. with from_growth_rate:
 #' The series of mutations must be equally long to the series of values.
-#' Thee vector should, therefore, also contain a mutation for the first period (this is likely 1).
+#' The vector should, therefore, also contain a mutation for the first period (this is likely 1).
 #' In the calculation, this first mutation is not used.
 #'
 #' N.B. for the reference period:
@@ -172,7 +171,7 @@ calculate_index <- function(periods
   # Transforms periods to characters
   periods <- as.character(periods)
   
-  # If reference_period is not provided, then reference_period = 1th period from list
+  # If reference_period is not provided, then reference_period = 1st period from list
   if (is.null(reference_period) == TRUE) {
     reference_period <- periods[1]
     periods_short <- periods
@@ -217,8 +216,38 @@ calculate_index <- function(periods
 show_progress_loop <- function(single_iteration
                                , total_iterations){
   
+  # Print dynamic progress indicator in the console
   cat(sprintf("\rProgress: %3d%%", round(single_iteration / total_iterations * 100)))
   if (single_iteration == total_iterations) message("\n Done!")
+  
+}
+
+### This is the fourth internal function
+
+validate_input <- function(dataset, period_variable, dependent_variable, continuous_variables, categorical_variables, log_dependent) {
+  # Dataset contains all necessary columns
+  assertthat::assert_that(assertthat::has_name(dataset, c(period_variable, dependent_variable, continuous_variables, categorical_variables)))
+  
+  # Dependent and continuous variables only contain numeric values
+  numeric_cols <- c(dependent_variable, continuous_variables)
+  for (col in numeric_cols) {
+    assertthat::assert_that(is.numeric(dataset[[col]]), msg = paste("Column", col, "is not (fully) numeric."))
+  }
+  
+  # Validate that boolean parameters are correctly passed to function
+  assertthat::assert_that(is.logical(log_dependent), length(log_dependent) == 1, !is.na(log_dependent), msg = "The log_dependent parameter must be a boolean (TRUE/FALSE).")
+  
+  
+  # If log transformation still needs to be performed, dependent variable should contain strictly positive values.
+  if (!log_dependent) {
+    assertthat::assert_that(all(dataset[[dependent_variable]] > 0), msg = "The dependent variable contains negative values while log transformation needs to be performed.")
+  }
+  
+  regex_period <- "^[0-9]{4}([Mm](0?[1-9]|1[0-2])|[Qq](0?[1-4]))$"
+  
+  assertthat::assert_that(all(stringr::str_detect(dataset[[period_variable]], regex_period)), msg = "The period variable should be in the correct format, see documentation.")
+  
+  #2020Q1, 2020q1, 2020M1, 2020M01, 2020m01, 2020Q4, 2020q04
   
 }
 
@@ -263,7 +292,7 @@ show_progress_loop <- function(single_iteration
 #' @param periods_in_year if month, then 12. If quarter, then 4, etc. (default = 4)
 #' @param production_since 1 period in the format of the period_variable. See description above (default = NULL)
 #' @param number_preliminary_periods number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3
-#' @param resting_points Should analyses values be returned? (default = FALSE)
+#' @param resting_points should analyses values be returned? (default = FALSE)
 #' @return
 #' $Matrix_HMTS_index table with index series based on estimations with time series re-estimations
 #' $Matrix_HMTS table with estimated values based on time series re-estimations
@@ -394,7 +423,7 @@ calculate_hmts_index <- function(
 #' @author Farley Ishaak (FIHK)
 #' @param values series with numeric values
 #' @return geometric average
-#' @keywords internal
+#' @keywords Internal
 
 calculate_geometric_average <- function(values){
   
@@ -411,8 +440,8 @@ calculate_geometric_average <- function(values){
 
 #' Calculate a matrix with hedonic imputation averages, re-estimated time series imputation averages and  corresponding index series.
 #'
-#' Based on a hedonic model, a series of imputated values is calculated in below steps:
-#' 1: for every period average imputed prices are estimated with the 1th period as base period.
+#' Based on a hedonic model, a series of imputed values is calculated in below steps:
+#' 1: for every period average imputed prices are estimated with the 1st period as base period.
 #' 2: the above is repeated for each possible base period. This result in an equal number of series as the number of periods.
 #' 3: All series are re-estimated with a time series model (state space).
 #'    This step is optionally skipped with a parameter (state_space_model = NULL)
@@ -421,19 +450,19 @@ calculate_geometric_average <- function(values){
 #'
 #' Parameter 'production_since':
 #' To simulate a series, where 1 period a time expires (as in production), a manual choice in the past is possible.
-#' Untill this period, all periods are imputed. After that, 1 period is added.
+#' Until this period, all periods are imputed. After that, 1 period is added.
 #'
 #' @author Farley Ishaak
 #' @param dataset table with data (does not need to be a selection of relevant variables)
 #' @param period_variable variable in the dataset with the period
 #' @param dependent_variable usually the sale price
 #' @param continuous_variables vector with quality-determining continues variables (numeric, no dummies)
-#' @param categorical_variables = vector with categorical variables (also dummy)
-#' @param log_dependent = should the dependent variable be transformed to its logarithm? default = TRUE
-#' @param number_of_observations = number of observations per period (default = TRUE)
-#' @param periods_in_year = if month, then 12. If quarter, then 4, etc. (default = 4)
-#' @param production_since = 1 period in the format of the period_variable. See description above (default = NULL)
-#' @param number_preliminary_periods = number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3
+#' @param categorical_variables vector with categorical variables (also dummy)
+#' @param log_dependent should the dependent variable be transformed to its logarithm? default = TRUE
+#' @param number_of_observations number of observations per period (default = TRUE)
+#' @param periods_in_year if month, then 12. If quarter, then 4, etc. (default = 4)
+#' @param production_since 1 period in the format of the period_variable. See description above (default = NULL)
+#' @param number_preliminary_periods number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3
 #' @return
 #' $Matrix_HMTS_index table with index series based on estimations with time series re-estimations
 #' $Matrix_HMTS table with estimated values based on time series re-estimations
@@ -563,34 +592,7 @@ calculate_hedonic_imputationmatrix <- function(dataset
 }
 
 
-### This is the fourth internal function
 
-validate_input <- function(dataset, period_variable, dependent_variable, continuous_variables, categorical_variables, log_dependent) {
-  # Dataset contains all necessary columns
-  assertthat::assert_that(assertthat::has_name(dataset, c(period_variable, dependent_variable, continuous_variables, categorical_variables)))
-  
-  # Dependent and continuous variables only contain numeric values
-  numeric_cols <- c(dependent_variable, continuous_variables)
-  for (col in numeric_cols) {
-    assertthat::assert_that(is.numeric(dataset[[col]]), msg = paste("Column", col, "is not (fully) numeric."))
-  }
-  
-  # Validate that boolean parameters are correctly passed to function
-  assertthat::assert_that(is.logical(log_dependent), length(log_dependent) == 1, !is.na(log_dependent), msg = "The log_dependent parameter must be a boolean (TRUE/FALSE).")
-  
-  
-  # If log transformation still needs to be performed, dependent variable should contain strictly positive values.
-  if (!log_dependent) {
-    assertthat::assert_that(all(dataset[[dependent_variable]] > 0), msg = "The dependent variable contains negative values while log transformation needs to be performed.")
-  }
-  
-  regex_period <- "^[0-9]{4}([Mm](0?[1-9]|1[0-2])|[Qq](0?[1-4]))$"
-  
-  assertthat::assert_that(all(stringr::str_detect(dataset[[period_variable]], regex_period)), msg = "The period variable should be in the correct format, see documentation.")
-  
-  #2020Q1, 2020q1, 2020M1, 2020M01, 2020m01, 2020Q4, 2020q04
-  
-}
 
 
 

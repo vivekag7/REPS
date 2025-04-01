@@ -7,11 +7,11 @@
 calculate_trend_line_kfas(original_series, periodicity, resting_points)
 }
 \arguments{
-\item{original_series}{= time series with values in chrolological order}
+\item{original_series}{time series with values in chrolological order}
 
-\item{periodicity}{= if month, then  12. If quarter, then 4, etc. (defaul = 4)}
+\item{periodicity}{if month, then  12. If quarter, then 4, etc. (defaul = 4)}
 
-\item{resting_points}{= Should analyses values be returned? (default = FALSE)}
+\item{resting_points}{should analyses values be returned? (default = FALSE)}
 }
 \value{
 Trend line

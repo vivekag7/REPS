@@ -40,7 +40,7 @@ calculate_hmts_index(
 
 \item{number_of_observations}{number of observations per period (default = TRUE)}
 
-\item{resting_points}{Should analyses values be returned? (default = FALSE)}
+\item{resting_points}{should analyses values be returned? (default = FALSE)}
 }
 \value{
 $Matrix_HMTS_index table with index series based on estimations with time series re-estimations

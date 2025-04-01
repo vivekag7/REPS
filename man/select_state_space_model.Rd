@@ -7,9 +7,9 @@
 select_state_space_model(series, initial_values_all)
 }
 \arguments{
-\item{series}{= time series with values in chronological order}
+\item{series}{time series with values in chronological order}
 
-\item{initial_values_all}{= =  startvalues for 5 hyperparameters: meas, level, slope, seas, scaling}
+\item{initial_values_all}{start values for 5 hyperparameters: meas, level, slope, seas, scaling}
 }
 \value{
 modelvalues (level, slope) of the chosen state space model and the provided time series

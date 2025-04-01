@@ -1,0 +1,118 @@
+---
+title: "Using `calculate_method_index()` for Price Index Calculation"
+author: ""
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using `calculate_method_index()` for Price Index Calculation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Introduction
+
+The `calculate_method_index()` function is a central hub for computing price indices using various hedonic-based methods. It allows users to select from one of four supported methods:
+
+- **Laspeyres**
+- **Paasche**
+- **Fisher** (geometric average of Laspeyres and Paasche)
+- **HMTS** (Hedonic Multilateral Time series re-estimation Splicing)
+
+This vignette provides examples of how to use the function with each method.
+
+## Required Data
+
+Before running any calculations, ensure that your dataset is available and contains the necessary variables:
+
+```r
+# Example dataset (you should already have this loaded)
+head(data_constraxion)
+```
+
+The required variables include:
+- `period_variable`: the time period
+- `dependent_variable`: usually price
+- `continuous_variables`: e.g., `floor_area`
+- `categorical_variables`: e.g., `neighbourhood_code`
+
+## Laspeyres Index
+
+```r
+Tbl_Laspeyres <- calculate_method_index(
+  method = "laspeyres",
+  dataset = data_constraxion,
+  period_variable = "period",
+  dependent_variable = "price",
+  continuous_variables = "floor_area",
+  categorical_variables = "neighbourhood_code",
+  log_dependent = TRUE,
+  reference_period = 2015,
+  number_of_observations = TRUE,
+  imputation = TRUE
+)
+head(Tbl_Laspeyres)
+```
+
+## Paasche Index
+
+```r
+Tbl_Paasche <- calculate_method_index(
+  method = "paasche",
+  dataset = data_constraxion,
+  period_variable = "period",
+  dependent_variable = "price",
+  continuous_variables = "floor_area",
+  categorical_variables = "neighbourhood_code",
+  log_dependent = TRUE,
+  reference_period = 2015,
+  number_of_observations = TRUE,
+  imputation = TRUE
+)
+head(Tbl_Paasche)
+```
+
+## Fisher Index (Geometric Mean)
+
+```r
+Tbl_Fisher <- calculate_method_index(
+  method = "fisher",
+  dataset = data_constraxion,
+  period_variable = "period",
+  dependent_variable = "price",
+  continuous_variables = "floor_area",
+  categorical_variables = "neighbourhood_code",
+  log_dependent = TRUE,
+  reference_period = 2015,
+  number_of_observations = TRUE
+)
+head(Tbl_Fisher)
+```
+
+## HMTS Index (Advanced)
+
+```r
+HMTS <- calculate_method_index(
+  method = "hmts",
+  dataset = data_constraxion,
+  period_variable = "period",
+  dependent_variable = "price",
+  continuous_variables = "floor_area",
+  categorical_variables = "neighbourhood_code",
+  log_dependent = TRUE,
+  reference_period = 2015,
+  number_of_observations = TRUE,
+  periods_in_year = 4,
+  production_since = NULL,
+  number_preliminary_periods = 2,
+  resting_points = TRUE
+)
+
+# Access specific tables
+Tbl_HMTS_Index <- as.data.frame(HMTS$Index)
+Tbl_HMTS_Analysis <- as.data.frame(HMTS$Matrix_HMTS_analysis)
+head(Tbl_HMTS_Index)
+```
+
+## Summary
+
+The `calculate_method_index()` function streamlines access to multiple hedonic index methods via a consistent interface. This allows analysts to easily compare outputs and select the most appropriate method for their context.

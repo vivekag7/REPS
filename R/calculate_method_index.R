@@ -110,6 +110,8 @@ calculate_method_index <- function(method,
                 paste(shQuote(valid_methods), collapse = ", "), "."))
   }
   
+  validate_input(dataset, period_variable, dependent_variable, continuous_variables, categorical_variables, log_dependent)
+  
   if (method == "fisher") {
     return(calculate_fisher(
       dataset = dataset,

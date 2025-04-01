@@ -63,7 +63,6 @@ calculate_hmts <- function(
     resting_points) {
   
   
-  validate_input(dataset, period_variable, dependent_variable, continuous_variables, categorical_variables, log_dependent)
   periods_in_year <- as.numeric(periods_in_year)
   number_preliminary_periods <- as.numeric(number_preliminary_periods)
   

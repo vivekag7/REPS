@@ -7,12 +7,12 @@
 estimate_ts_parameters(model, initial_values)
 }
 \arguments{
-\item{model}{= model values as output of the function select_state_space_model()}
+\item{model}{model values as output of the function select_state_space_model()}
 
-\item{initial_values}{= $initial.values as output of the model}
+\item{initial_values}{$initial.values as output of the model}
 }
 \value{
-parameter for the time series model
+Parameter for the time series model
 }
 \description{
 Estimate parameters to estimate trend lines
