@@ -47,24 +47,6 @@
 #' $Matrix_HMTS_analysis table with analysis values of the time series model per base period
 #' @keywords internal
 #' @return table with periods, index (and optional confidence intervals) and number of observations. If resting_points = TRUE, then list with tables. See general description and examples.
-#' @export
-#' @examples
-#' HMTS <- calculate_hmts(
-#'       dataset = data_constraxion
-#'       , period_variable = c("period")
-#'       , dependent_variable = c('price')
-#'       , continuous_variables = c('floor_area')
-#'       , categorical_variables = c('neighbourhood_code')
-#'       , log_dependent = TRUE
-#'       , reference_period = 2015
-#'       , number_of_observations = TRUE
-#'       , periods_in_year = 4
-#'       , production_since = NULL
-#'       , number_preliminary_periods = 2
-#'       , resting_points = TRUE)
-#'
-#' Tbl_index <- as.data.frame(HMTS$Index)
-#' Tbl_analysis <- as.data.frame(HMTS$Matrix_HMTS_analysis)
 
 calculate_hmts <- function(
     dataset,
@@ -81,7 +63,6 @@ calculate_hmts <- function(
     resting_points) {
   
   
-  validate_input(dataset, period_variable, dependent_variable, continuous_variables, categorical_variables, log_dependent)
   periods_in_year <- as.numeric(periods_in_year)
   number_preliminary_periods <- as.numeric(number_preliminary_periods)
   

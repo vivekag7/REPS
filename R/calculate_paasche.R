@@ -16,7 +16,7 @@
 #' @param dataset table with data (does not need to be a selection of relevant variables)
 #' @param period_variable variable in the table with periods
 #' @param dependent_variable usually the sale price
-#' @param continious_variables vector with quality determining numeric variables (no dummies)
+#' @param continuous_variables vector with quality determining numeric variables (no dummies)
 #' @param categorical_variables vector with quality determining categorical variables (also dummies)
 #' @param log_dependent should the dependent variable be transformed to its logarithm? default = TRUE
 #' @param index caprice index
@@ -25,25 +25,11 @@
 #' @param imputation display the underlying average imputation values? (default = FALSE)
 #' @return
 #' table with index, imputation averages, number of observations and confidence intervals per period
-#' @export
-#' @examples
-#'
-#' Tbl_Paasche <- calculate_paasche(dataset = data_constraxion
-#'                                 , period_variable = c("period")
-#'                                 , dependent_variable = c('price')
-#'                                 , continious_variables = c('floor_area')
-#'                                 , categorical_variables = c('neighbourhood_code')
-#'                                 , log_dependent = TRUE
-#'                                 , index = TRUE
-#'                                 , reference_period = 2015
-#'                                 , number_of_observations = TRUE
-#'                                 , imputation = TRUE)
-
 
 calculate_paasche <- function(dataset
                               , period_variable
                               , dependent_variable
-                              , continious_variables
+                              , continuous_variables
                               , categorical_variables
                               , log_dependent = FALSE
                               , reference_period = NULL
@@ -52,9 +38,9 @@ calculate_paasche <- function(dataset
                               , imputation = FALSE) {
 
   # Merge independent variables
-  # independent_variables <- c(continious_variables, categorical_variables)
-  assertthat::assert_that(assertthat::has_name(dataset, c(period_variable, dependent_variable, continious_variables, categorical_variables)))
-  independent_variables <- c(continious_variables, categorical_variables)
+  # independent_variables <- c(continuous_variables, categorical_variables)
+  assertthat::assert_that(assertthat::has_name(dataset, c(period_variable, dependent_variable, continuous_variables, categorical_variables)))
+  independent_variables <- c(continuous_variables, categorical_variables)
 
   # Rename period_variable and transform to character
   dataset <- dataset |>

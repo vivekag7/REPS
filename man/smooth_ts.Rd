@@ -7,7 +7,7 @@
 smooth_ts(fittedmodel)
 }
 \arguments{
-\item{fittedmodel}{= model values as output of the function estimate.TS.parameters()}
+\item{fittedmodel}{model values as output of the function estimate.TS.parameters()}
 }
 \value{
 sub-list $signalsubconf[,1] provides the estimated trend line

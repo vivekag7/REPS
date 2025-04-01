@@ -7,9 +7,9 @@
 #' The series are calculated with the package KFAS.
 #'
 #' @author Pim Ouwehand, Farley Ishaak
-#' @param original_series = time series with values in chrolological order
-#' @param periodicity = if month, then  12. If quarter, then 4, etc. (defaul = 4)
-#' @param resting_points = Should analyses values be returned? (default = FALSE)
+#' @param original_series time series with values in chrolological order
+#' @param periodicity if month, then  12. If quarter, then 4, etc. (defaul = 4)
+#' @param resting_points should analyses values be returned? (default = FALSE)
 #' @return Trend line
 #' @keywords internal
 
@@ -55,10 +55,10 @@ calculate_trend_line_kfas <- function(original_series
 #' This function is used in the function: calculate_trend_line_KFAS()
 #'
 #' @author Pim Ouwehand
-#' @param pars = startvalues
-#' @param model = state space modelnumber
-#' @return newmodel
-#' @keywords internal
+#' @param pars startvalues
+#' @param model state space modelnumber
+#' @return Newmodel
+#' @keywords Internal
 
 defaultupdatefn <- function(pars, model){
   
@@ -95,9 +95,9 @@ defaultupdatefn <- function(pars, model){
 #' This function is used in the function: calculate_trend_line_KFAS()
 #'
 #' @author Pim Ouwehand, Farley Ishaak
-#' @param model = modelvalues as output of the function select_state_space_model()
-#' @param initial_values = $initial.values as output of the model
-#' @param FUN = function called: defaultupdatefn
+#' @param model modelvalues as output of the function select_state_space_model()
+#' @param initial_values $initial.values as output of the model
+#' @param FUN function called: defaultupdatefn
 #' @return New initial startvalues
 #' @keywords internal
 
@@ -158,9 +158,9 @@ determine_initial_parameters <- function(model, initial_values, FUN=defaultupdat
 #' This function is used in the function: calculate_trend_line_KFAS()#'
 #'
 #' @author Pim Ouwehand, Farley Ishaak
-#' @param model = model values as output of the function select_state_space_model()
-#' @param initial_values = $initial.values as output of the model
-#' @return parameter for the time series model
+#' @param model model values as output of the function select_state_space_model()
+#' @param initial_values $initial.values as output of the model
+#' @return Parameter for the time series model
 #' @keywords internal
 
 
@@ -232,8 +232,8 @@ estimate_ts_parameters <- function(model, initial_values){
 #' This function is used in the function: calculate_trend_line_KFAS()
 #'
 #' @author Pim Ouwehand
-#' @param series = time series with values in chronological order
-#' @param initial_values_all = =  startvalues for 5 hyperparameters: meas, level, slope, seas, scaling
+#' @param series time series with values in chronological order
+#' @param initial_values_all start values for 5 hyperparameters: meas, level, slope, seas, scaling
 #' @return modelvalues (level, slope) of the chosen state space model and the provided time series
 #' @keywords internal
 
@@ -271,7 +271,7 @@ set_startvalues <- function(a, b, c, d, e) {
 #' This function is used in the function: calculate_trend_line_KFAS()
 #'
 #' @author Pim Ouwehand, Farley Ishaak
-#' @param fittedmodel = model values as output of the function estimate.TS.parameters()
+#' @param fittedmodel model values as output of the function estimate.TS.parameters()
 #' @return sub-list $signalsubconf[,1] provides the estimated trend line
 #' @keywords internal
 

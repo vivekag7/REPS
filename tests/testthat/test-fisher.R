@@ -6,7 +6,7 @@ test_that("Test Fisher", {
     dataset = data_constraxion,
     period_variable = "period",
     dependent_variable = "price",
-    continious_variables = "floor_area",
+    continuous_variables = "floor_area",
     categorical_variables = "neighbourhood_code",
     log_dependent = TRUE,
     reference_period = 2015,

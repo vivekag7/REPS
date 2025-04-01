@@ -41,7 +41,7 @@ test_that("Test validate_input", {
     dataset = data_constraxion,
     period_variable = c("period"),
     dependent_variable = c("price"),
-    continious_variables = c("floor_area"),
+    continuous_variables = c("floor_area"),
     categorical_variables = c("neighbourhood_code"),
     log_dependent = TRUE
   ))
@@ -50,7 +50,7 @@ test_that("Test validate_input", {
     dataset = data_constraxion[, -which(names(data_constraxion) == "period")],
     period_variable = c("period"),
     dependent_variable = c("price"),
-    continious_variables = c("floor_area"),
+    continuous_variables = c("floor_area"),
     categorical_variables = c("neighbourhood_code"),
     log_dependent = TRUE
   ), "does not have all of these name")
@@ -63,7 +63,7 @@ test_that("Test validate_input", {
     dataset = data_non_numeric,
     period_variable = c("period"),
     dependent_variable = c("price"),
-    continious_variables = c("floor_area"),
+    continuous_variables = c("floor_area"),
     categorical_variables = c("neighbourhood_code"),
     log_dependent = TRUE
   ), "not \\(fully\\) numeric")
@@ -73,7 +73,7 @@ test_that("Test validate_input", {
     dataset = data_constraxion,
     period_variable = c("period"),
     dependent_variable = c("price"),
-    continious_variables = c("floor_area"),
+    continuous_variables = c("floor_area"),
     categorical_variables = c("neighbourhood_code"),
     log_dependent = "TRUE"
   ), "log_dependent.*boolean")
@@ -85,7 +85,7 @@ test_that("Test validate_input", {
     dataset = data_negative_price,
     period_variable = c("period"),
     dependent_variable = c("price"),
-    continious_variables = c("floor_area"),
+    continuous_variables = c("floor_area"),
     categorical_variables = c("neighbourhood_code"),
     log_dependent = FALSE
   ), "contains negative values")
@@ -97,7 +97,7 @@ test_that("Test validate_input", {
     dataset = data_bad_period,
     period_variable = c("period"),
     dependent_variable = c("price"),
-    continious_variables = c("floor_area"),
+    continuous_variables = c("floor_area"),
     categorical_variables = c("neighbourhood_code"),
     log_dependent = TRUE
   ), "correct format")
@@ -110,9 +110,9 @@ test_that("Test calculate_hedonic_imputation", {
   # Input variables
   period_variable <- c("period")
   dependent_variable <- c("price")
-  continious_variables <- c("floor_area")
+  continuous_variables <- c("floor_area")
   categorical_variables <- c("neighbourhood_code")
-  independent_variables <- c(continious_variables, categorical_variables)
+  independent_variables <- c(continuous_variables, categorical_variables)
   log_dependent <- TRUE
   number_of_observations <- TRUE
   

@@ -24,7 +24,7 @@ The index can be calculated in two ways:
 \details{
 N.B. with from_growth_rate:
 The series of mutations must be equally long to the series of values.
-Thee vector should, therefore, also contain a mutation for the first period (this is likely 1).
+The vector should, therefore, also contain a mutation for the first period (this is likely 1).
 In the calculation, this first mutation is not used.
 
 N.B. for the reference period:

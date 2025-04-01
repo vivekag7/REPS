@@ -6,7 +6,7 @@ test_that("Test Paasche", {
     dataset = data_constraxion,
     period_variable = c("period"),
     dependent_variable = c("price"),
-    continious_variables = c("floor_area"),
+    continuous_variables = c("floor_area"),
     categorical_variables = c("neighbourhood_code"),
     log_dependent = TRUE,
     reference_period = 2015,

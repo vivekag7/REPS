@@ -18,4 +18,4 @@ The equation for the calculation is:: exp(mean(log(reeks_values)))
 \author{
 Farley Ishaak (FIHK)
 }
-\keyword{internal}
+\keyword{Internal}

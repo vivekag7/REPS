@@ -7,11 +7,11 @@
 determine_initial_parameters(model, initial_values, FUN = defaultupdatefn)
 }
 \arguments{
-\item{model}{= modelvalues as output of the function select_state_space_model()}
+\item{model}{modelvalues as output of the function select_state_space_model()}
 
-\item{initial_values}{= $initial.values as output of the model}
+\item{initial_values}{$initial.values as output of the model}
 
-\item{FUN}{= function called: defaultupdatefn}
+\item{FUN}{function called: defaultupdatefn}
 }
 \value{
 New initial startvalues

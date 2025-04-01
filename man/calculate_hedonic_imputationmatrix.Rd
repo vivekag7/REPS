@@ -26,17 +26,17 @@ calculate_hedonic_imputationmatrix(
 
 \item{continuous_variables}{vector with quality-determining continues variables (numeric, no dummies)}
 
-\item{categorical_variables}{= vector with categorical variables (also dummy)}
+\item{categorical_variables}{vector with categorical variables (also dummy)}
 
-\item{log_dependent}{= should the dependent variable be transformed to its logarithm? default = TRUE}
+\item{log_dependent}{should the dependent variable be transformed to its logarithm? default = TRUE}
 
-\item{periods_in_year}{= if month, then 12. If quarter, then 4, etc. (default = 4)}
+\item{periods_in_year}{if month, then 12. If quarter, then 4, etc. (default = 4)}
 
-\item{number_of_observations}{= number of observations per period (default = TRUE)}
+\item{number_of_observations}{number of observations per period (default = TRUE)}
 
-\item{production_since}{= 1 period in the format of the period_variable. See description above (default = NULL)}
+\item{production_since}{1 period in the format of the period_variable. See description above (default = NULL)}
 
-\item{number_preliminary_periods}{= number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3}
+\item{number_preliminary_periods}{number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3}
 }
 \value{
 $Matrix_HMTS_index table with index series based on estimations with time series re-estimations
@@ -46,8 +46,8 @@ $Matrix_HMS table with estimated values based on the hedonic model
 $Matrix_HMTS_analysis table with analysis values of the time series model per base period
 }
 \description{
-Based on a hedonic model, a series of imputated values is calculated in below steps:
-1: for every period average imputed prices are estimated with the 1th period as base period.
+Based on a hedonic model, a series of imputed values is calculated in below steps:
+1: for every period average imputed prices are estimated with the 1st period as base period.
 2: the above is repeated for each possible base period. This result in an equal number of series as the number of periods.
 3: All series are re-estimated with a time series model (state space).
    This step is optionally skipped with a parameter (state_space_model = NULL)
@@ -57,7 +57,7 @@ This matrix can be used for an index calculations according to the HMTS method.
 \details{
 Parameter 'production_since':
 To simulate a series, where 1 period a time expires (as in production), a manual choice in the past is possible.
-Untill this period, all periods are imputed. After that, 1 period is added.
+Until this period, all periods are imputed. After that, 1 period is added.
 }
 \author{
 Farley Ishaak

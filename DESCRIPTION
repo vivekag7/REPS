@@ -1,11 +1,17 @@
 Package: PGRealEstate
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Hedonic and Multilateral Index Methods for Real Estate Price Comparison
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Author: Farley Ishaak, Pim Ouwehand, Mohammed Kardal, Vivek Gajadhar, 
+    Odens van der Zwan, David Pietersz, Liu Nuo Su, Cynthia Cao
+Maintainer: Farley Ishaak <ff.ishaak@cbs.nl>
+Description: Provides functions to compute price indices using various hedonic and
+    multilateral methods, including Laspeyres, Paasche, Fisher, and HMTS (Hedonic
+    Multilateral Time series re-estimation with splicing). The central function
+    calculate_method_index() offers a unified interface for running these methods
+    on structured datasets. This package is designed to support index construction
+    workflows for real estate and other domains where quality-adjusted price
+    comparisons over time are essential.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
@@ -19,6 +25,9 @@ Imports:
     KFAS
 Standardizable: FALSE
 Suggests:
-    stringr (>= 1.5.1), 
+    knitr,
+    rmarkdown,
+    stringr (>= 1.5.1),
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+VignetteBuilder: knitr

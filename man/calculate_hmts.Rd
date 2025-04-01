@@ -79,24 +79,6 @@ $Matrix_HMTS_index table with index series based on estimated imputations (hedon
 $Matrix_HMTS table with estimated imputations (time series model)l
 $Matrix_HMTS_analyse table with diagnostic values of the time series model per base period
 }
-\examples{
-HMTS <- calculate_hmts(
-      dataset = data_constraxion
-      , period_variable = c("period")
-      , dependent_variable = c('price')
-      , continuous_variables = c('floor_area')
-      , categorical_variables = c('neighbourhood_code')
-      , log_dependent = TRUE
-      , reference_period = 2015
-      , number_of_observations = TRUE
-      , periods_in_year = 4
-      , production_since = NULL
-      , number_preliminary_periods = 2
-      , resting_points = TRUE)
-
-Tbl_index <- as.data.frame(HMTS$Index)
-Tbl_analysis <- as.data.frame(HMTS$Matrix_HMTS_analysis)
-}
 \author{
 Farley Ishaak
 }
