@@ -48,17 +48,6 @@ The parameter log_dependent can be used to transform this variable.
 Within the data, it is not neccesary to filter the data on relevant variables or complete records.
 This is taken care of in the function.
 }
-\examples{
-
-Tbl_Fisher <- calculate_fisher(dataset = data_constraxion
-                                , period_variable = c("period")
-                                , dependent_variable = c('price')
-                                , continuous_variables = c('floor_area')
-                                , categorical_variables = c('neighbourhood_code')
-                                , log_dependent = TRUE
-                                , reference_period = 2015
-                                , number_of_observations = TRUE)
-}
 \author{
 Farley Ishaak (FIHK)
 }

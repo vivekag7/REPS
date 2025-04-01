@@ -60,6 +60,8 @@ A data.frame (or list for HMTS with resting_points = TRUE)
 Central hub function to calculate index figures using different methods.
 }
 \examples{
+
+# Laspeyres index
 Tbl_Laspeyres <- calculate_method_index(
   method = "laspeyres",
   dataset = data_constraxion,
@@ -72,6 +74,54 @@ Tbl_Laspeyres <- calculate_method_index(
   number_of_observations = TRUE,
   imputation = TRUE
 )
+
+# Paasche index
+Tbl_Paasche <- calculate_method_index(
+  method = "paasche",
+  dataset = data_constraxion,
+  period_variable = "period",
+  dependent_variable = "price",
+  continuous_variables = "floor_area",
+  categorical_variables = "neighbourhood_code",
+  log_dependent = TRUE,
+  reference_period = 2015,
+  number_of_observations = TRUE,
+  imputation = TRUE
+)
+
+# Fisher index (geometric mean of Laspeyres and Paasche)
+Tbl_Fisher <- calculate_method_index(
+  method = "fisher",
+  dataset = data_constraxion,
+  period_variable = "period",
+  dependent_variable = "price",
+  continuous_variables = "floor_area",
+  categorical_variables = "neighbourhood_code",
+  log_dependent = TRUE,
+  reference_period = 2015,
+  number_of_observations = TRUE
+)
+
+# HMTS index (advanced spliced hedonic method with time-series smoothing)
+HMTS <- calculate_method_index(
+  method = "hmts",
+  dataset = data_constraxion,
+  period_variable = "period",
+  dependent_variable = "price",
+  continuous_variables = "floor_area",
+  categorical_variables = "neighbourhood_code",
+  log_dependent = TRUE,
+  reference_period = 2015,
+  number_of_observations = TRUE,
+  periods_in_year = 4,
+  production_since = NULL,
+  number_preliminary_periods = 2,
+  resting_points = TRUE
+)
+
+# Access specific tables from HMTS output
+Tbl_HMTS_Index <- as.data.frame(HMTS$Index)
+Tbl_HMTS_Analysis <- as.data.frame(HMTS$Matrix_HMTS_analysis)
 }
 \author{
 Vivek Gajadhar (VGAR)

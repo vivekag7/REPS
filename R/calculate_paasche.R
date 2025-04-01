@@ -25,20 +25,6 @@
 #' @param imputation display the underlying average imputation values? (default = FALSE)
 #' @return
 #' table with index, imputation averages, number of observations and confidence intervals per period
-#' @export
-#' @examples
-#'
-#' Tbl_Paasche <- calculate_paasche(dataset = data_constraxion
-#'                                 , period_variable = c("period")
-#'                                 , dependent_variable = c('price')
-#'                                 , continuous_variables = c('floor_area')
-#'                                 , categorical_variables = c('neighbourhood_code')
-#'                                 , log_dependent = TRUE
-#'                                 , index = TRUE
-#'                                 , reference_period = 2015
-#'                                 , number_of_observations = TRUE
-#'                                 , imputation = TRUE)
-
 
 calculate_paasche <- function(dataset
                               , period_variable

@@ -23,18 +23,6 @@
 #' @param number_of_observations number of observations per period (default = TRUE)
 #' @return
 #' table with index, imputation averages, number of observations and confidence intervals per period
-#' @export
-#' @examples
-#'
-#' Tbl_Fisher <- calculate_fisher(dataset = data_constraxion
-#'                                 , period_variable = c("period")
-#'                                 , dependent_variable = c('price')
-#'                                 , continuous_variables = c('floor_area')
-#'                                 , categorical_variables = c('neighbourhood_code')
-#'                                 , log_dependent = TRUE
-#'                                 , reference_period = 2015
-#'                                 , number_of_observations = TRUE)
-
 
 calculate_fisher <- function(dataset
                              , period_variable
