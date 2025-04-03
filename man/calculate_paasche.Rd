@@ -55,5 +55,5 @@ Within the data, it is not necessary to filter the data on relevant variables or
 This is taken care of in the function.
 }
 \author{
-Farley Ishaak (FIHK)
+Farley Ishaak
 }

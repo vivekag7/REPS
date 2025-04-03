@@ -23,35 +23,35 @@ calculate_method_index(
 )
 }
 \arguments{
-\item{method}{One of: "fisher", "laspeyres", "paasche", "hmts"}
+\item{method}{one of: "fisher", "laspeyres", "paasche", "hmts"}
 
-\item{dataset}{Data frame with input data}
+\item{dataset}{data frame with input data}
 
-\item{period_variable}{Name of the variable indicating time periods}
+\item{period_variable}{name of the variable indicating time periods}
 
-\item{dependent_variable}{Usually the price}
+\item{dependent_variable}{usually the price}
 
-\item{continuous_variables}{Vector with numeric quality-determining variables}
+\item{continuous_variables}{vector with numeric quality-determining variables}
 
-\item{categorical_variables}{Vector with categorical variables (also dummies)}
+\item{categorical_variables}{vector with categorical variables (also dummies)}
 
-\item{log_dependent}{Should the dependent variable be log-transformed? Default = TRUE}
+\item{log_dependent}{should the dependent variable be log-transformed? Default = TRUE}
 
-\item{reference_period}{Period or group of periods that will be set to 100}
+\item{reference_period}{period or group of periods that will be set to 100}
 
-\item{number_of_observations}{Show number of observations? Default = TRUE}
+\item{number_of_observations}{show number of observations? Default = TRUE}
 
-\item{periods_in_year}{(HMTS only) Number of periods per year (e.g. 12 for months)}
+\item{periods_in_year}{(HMTS only) number of periods per year (e.g. 12 for months)}
 
-\item{production_since}{(HMTS only) Start period for production simulation}
+\item{production_since}{(HMTS only) start period for production simulation}
 
-\item{number_preliminary_periods}{(HMTS only) Number of preliminary periods}
+\item{number_preliminary_periods}{(HMTS only) number of preliminary periods}
 
-\item{resting_points}{(HMTS only) Return detailed outputs? Default = FALSE}
+\item{resting_points}{(HMTS only) return detailed outputs? Default = FALSE}
 
-\item{index}{(Laspeyres/Paasche only) Include index column? Default = TRUE}
+\item{index}{(Laspeyres/Paasche only) include index column? Default = TRUE}
 
-\item{imputation}{(Laspeyres/Paasche only) Include imputation values? Default = FALSE}
+\item{imputation}{(Laspeyres/Paasche only) include imputation values? Default = FALSE}
 }
 \value{
 A data.frame (or list for when method is HMTS with resting_points = TRUE)
@@ -60,7 +60,6 @@ A data.frame (or list for when method is HMTS with resting_points = TRUE)
 Central hub function to calculate index figures using different methods.
 }
 \examples{
-
 # Laspeyres index
 Tbl_Laspeyres <- calculate_method_index(
   method = "laspeyres",
@@ -72,8 +71,9 @@ Tbl_Laspeyres <- calculate_method_index(
   log_dependent = TRUE,
   reference_period = 2015,
   number_of_observations = TRUE,
-  imputation = TRUE
+  imputation = FALSE
 )
+head(Tbl_Laspeyres)
 
 # Paasche index
 Tbl_Paasche <- calculate_method_index(
@@ -86,8 +86,9 @@ Tbl_Paasche <- calculate_method_index(
   log_dependent = TRUE,
   reference_period = 2015,
   number_of_observations = TRUE,
-  imputation = TRUE
+  imputation = FALSE
 )
+head(Tbl_Paasche)
 
 # Fisher index (geometric mean of Laspeyres and Paasche)
 Tbl_Fisher <- calculate_method_index(
@@ -101,6 +102,7 @@ Tbl_Fisher <- calculate_method_index(
   reference_period = 2015,
   number_of_observations = TRUE
 )
+head(Tbl_Fisher)
 
 # HMTS index (advanced spliced hedonic method with time-series smoothing)
 HMTS <- calculate_method_index(
@@ -122,7 +124,8 @@ HMTS <- calculate_method_index(
 # Access specific tables from HMTS output
 Tbl_HMTS_Index <- as.data.frame(HMTS$Index)
 Tbl_HMTS_Analysis <- as.data.frame(HMTS$Matrix_HMTS_analysis)
+head(Tbl_HMTS_Index)
 }
 \author{
-Vivek Gajadhar (VGAR)
+Vivek Gajadhar
 }

@@ -28,7 +28,7 @@ calculate_laspeyres(
 
 \item{categorical_variables}{vector with quality determining categorical variables (also dummies)}
 
-\item{log_dependent}{should the dependent variable be transformed to its logarithm? default = TRUE}
+\item{log_dependent}{should the dependent variable be transformed to its logarithm? (default = TRUE)}
 
 \item{reference_period}{period or group of periods that will be set to 100 (numeric/string)}
 
@@ -36,7 +36,7 @@ calculate_laspeyres(
 
 \item{number_of_observations}{number of observations per period (default = TRUE)}
 
-\item{imputation}{display the inderlying average imputation values? (default = FALSE)}
+\item{imputation}{display the underlying average imputation values? (default = FALSE)}
 }
 \value{
 table with index, imputation averages, number of observations and confidence intervals per period
@@ -55,5 +55,5 @@ Within the data, it is not necessary to filter the data on relevant variables or
 This is taken care of in the function.
 }
 \author{
-Farley Ishaak (FIHK)
+Farley Ishaak
 }

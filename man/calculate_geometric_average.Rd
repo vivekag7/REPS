@@ -16,6 +16,6 @@ geometric average
 The equation for the calculation is:: exp(mean(log(reeks_values)))
 }
 \author{
-Farley Ishaak (FIHK)
+Farley Ishaak
 }
 \keyword{Internal}

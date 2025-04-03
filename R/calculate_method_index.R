@@ -12,17 +12,16 @@
 #' @param log_dependent should the dependent variable be log-transformed? Default = TRUE
 #' @param reference_period period or group of periods that will be set to 100
 #' @param number_of_observations show number of observations? Default = TRUE
-#' @param periods_in_year (HMTS only) Number of periods per year (e.g. 12 for months)
-#' @param production_since (HMTS only) Start period for production simulation
-#' @param number_preliminary_periods (HMTS only) Number of preliminary periods
-#' @param resting_points (HMTS only) Return detailed outputs? Default = FALSE
-#' @param index (Laspeyres/Paasche only) Include index column? Default = TRUE
-#' @param imputation (Laspeyres/Paasche only) Include imputation values? Default = FALSE
+#' @param periods_in_year (HMTS only) number of periods per year (e.g. 12 for months)
+#' @param production_since (HMTS only) start period for production simulation
+#' @param number_preliminary_periods (HMTS only) number of preliminary periods
+#' @param resting_points (HMTS only) return detailed outputs? Default = FALSE
+#' @param index (Laspeyres/Paasche only) include index column? Default = TRUE
+#' @param imputation (Laspeyres/Paasche only) include imputation values? Default = FALSE
 #'
 #' @return A data.frame (or list for when method is HMTS with resting_points = TRUE)
 #' @export
 #' @examples
-#'
 #' # Laspeyres index
 #' Tbl_Laspeyres <- calculate_method_index(
 #'   method = "laspeyres",
@@ -34,8 +33,9 @@
 #'   log_dependent = TRUE,
 #'   reference_period = 2015,
 #'   number_of_observations = TRUE,
-#'   imputation = TRUE
+#'   imputation = FALSE
 #' )
+#' head(Tbl_Laspeyres)
 #'
 #' # Paasche index
 #' Tbl_Paasche <- calculate_method_index(
@@ -48,8 +48,9 @@
 #'   log_dependent = TRUE,
 #'   reference_period = 2015,
 #'   number_of_observations = TRUE,
-#'   imputation = TRUE
+#'   imputation = FALSE
 #' )
+#' head(Tbl_Paasche)
 #'
 #' # Fisher index (geometric mean of Laspeyres and Paasche)
 #' Tbl_Fisher <- calculate_method_index(
@@ -63,6 +64,7 @@
 #'   reference_period = 2015,
 #'   number_of_observations = TRUE
 #' )
+#' head(Tbl_Fisher)
 #'
 #' # HMTS index (advanced spliced hedonic method with time-series smoothing)
 #' HMTS <- calculate_method_index(
@@ -84,6 +86,7 @@
 #' # Access specific tables from HMTS output
 #' Tbl_HMTS_Index <- as.data.frame(HMTS$Index)
 #' Tbl_HMTS_Analysis <- as.data.frame(HMTS$Matrix_HMTS_analysis)
+#' head(Tbl_HMTS_Index)
 
 
 calculate_method_index <- function(method,
