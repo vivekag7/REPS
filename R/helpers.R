@@ -420,7 +420,7 @@ calculate_hmts_index <- function(
 #'
 #' The equation for the calculation is:: exp(mean(log(reeks_values)))
 #'
-#' @author Farley Ishaak (FIHK)
+#' @author Farley Ishaak 
 #' @param values series with numeric values
 #' @return geometric average
 #' @keywords Internal

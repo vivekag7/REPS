@@ -1,5 +1,5 @@
 ---
-title: "Using `calculate_method_index()` for Price Index Calculation"
+title: "Using `calculate_method_index()` for Hedonic Price Index Calculation"
 author: ""
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette

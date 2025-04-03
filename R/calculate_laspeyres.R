@@ -13,17 +13,17 @@
 #' Within the data, it is not necessary to filter the data on relevant variables or complete records.
 #' This is taken care of in the function.
 #'
-#' @author Farley Ishaak (FIHK)
+#' @author Farley Ishaak 
 #'
 #' @param dataset table with data (does not need to be a selection of relevant variables)
 #' @param period_variable variable in the table with periods
 #' @param dependent_variable usually the sale price
 #' @param continuous_variables vector with quality determining numeric variables (no dummies)
 #' @param categorical_variables vector with quality determining categorical variables (also dummies)
-#' @param log_dependent should the dependent variable be transformed to its logarithm? default = TRUE
+#' @param log_dependent should the dependent variable be transformed to its logarithm? (default = TRUE)
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @param number_of_observations number of observations per period (default = TRUE)
-#' @param imputation display the inderlying average imputation values? (default = FALSE)
+#' @param imputation display the underlying average imputation values? (default = FALSE)
 #' @param index caprice index
 #' @importFrom dplyr mutate
 #' @importFrom dplyr rename
