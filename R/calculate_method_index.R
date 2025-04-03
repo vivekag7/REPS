@@ -1,17 +1,17 @@
 #' Calculate index based on specified method (Fisher, Laspeyres, Paasche, HMTS)
 #'
 #' Central hub function to calculate index figures using different methods.
-#' @author Vivek Gajadhar (VGAR)
+#' @author Vivek Gajadhar 
 #' 
-#' @param method One of: "fisher", "laspeyres", "paasche", "hmts"
-#' @param dataset Data frame with input data
-#' @param period_variable Name of the variable indicating time periods
-#' @param dependent_variable Usually the price
-#' @param continuous_variables Vector with numeric quality-determining variables
-#' @param categorical_variables Vector with categorical variables (also dummies)
-#' @param log_dependent Should the dependent variable be log-transformed? Default = TRUE
-#' @param reference_period Period or group of periods that will be set to 100
-#' @param number_of_observations Show number of observations? Default = TRUE
+#' @param method one of: "fisher", "laspeyres", "paasche", "hmts"
+#' @param dataset data frame with input data
+#' @param period_variable name of the variable indicating time periods
+#' @param dependent_variable usually the price
+#' @param continuous_variables vector with numeric quality-determining variables
+#' @param categorical_variables vector with categorical variables (also dummies)
+#' @param log_dependent should the dependent variable be log-transformed? Default = TRUE
+#' @param reference_period period or group of periods that will be set to 100
+#' @param number_of_observations show number of observations? Default = TRUE
 #' @param periods_in_year (HMTS only) Number of periods per year (e.g. 12 for months)
 #' @param production_since (HMTS only) Start period for production simulation
 #' @param number_preliminary_periods (HMTS only) Number of preliminary periods
@@ -19,7 +19,7 @@
 #' @param index (Laspeyres/Paasche only) Include index column? Default = TRUE
 #' @param imputation (Laspeyres/Paasche only) Include imputation values? Default = FALSE
 #'
-#' @return A data.frame (or list for HMTS with resting_points = TRUE)
+#' @return A data.frame (or list for when method is HMTS with resting_points = TRUE)
 #' @export
 #' @examples
 #'

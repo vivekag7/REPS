@@ -12,7 +12,7 @@
 #' Within the data, it is not necessary to filter the data on relevant variables or complete records.
 #' This is taken care of in the function.
 #'
-#' @author Farley Ishaak (FIHK)
+#' @author Farley Ishaak 
 #' @param dataset table with data (does not need to be a selection of relevant variables)
 #' @param period_variable variable in the table with periods
 #' @param dependent_variable usually the sale price

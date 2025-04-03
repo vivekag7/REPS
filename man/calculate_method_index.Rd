@@ -54,7 +54,7 @@ calculate_method_index(
 \item{imputation}{(Laspeyres/Paasche only) Include imputation values? Default = FALSE}
 }
 \value{
-A data.frame (or list for HMTS with resting_points = TRUE)
+A data.frame (or list for when method is HMTS with resting_points = TRUE)
 }
 \description{
 Central hub function to calculate index figures using different methods.
