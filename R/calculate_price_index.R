@@ -23,7 +23,7 @@
 #' @export
 #' @examples
 #' # Laspeyres index
-#' Tbl_Laspeyres <- calculate_method_index(
+#' Tbl_Laspeyres <- calculate_price_index(
 #'   method = "laspeyres",
 #'   dataset = data_constraxion,
 #'   period_variable = "period",
@@ -38,7 +38,7 @@
 #' head(Tbl_Laspeyres)
 #'
 #' # Paasche index
-#' Tbl_Paasche <- calculate_method_index(
+#' Tbl_Paasche <- calculate_price_index(
 #'   method = "paasche",
 #'   dataset = data_constraxion,
 #'   period_variable = "period",
@@ -53,7 +53,7 @@
 #' head(Tbl_Paasche)
 #'
 #' # Fisher index (geometric mean of Laspeyres and Paasche)
-#' Tbl_Fisher <- calculate_method_index(
+#' Tbl_Fisher <- calculate_price_index(
 #'   method = "fisher",
 #'   dataset = data_constraxion,
 #'   period_variable = "period",
@@ -67,7 +67,7 @@
 #' head(Tbl_Fisher)
 #'
 #' # HMTS index (advanced spliced hedonic method with time-series smoothing)
-#' HMTS <- calculate_method_index(
+#' HMTS <- calculate_price_index(
 #'   method = "hmts",
 #'   dataset = data_constraxion,
 #'   period_variable = "period",
@@ -89,7 +89,7 @@
 #' head(Tbl_HMTS_Index)
 
 
-calculate_method_index <- function(method,
+calculate_price_index <- function(method,
                             dataset,
                             period_variable,
                             dependent_variable,

@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(PGRealEstate)
+library(cbsREPS)
 
-test_check("PGRealEstate")
+test_check("cbsREPS")

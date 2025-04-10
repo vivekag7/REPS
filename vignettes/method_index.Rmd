@@ -1,17 +1,17 @@
 ---
-title: "Using `calculate_method_index()` for Hedonic Price Index Calculation"
+title: "Using `calculate_price_index()` for Hedonic Price Index Calculation"
 author: ""
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Using `calculate_method_index()` for Price Index Calculation}
+  %\VignetteIndexEntry{Using `calculate_price_index()` for Price Index Calculation}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ## Introduction
 
-The `calculate_method_index()` function is a central hub for computing price indices using various hedonic-based methods. It allows users to select from one of four supported methods:
+The `calculate_price_index()` function is a central hub for computing price indices using various hedonic-based methods. It allows users to select from one of four supported methods:
 
 - **Laspeyres**
 - **Paasche**
@@ -38,7 +38,7 @@ The required variables include:
 ## Laspeyres Index
 
 ```r
-Tbl_Laspeyres <- calculate_method_index(
+Tbl_Laspeyres <- calculate_price_index(
   method = "laspeyres",
   dataset = data_constraxion,
   period_variable = "period",
@@ -56,7 +56,7 @@ head(Tbl_Laspeyres)
 ## Paasche Index
 
 ```r
-Tbl_Paasche <- calculate_method_index(
+Tbl_Paasche <- calculate_price_index(
   method = "paasche",
   dataset = data_constraxion,
   period_variable = "period",
@@ -74,7 +74,7 @@ head(Tbl_Paasche)
 ## Fisher Index (Geometric Mean)
 
 ```r
-Tbl_Fisher <- calculate_method_index(
+Tbl_Fisher <- calculate_price_index(
   method = "fisher",
   dataset = data_constraxion,
   period_variable = "period",
@@ -91,7 +91,7 @@ head(Tbl_Fisher)
 ## HMTS Index (Advanced)
 
 ```r
-HMTS <- calculate_method_index(
+HMTS <- calculate_price_index(
   method = "hmts",
   dataset = data_constraxion,
   period_variable = "period",
@@ -115,4 +115,4 @@ head(Tbl_HMTS_Index)
 
 ## Summary
 
-The `calculate_method_index()` function streamlines access to multiple hedonic index methods via a consistent interface. This allows analysts to easily compare outputs and select the most appropriate method for their context.
+The `calculate_price_index()` function streamlines access to multiple hedonic index methods via a consistent interface. This allows analysts to easily compare outputs and select the most appropriate method for their context.
