@@ -8,7 +8,6 @@ test_that("Test HMTS", {
     dependent_variable = c("price"),
     continuous_variables = c("floor_area"),
     categorical_variables = c("neighbourhood_code"),
-    log_dependent = TRUE,
     reference_period = 2015,
     periods_in_year = 4,
     production_since = NULL,

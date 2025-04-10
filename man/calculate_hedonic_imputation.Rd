@@ -9,7 +9,6 @@ calculate_hedonic_imputation(
   period_temp = "period_var_temp",
   dependent_variable_temp = dependent_variable,
   independent_variables_temp = independent_variables,
-  log_dependent_temp = log_dependent,
   number_of_observations_temp = number_of_observations,
   period_list_temp = period_list
 )
@@ -22,8 +21,6 @@ calculate_hedonic_imputation(
 \item{dependent_variable_temp}{usually the sale price}
 
 \item{independent_variables_temp}{vector with quality determining variables}
-
-\item{log_dependent_temp}{should the dependent variable be transformed to its logarithm? default = TRUE}
 
 \item{period_list_temp}{list with all available periods}
 }

@@ -7,7 +7,6 @@
 #' N.B.: the independent variables must be entered transformed (and ready) in the parameters.
 #' Hence, not: log(floor_area), but transform the variable in advance and then provide log_floor_area.
 #' This does not count for the dependent variable. This should be entered untransformed/
-#' The parameter log_dependent can be used to transform this variable.
 #'
 #' Within the data, it is not neccesary to filter the data on relevant variables or complete records.
 #' This is taken care of in the function.
@@ -18,7 +17,6 @@
 #' @param dependent_variable usually the sale price
 #' @param continuous_variables vector with quality determining numeric variables (no dummies)
 #' @param categorical_variables vector with quality determining categorical variables (also dummies)
-#' @param log_dependent should the dependent variable be transformed to its logarithm? default = TRUE
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @param number_of_observations number of observations per period (default = TRUE)
 #' @return
@@ -29,7 +27,6 @@ calculate_fisher <- function(dataset
                              , dependent_variable
                              , continuous_variables
                              , categorical_variables
-                             , log_dependent = FALSE
                              , reference_period = NULL
                              , number_of_observations = FALSE) {
 
@@ -39,7 +36,6 @@ calculate_fisher <- function(dataset
                                    , dependent_variable = dependent_variable
                                    , continuous_variables = continuous_variables
                                    , categorical_variables = categorical_variables
-                                   , log_dependent = log_dependent
                                    , reference_period = NULL
                                    , index = TRUE
                                    , number_of_observations = number_of_observations
@@ -51,7 +47,6 @@ calculate_fisher <- function(dataset
                                , dependent_variable = dependent_variable
                                , continuous_variables = continuous_variables
                                , categorical_variables = categorical_variables
-                               , log_dependent = log_dependent
                                , reference_period = NULL
                                , index = TRUE
                                , number_of_observations = number_of_observations

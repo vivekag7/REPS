@@ -11,7 +11,6 @@ calculate_price_index(
   dependent_variable,
   continuous_variables,
   categorical_variables,
-  log_dependent = TRUE,
   reference_period = NULL,
   number_of_observations = TRUE,
   periods_in_year = 4,
@@ -34,8 +33,6 @@ calculate_price_index(
 \item{continuous_variables}{vector with numeric quality-determining variables}
 
 \item{categorical_variables}{vector with categorical variables (also dummies)}
-
-\item{log_dependent}{should the dependent variable be log-transformed? Default = TRUE}
 
 \item{reference_period}{period or group of periods that will be set to 100}
 
@@ -68,7 +65,6 @@ Tbl_Laspeyres <- calculate_price_index(
   dependent_variable = "price",
   continuous_variables = "floor_area",
   categorical_variables = "neighbourhood_code",
-  log_dependent = TRUE,
   reference_period = 2015,
   number_of_observations = TRUE,
   imputation = FALSE
@@ -83,7 +79,6 @@ Tbl_Paasche <- calculate_price_index(
   dependent_variable = "price",
   continuous_variables = "floor_area",
   categorical_variables = "neighbourhood_code",
-  log_dependent = TRUE,
   reference_period = 2015,
   number_of_observations = TRUE,
   imputation = FALSE
@@ -98,7 +93,6 @@ Tbl_Fisher <- calculate_price_index(
   dependent_variable = "price",
   continuous_variables = "floor_area",
   categorical_variables = "neighbourhood_code",
-  log_dependent = TRUE,
   reference_period = 2015,
   number_of_observations = TRUE
 )
@@ -112,7 +106,6 @@ HMTS <- calculate_price_index(
   dependent_variable = "price",
   continuous_variables = "floor_area",
   categorical_variables = "neighbourhood_code",
-  log_dependent = TRUE,
   reference_period = 2015,
   number_of_observations = TRUE,
   periods_in_year = 4,

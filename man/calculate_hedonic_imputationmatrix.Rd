@@ -10,7 +10,6 @@ calculate_hedonic_imputationmatrix(
   dependent_variable,
   continuous_variables,
   categorical_variables,
-  log_dependent,
   periods_in_year,
   number_of_observations = TRUE,
   production_since = NULL,
@@ -27,8 +26,6 @@ calculate_hedonic_imputationmatrix(
 \item{continuous_variables}{vector with quality-determining continues variables (numeric, no dummies)}
 
 \item{categorical_variables}{vector with categorical variables (also dummy)}
-
-\item{log_dependent}{should the dependent variable be transformed to its logarithm? default = TRUE}
 
 \item{periods_in_year}{if month, then 12. If quarter, then 4, etc. (default = 4)}
 

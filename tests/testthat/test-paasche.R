@@ -8,7 +8,6 @@ test_that("Test Paasche", {
     dependent_variable = c("price"),
     continuous_variables = c("floor_area"),
     categorical_variables = c("neighbourhood_code"),
-    log_dependent = TRUE,
     reference_period = 2015,
     number_of_observations = TRUE,
     imputation = TRUE

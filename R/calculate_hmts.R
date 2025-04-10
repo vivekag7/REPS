@@ -32,7 +32,6 @@
 #' @param dependent_variable usually the sale price
 #' @param continuous_variables vector with quality-determining continues variables (numeric, no dummies)
 #' @param categorical_variables vector with categorical variables (also dummy)
-#' @param log_dependent should the dependent variable be transformed to its logarithm? default = TRUE
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @param number_of_observations number of observations per period (default = TRUE)
 #' @param periods_in_year if month, then 12. If quarter, then 4, etc. (default = 4)
@@ -54,7 +53,6 @@ calculate_hmts <- function(
     dependent_variable,
     continuous_variables,
     categorical_variables,
-    log_dependent,
     reference_period,
     periods_in_year,
     production_since = NULL,
@@ -78,7 +76,6 @@ calculate_hmts <- function(
     dependent_variable = dependent_variable,
     continuous_variables = continuous_variables,
     categorical_variables = categorical_variables,
-    log_dependent = log_dependent,
     reference_period = reference_period,
     periods_in_year = periods_in_year,
     production_since = production_since,

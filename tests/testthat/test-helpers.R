@@ -42,8 +42,7 @@ test_that("Test validate_input", {
     period_variable = c("period"),
     dependent_variable = c("price"),
     continuous_variables = c("floor_area"),
-    categorical_variables = c("neighbourhood_code"),
-    log_dependent = TRUE
+    categorical_variables = c("neighbourhood_code")
   ))
   
   expect_error(validate_input(
@@ -51,8 +50,7 @@ test_that("Test validate_input", {
     period_variable = c("period"),
     dependent_variable = c("price"),
     continuous_variables = c("floor_area"),
-    categorical_variables = c("neighbourhood_code"),
-    log_dependent = TRUE
+    categorical_variables = c("neighbourhood_code")
   ), "does not have all of these name")
   
   
@@ -64,21 +62,10 @@ test_that("Test validate_input", {
     period_variable = c("period"),
     dependent_variable = c("price"),
     continuous_variables = c("floor_area"),
-    categorical_variables = c("neighbourhood_code"),
-    log_dependent = TRUE
+    categorical_variables = c("neighbourhood_code")
   ), "not \\(fully\\) numeric")
   
-  # Error: log_dependent is not a boolean
-  expect_error(validate_input(
-    dataset = data_constraxion,
-    period_variable = c("period"),
-    dependent_variable = c("price"),
-    continuous_variables = c("floor_area"),
-    categorical_variables = c("neighbourhood_code"),
-    log_dependent = "TRUE"
-  ), "log_dependent.*boolean")
-  
-  # Error: negative price while log_dependent = FALSE
+  # Error: negative price
   data_negative_price <- data_constraxion
   data_negative_price$price[1] <- -100000
   expect_error(validate_input(
@@ -86,8 +73,7 @@ test_that("Test validate_input", {
     period_variable = c("period"),
     dependent_variable = c("price"),
     continuous_variables = c("floor_area"),
-    categorical_variables = c("neighbourhood_code"),
-    log_dependent = FALSE
+    categorical_variables = c("neighbourhood_code")
   ), "contains negative values")
   
   # Error: invalid period format
@@ -98,8 +84,7 @@ test_that("Test validate_input", {
     period_variable = c("period"),
     dependent_variable = c("price"),
     continuous_variables = c("floor_area"),
-    categorical_variables = c("neighbourhood_code"),
-    log_dependent = TRUE
+    categorical_variables = c("neighbourhood_code")
   ), "correct format")
 })
 
@@ -113,7 +98,6 @@ test_that("Test calculate_hedonic_imputation", {
   continuous_variables <- c("floor_area")
   categorical_variables <- c("neighbourhood_code")
   independent_variables <- c(continuous_variables, categorical_variables)
-  log_dependent <- TRUE
   number_of_observations <- TRUE
   
   
@@ -133,7 +117,6 @@ test_that("Test calculate_hedonic_imputation", {
     period_temp = "period_var_temp",
     dependent_variable_temp = dependent_variable,
     independent_variables_temp = independent_variables,
-    log_dependent_temp = log_dependent,
     number_of_observations_temp = number_of_observations,
     period_list_temp = period_list
   )
@@ -157,7 +140,6 @@ test_that("Test calculate_hmts_index", {
   dependent_variable <- "price"
   continuous_variables <- c("floor_area")
   categorical_variables <- c("neighbourhood_code")
-  log_dependent <- TRUE
   reference_period <- 2015
   periods_in_year <- 4
   production_since <- NULL
@@ -180,7 +162,6 @@ test_that("Test calculate_hmts_index", {
     dependent_variable = dependent_variable,
     continuous_variables = continuous_variables,
     categorical_variables = categorical_variables,
-    log_dependent = log_dependent,
     reference_period = reference_period,
     periods_in_year = periods_in_year,
     production_since = production_since,
@@ -208,7 +189,6 @@ test_that("Test calculate_hedonic_imputationmatrix", {
   dependent_variable <- "price"
   continuous_variables <- c("floor_area")
   categorical_variables <- c("neighbourhood_code")
-  log_dependent <- TRUE
   periods_in_year <- 4
   number_of_observations <- TRUE
   production_since <- NULL
@@ -229,7 +209,6 @@ test_that("Test calculate_hedonic_imputationmatrix", {
     dependent_variable = dependent_variable,
     continuous_variables = continuous_variables,
     categorical_variables = categorical_variables,
-    log_dependent = log_dependent,
     periods_in_year = periods_in_year,
     number_of_observations = number_of_observations,
     production_since = production_since,

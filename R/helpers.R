@@ -12,7 +12,6 @@
 #' @param period_temp 'period'
 #' @param dependent_variable_temp usually the sale price
 #' @param independent_variables_temp vector with quality determining variables
-#' @param log_dependent_temp should the dependent variable be transformed to its logarithm? default = TRUE
 #' @param period_list_temp list with all available periods
 #' @return
 #' Table with imputation averages per period
@@ -23,7 +22,6 @@ calculate_hedonic_imputation <- function(dataset_temp = dataset
                                          , period_temp = "period_var_temp"
                                          , dependent_variable_temp = dependent_variable
                                          , independent_variables_temp = independent_variables
-                                         , log_dependent_temp = log_dependent
                                          , number_of_observations_temp = number_of_observations
                                          , period_list_temp = period_list) {
   
@@ -42,10 +40,9 @@ calculate_hedonic_imputation <- function(dataset_temp = dataset
   # Remove unused levels. R remembers the original state of the levels, but if a level is not present in a certain period, this may result in an error in the bootstrap.
   dataset_temp <- droplevels(dataset_temp)
   
-  # If parameter log_dependent = TRUE, transform to log
-  if (log_dependent_temp == TRUE) {
-    dependent_variable_temp <- paste0("log(", dependent_variable_temp, ")")
-  }
+  
+  dependent_variable_temp <- paste0("log(", dependent_variable_temp, ")")
+  
   
   ## Model
   
@@ -100,7 +97,6 @@ calculate_hedonic_imputation <- function(dataset_temp = dataset
     }
     predictmdl_t <- mean(predict(fitmdl, rekenbestand_0))
     
-    # If parameter log_dependent = TRUE, then reverse with exp()
     predictmdl_t <- exp(predictmdl_t)
     
     average_imputations[current_period] <- predictmdl_t
@@ -224,7 +220,7 @@ show_progress_loop <- function(single_iteration
 
 ### This is the fourth internal function
 
-validate_input <- function(dataset, period_variable, dependent_variable, continuous_variables, categorical_variables, log_dependent) {
+validate_input <- function(dataset, period_variable, dependent_variable, continuous_variables, categorical_variables) {
   # Dataset contains all necessary columns
   assertthat::assert_that(assertthat::has_name(dataset, c(period_variable, dependent_variable, continuous_variables, categorical_variables)))
   
@@ -234,14 +230,10 @@ validate_input <- function(dataset, period_variable, dependent_variable, continu
     assertthat::assert_that(is.numeric(dataset[[col]]), msg = paste("Column", col, "is not (fully) numeric."))
   }
   
-  # Validate that boolean parameters are correctly passed to function
-  assertthat::assert_that(is.logical(log_dependent), length(log_dependent) == 1, !is.na(log_dependent), msg = "The log_dependent parameter must be a boolean (TRUE/FALSE).")
-  
   
   # If log transformation still needs to be performed, dependent variable should contain strictly positive values.
-  if (!log_dependent) {
-    assertthat::assert_that(all(dataset[[dependent_variable]] > 0), msg = "The dependent variable contains negative values while log transformation needs to be performed.")
-  }
+  assertthat::assert_that(all(dataset[[dependent_variable]] > 0), msg = "The dependent variable contains negative values while log transformation needs to be performed.")
+ 
   
   regex_period <- "^[0-9]{4}([Mm](0?[1-9]|1[0-2])|[Qq](0?[1-4]))$"
   
@@ -286,7 +278,6 @@ validate_input <- function(dataset, period_variable, dependent_variable, continu
 #' @param dependent_variable usually the sale price
 #' @param continuous_variables vector with quality-determining continues variables (numeric, no dummies)
 #' @param categorical_variables vector with categorical variables (also dummy)
-#' @param log_dependent should the dependent variable be transformed to its logarithm? default = TRUE
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @param number_of_observations number of observations per period (default = TRUE)
 #' @param periods_in_year if month, then 12. If quarter, then 4, etc. (default = 4)
@@ -309,7 +300,6 @@ calculate_hmts_index <- function(
     dependent_variable,
     continuous_variables,
     categorical_variables,
-    log_dependent,
     reference_period,
     periods_in_year,
     production_since = NULL,
@@ -329,7 +319,6 @@ calculate_hmts_index <- function(
                                                              , dependent_variable = dependent_variable
                                                              , continuous_variables = continuous_variables
                                                              , categorical_variables = categorical_variables
-                                                             , log_dependent = log_dependent
                                                              , periods_in_year = periods_in_year
                                                              , number_of_observations = number_of_observations
                                                              , production_since = production_since
@@ -458,7 +447,6 @@ calculate_geometric_average <- function(values){
 #' @param dependent_variable usually the sale price
 #' @param continuous_variables vector with quality-determining continues variables (numeric, no dummies)
 #' @param categorical_variables vector with categorical variables (also dummy)
-#' @param log_dependent should the dependent variable be transformed to its logarithm? default = TRUE
 #' @param number_of_observations number of observations per period (default = TRUE)
 #' @param periods_in_year if month, then 12. If quarter, then 4, etc. (default = 4)
 #' @param production_since 1 period in the format of the period_variable. See description above (default = NULL)
@@ -476,7 +464,6 @@ calculate_hedonic_imputationmatrix <- function(dataset
                                                , dependent_variable
                                                , continuous_variables
                                                , categorical_variables
-                                               , log_dependent
                                                , periods_in_year
                                                , number_of_observations = TRUE
                                                , production_since = NULL
@@ -502,9 +489,9 @@ calculate_hedonic_imputationmatrix <- function(dataset
   
   dataset_temp <- droplevels(dataset_temp)
   
-  if (log_dependent == TRUE) {
-    dependent_variable <- paste0("log(", dependent_variable, ")")
-  }
+  
+  dependent_variable <- paste0("log(", dependent_variable, ")")
+  
   
   for (indep_var in 1:length(independent_variables)) {
     if (indep_var == 1) {

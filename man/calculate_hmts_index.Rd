@@ -10,7 +10,6 @@ calculate_hmts_index(
   dependent_variable,
   continuous_variables,
   categorical_variables,
-  log_dependent,
   reference_period,
   periods_in_year,
   production_since = NULL,
@@ -27,8 +26,6 @@ calculate_hmts_index(
 \item{continuous_variables}{vector with quality-determining continues variables (numeric, no dummies)}
 
 \item{categorical_variables}{vector with categorical variables (also dummy)}
-
-\item{log_dependent}{should the dependent variable be transformed to its logarithm? default = TRUE}
 
 \item{reference_period}{period or group of periods that will be set to 100 (numeric/string)}
 

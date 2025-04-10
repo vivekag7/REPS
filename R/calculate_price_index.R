@@ -9,7 +9,6 @@
 #' @param dependent_variable usually the price
 #' @param continuous_variables vector with numeric quality-determining variables
 #' @param categorical_variables vector with categorical variables (also dummies)
-#' @param log_dependent should the dependent variable be log-transformed? Default = TRUE
 #' @param reference_period period or group of periods that will be set to 100
 #' @param number_of_observations show number of observations? Default = TRUE
 #' @param periods_in_year (HMTS only) number of periods per year (e.g. 12 for months)
@@ -30,7 +29,6 @@
 #'   dependent_variable = "price",
 #'   continuous_variables = "floor_area",
 #'   categorical_variables = "neighbourhood_code",
-#'   log_dependent = TRUE,
 #'   reference_period = 2015,
 #'   number_of_observations = TRUE,
 #'   imputation = FALSE
@@ -45,7 +43,6 @@
 #'   dependent_variable = "price",
 #'   continuous_variables = "floor_area",
 #'   categorical_variables = "neighbourhood_code",
-#'   log_dependent = TRUE,
 #'   reference_period = 2015,
 #'   number_of_observations = TRUE,
 #'   imputation = FALSE
@@ -60,7 +57,6 @@
 #'   dependent_variable = "price",
 #'   continuous_variables = "floor_area",
 #'   categorical_variables = "neighbourhood_code",
-#'   log_dependent = TRUE,
 #'   reference_period = 2015,
 #'   number_of_observations = TRUE
 #' )
@@ -74,7 +70,6 @@
 #'   dependent_variable = "price",
 #'   continuous_variables = "floor_area",
 #'   categorical_variables = "neighbourhood_code",
-#'   log_dependent = TRUE,
 #'   reference_period = 2015,
 #'   number_of_observations = TRUE,
 #'   periods_in_year = 4,
@@ -95,7 +90,6 @@ calculate_price_index <- function(method,
                             dependent_variable,
                             continuous_variables,
                             categorical_variables,
-                            log_dependent = TRUE,
                             reference_period = NULL,
                             number_of_observations = TRUE,
                             periods_in_year = 4,
@@ -113,7 +107,7 @@ calculate_price_index <- function(method,
                 paste(shQuote(valid_methods), collapse = ", "), "."))
   }
   
-  validate_input(dataset, period_variable, dependent_variable, continuous_variables, categorical_variables, log_dependent)
+  validate_input(dataset, period_variable, dependent_variable, continuous_variables, categorical_variables)
   
   if (method == "fisher") {
     return(calculate_fisher(
@@ -122,7 +116,6 @@ calculate_price_index <- function(method,
       dependent_variable = dependent_variable,
       continuous_variables = continuous_variables,
       categorical_variables = categorical_variables,
-      log_dependent = log_dependent,
       reference_period = reference_period,
       number_of_observations = number_of_observations
     ))
@@ -135,7 +128,6 @@ calculate_price_index <- function(method,
       dependent_variable = dependent_variable,
       continuous_variables = continuous_variables,
       categorical_variables = categorical_variables,
-      log_dependent = log_dependent,
       reference_period = reference_period,
       index = index,
       number_of_observations = number_of_observations,
@@ -150,7 +142,6 @@ calculate_price_index <- function(method,
       dependent_variable = dependent_variable,
       continuous_variables = continuous_variables,
       categorical_variables = categorical_variables,
-      log_dependent = log_dependent,
       reference_period = reference_period,
       index = index,
       number_of_observations = number_of_observations,
@@ -165,7 +156,6 @@ calculate_price_index <- function(method,
       dependent_variable = dependent_variable,
       continuous_variables = continuous_variables,
       categorical_variables = categorical_variables,
-      log_dependent = log_dependent,
       reference_period = reference_period,
       periods_in_year = periods_in_year,
       production_since = production_since,

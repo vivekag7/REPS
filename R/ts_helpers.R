@@ -119,7 +119,7 @@ determine_initial_parameters <- function(model, initial_values, FUN=defaultupdat
   # Here, we have to compute it manually:
   d <- sum(model2$P1inf) #number of diffuse initial states
   n <- length(model2$y) # number of observations
-  ## David: deze variabelenamen voldoen niet aan snake case, maar deze gewoon laten staan. Zijn domein specifiek..
+  
   v <- kalman_filter$v[(d + 1):n]
   F1 <- kalman_filter$F[(d + 1):n]^-1
   vF1v <- v * F1 * v  #v'_t * F_t^-1 * v_t
