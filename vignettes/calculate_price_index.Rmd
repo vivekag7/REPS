@@ -7,7 +7,7 @@ vignette: >
   %\VignetteIndexEntry{Getting Started with Price Index Calculation using cbsREPS}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-bibliography: ../REFERENCES.bib
+bibliography: ./REFERENCES.bib
 ---
 
 ## Introduction
