@@ -2,7 +2,8 @@ Package: cbsREPS
 Type: Package
 Title: Hedonic and Multilateral Index Methods for Real Estate Price Comparison
 Version: 0.1.0
-Author: Farley Ishaak, Pim Ouwehand, David Pietersz, Liu Nuo Su, Cynthia Cao, Vivek Gajadhar
+Author: Farley Ishaak, Pim Ouwehand, David Pietersz, Liu Nuo Su, Cynthia Cao, Mohammed Kardal, 
+ Odens van der Zwan, Vivek Gajadhar
 Maintainer: Farley Ishaak <ff.ishaak@cbs.nl>
 Description: Provides functions to compute price indices using various hedonic and
     multilateral methods, including Laspeyres, Paasche, Fisher, and HMTS (Hedonic
@@ -10,7 +11,8 @@ Description: Provides functions to compute price indices using various hedonic a
     calculate_price_index() offers a unified interface for running these methods
     on structured datasets. This package is designed to support index construction
     workflows for real estate and other domains where quality-adjusted price
-    comparisons over time are essential.
+    comparisons over time are essential.The development of this package was funded
+    by Eurostat and Statistics Netherlands, and carried out by Statistics Netherlands.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true

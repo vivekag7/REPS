@@ -1,24 +1,29 @@
 ---
-title: "Using `calculate_price_index()` for Hedonic Price Index Calculation"
+title: "Getting Started with Price Index Calculation using cbsREPS"
 author: ""
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Using `calculate_price_index()` for Price Index Calculation}
+  %\VignetteIndexEntry{Getting Started with Price Index Calculation using cbsREPS}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+bibliography: ../REFERENCES.bib
 ---
 
 ## Introduction
 
-The `calculate_price_index()` function is a central hub for computing price indices using various hedonic-based methods. It allows users to select from one of four supported methods:
+The `calculate_price_index()` function is the central entry point in `cbsREPS` for computing price indices using various **hedonic-based methods**. It supports four commonly used approaches:
 
-- **Laspeyres**
-- **Paasche**
-- **Fisher** (geometric average of Laspeyres and Paasche)
-- **HMTS** (Hedonic Multilateral Time series re-estimation Splicing)
+- **Laspeyres** – base-weighted index  
+- **Paasche** – current-weighted index  
+- **Fisher** – geometric average of Laspeyres and Paasche  
+- **HMTS** – Hedonic Multilateral Time Series re-estimation Splicing
 
-This vignette provides examples of how to use the function with each method.
+This vignette demonstrates how to apply each method using a consistent interface, making it easy to compare results across approaches.
+
+The HMTS method implemented in cbsREPS is based on the work of Ishaak, Ouwehand, and Remøy (2024), who developed a multilateral, time-series-based index that balances stability, limited revision, and early detection of turning points in the context of commercial property price indices (CPPIs) [@51c4602ed48c4adbb7b7d15176d2da7a].
+
+For broader context and international guidelines on the compilation of residential property price indices, including traditional methods such as Laspeyres, Paasche, and Fisher, we refer to the Eurostat Handbook on RPPIs (2013) [@eurostat2013rppi].
 
 ## Required Data
 
@@ -116,3 +121,5 @@ head(Tbl_HMTS_Index)
 ## Summary
 
 The `calculate_price_index()` function streamlines access to multiple hedonic index methods via a consistent interface. This allows analysts to easily compare outputs and select the most appropriate method for their context.
+
+## References

@@ -54,39 +54,54 @@ calculate_trend_line_kfas <- function(original_series
 #'
 #' This function is used in the function: calculate_trend_line_KFAS()
 #'
-#' @author Pim Ouwehand
-#' @param pars startvalues
+#' @author Vivek Gajadhar
+#' @param params startvalues
 #' @param model state space modelnumber
 #' @return Newmodel
 #' @keywords Internal
 
-defaultupdatefn <- function(pars, model){
+custom_update_function <- function(params, model) {
+  # Update function for state space models, with parameter transformation for Q and H matrices
+  # Transforms unknown variances and covariances in model$Q and model$H
   
-  # default updatefunction, copied from help files
-  # see KFAS Help function for 'fitSSM' :  help(fitSSM)
+  update_matrix <- function(mat, param_offset) {
+    mat <- as.matrix(mat[,,1])
+    unknown_diag <- which(is.na(diag(mat)))
+    submat <- mat[unknown_diag, unknown_diag, drop = FALSE]
+    
+    unknown_offdiag <- which(upper.tri(submat) & is.na(submat))
+    submat[lower.tri(submat)] <- 0
+    
+    diag(submat) <- exp(0.5 * params[param_offset + seq_along(unknown_diag)])
+    param_offset <- param_offset + length(unknown_diag)
+    
+    if (length(unknown_offdiag) > 0) {
+      submat[unknown_offdiag] <- params[param_offset + seq_along(unknown_offdiag)]
+      param_offset <- param_offset + length(unknown_offdiag)
+    }
+    
+    mat[unknown_diag, unknown_diag] <- crossprod(submat)
+    list(updated = mat, offset = param_offset)
+  }
   
-  if(any(is.na(model$Q))){
-    Q <- as.matrix(model$Q[,,1])
-    naQd  <- which(is.na(diag(Q)))
-    naQnd <- which(upper.tri(Q[naQd,naQd]) & is.na(Q[naQd,naQd]))
-    Q[naQd,naQd][lower.tri(Q[naQd,naQd])] <- 0
-    diag(Q)[naQd] <- exp(0.5 * pars[1:length(naQd)])
-    Q[naQd,naQd][naQnd] <- pars[length(naQd)+1:length(naQnd)]
-    model$Q[naQd,naQd,1] <- crossprod(Q[naQd,naQd])
+  param_index <- 0
+  
+  # Update Q matrix if needed
+  if (any(is.na(model$Q))) {
+    result_q <- update_matrix(model$Q, param_index)
+    model$Q[,,1] <- result_q$updated
+    param_index <- result_q$offset
   }
-  if(!identical(model$H,'Omitted') && any(is.na(model$H))){#'
-    H<-as.matrix(model$H[,,1])
-    naHd  <- which(is.na(diag(H)))
-    naHnd <- which(upper.tri(H[naHd,naHd]) & is.na(H[naHd,naHd]))
-    H[naHd,naHd][lower.tri(H[naHd,naHd])] <- 0
-    diag(H)[naHd] <-
-      exp(0.5 * pars[length(naQd)+length(naQnd)+1:length(naHd)])
-    H[naHd,naHd][naHnd] <-
-      pars[length(naQd)+length(naQnd)+length(naHd)+1:length(naHnd)]
-    model$H[naHd,naHd,1] <- crossprod(H[naHd,naHd])
+  
+  # Update H matrix if needed and present
+  if (!identical(model$H, "Omitted") && any(is.na(model$H))) {
+    result_h <- update_matrix(model$H, param_index)
+    model$H[,,1] <- result_h$updated
   }
-  model
+  
+  return(model)
 }
+
 
 
 #' Determine_initial_parameters
@@ -97,11 +112,11 @@ defaultupdatefn <- function(pars, model){
 #' @author Pim Ouwehand, Farley Ishaak
 #' @param model modelvalues as output of the function select_state_space_model()
 #' @param initial_values $initial.values as output of the model
-#' @param FUN function called: defaultupdatefn
+#' @param FUN function called: custom_update_function
 #' @return New initial startvalues
 #' @keywords internal
 
-determine_initial_parameters <- function(model, initial_values, FUN=defaultupdatefn) {
+determine_initial_parameters <- function(model, initial_values, FUN=custom_update_function) {
   
   # update the Q-matrix (only once)
   model2 <- FUN(initial_values, model)

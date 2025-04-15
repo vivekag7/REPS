@@ -34,11 +34,11 @@ test_that("Test select_state_space_model", {
   expect_length(result$initial_values, 2)
 })
 
-test_that("Test defaultupdatefn", {
+test_that("Test custom_update_function", {
   series <- ts(c(85, 97, 100, 104, 111), start = 1, frequency = 4)
   init_vals <- set_startvalues(log(0.1), log(0.1), log(0.1), log(0.1), log(0.1))
   model_data <- select_state_space_model(series, init_vals)
-  model <- defaultupdatefn(model_data$initial_values, model_data$model)
+  model <- custom_update_function(model_data$initial_values, model_data$model)
   
   expect_s3_class(model, "SSModel")
   expect_false(any(is.na(model$Q)))

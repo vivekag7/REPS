@@ -4,14 +4,18 @@
 \alias{determine_initial_parameters}
 \title{Determine_initial_parameters}
 \usage{
-determine_initial_parameters(model, initial_values, FUN = defaultupdatefn)
+determine_initial_parameters(
+  model,
+  initial_values,
+  FUN = custom_update_function
+)
 }
 \arguments{
 \item{model}{modelvalues as output of the function select_state_space_model()}
 
 \item{initial_values}{$initial.values as output of the model}
 
-\item{FUN}{function called: defaultupdatefn}
+\item{FUN}{function called: custom_update_function}
 }
 \value{
 New initial startvalues
