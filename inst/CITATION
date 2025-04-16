@@ -1,4 +1,5 @@
-citHeader("To cite the cbsREPS package in publications, please use:")
+citHeader("Please cite as follows: \n\n- Package: when using the `cbsREPS` package \n- Ishaak et al. (2024): when referring to the HMTS method in your research \n- Eurostat (2013): for general context on (hedonic) property price index methods")
+
 
 bibentry(
   bibtype = "Manual",
@@ -38,9 +39,10 @@ bibentry(
 bibentry(
   bibtype = "Book",
   title = "Handbook on Residential Property Price Indices (RPPIs)",
-  author = person(given = "Eurostat", family = ""),
+  author = person(given = "", family = "Eurostat"),
   year = 2013,
   publisher = "Publications Office of the European Union",
   isbn = "978-92-79-25984-5",
   doi = "10.2785/34007"
 )
+
