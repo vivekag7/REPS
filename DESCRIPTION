@@ -11,8 +11,11 @@ Description: Provides functions to compute price indices using various hedonic a
     calculate_price_index() offers a unified interface for running these methods
     on structured datasets. This package is designed to support index construction
     workflows for real estate and other domains where quality-adjusted price
-    comparisons over time are essential.The development of this package was funded
+    comparisons over time are essential. The development of this package was funded
     by Eurostat and Statistics Netherlands, and carried out by Statistics Netherlands.
+    The HMTS method implemented here is described in Ishaak, Ouwehand and Remøy (2024)
+    <doi:10.1177/0282423X241246617>. For broader methodological context, see Eurostat
+    (2013, ISBN:978-92-79-25984-5, <doi:10.2785/34007>).
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
