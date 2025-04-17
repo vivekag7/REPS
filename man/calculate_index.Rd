@@ -18,8 +18,10 @@ Index series
 }
 \description{
 The index can be calculated in two ways:
-- from a series of values
-- from a series of mutations (from_growth_rate = TRUE)
+\itemize{
+\item from a series of values
+\item from a series of mutations (from_growth_rate = TRUE)
+}
 }
 \details{
 N.B. with from_growth_rate:

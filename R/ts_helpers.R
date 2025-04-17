@@ -287,7 +287,7 @@ set_startvalues <- function(a, b, c, d, e) {
 #'
 #' @author Pim Ouwehand, Farley Ishaak
 #' @param fittedmodel model values as output of the function estimate.TS.parameters()
-#' @return sub-list $signalsubconf[,1] provides the estimated trend line
+#' @return A list containing multiple elements; sub-list \code{signalsubconf[, 1]} provides the estimated trend line.
 #' @keywords internal
 
 smooth_ts <- function(fittedmodel) {

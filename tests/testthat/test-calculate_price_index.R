@@ -1,5 +1,5 @@
 test_that("Test calculate_price_index", {
-  # Foute invoer
+  # Bad input
   expect_error(
     calculate_price_index(
       method = "invalid",

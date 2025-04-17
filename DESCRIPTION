@@ -26,12 +26,13 @@ Imports:
     dplyr,
     stats,
     assertthat,
-    KFAS
+    KFAS,
+    stringr
 Standardizable: FALSE
 Suggests:
     knitr,
     rmarkdown,
-    stringr (>= 1.5.1),
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
+Roxygen: list(markdown = TRUE)

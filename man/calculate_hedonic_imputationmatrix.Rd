@@ -47,7 +47,7 @@ Based on a hedonic model, a series of imputed values is calculated in below step
 1: for every period average imputed prices are estimated with the 1st period as base period.
 2: the above is repeated for each possible base period. This result in an equal number of series as the number of periods.
 3: All series are re-estimated with a time series model (state space).
-   This step is optionally skipped with a parameter (state_space_model = NULL)
+This step is optionally skipped with a parameter (state_space_model = NULL)
 4: the series imputed values are transformed into index series.
 This matrix can be used for an index calculations according to the HMTS method.
 }

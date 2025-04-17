@@ -10,7 +10,7 @@ smooth_ts(fittedmodel)
 \item{fittedmodel}{model values as output of the function estimate.TS.parameters()}
 }
 \value{
-sub-list $signalsubconf[,1] provides the estimated trend line
+A list containing multiple elements; sub-list \code{signalsubconf[, 1]} provides the estimated trend line.
 }
 \description{
 Calculate a trend line based on a provided model.
