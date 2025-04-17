@@ -219,8 +219,28 @@ show_progress_loop <- function(single_iteration
 }
 
 ### This is the fourth internal function
+#' Validate Input Data for Hedonic Index Calculation
+#'
+#' This function checks whether the dataset contains all required variables, whether the dependent and continuous variables are numeric, 
+#' and whether the period variable is formatted correctly (e.g., "2020Q1", "2020M01").
+#' It ensures that the data is suitable for further processing in hedonic index calculations.
+#'
+#' @param dataset A data.frame containing the dataset to be validated.
+#' @param period_variable A string specifying the name of the period variable column.
+#' @param dependent_variable A string specifying the name of the dependent variable (usually the sale price).
+#' @param continuous_variables A character vector with names of numeric quality-determining variables.
+#' @param categorical_variables A character vector with names of categorical variables (including dummies).
+#'
+#' @return Returns TRUE invisibly if all checks pass. Otherwise, an error is thrown.
+#'
+#' @author David Pietersz
+#' @keywords internal
+#' 
+#' @importFrom assertthat assert_that has_name
+#' @importFrom stringr str_detect
 
 validate_input <- function(dataset, period_variable, dependent_variable, continuous_variables, categorical_variables) {
+  
   # Dataset contains all necessary columns
   assertthat::assert_that(assertthat::has_name(dataset, c(period_variable, dependent_variable, continuous_variables, categorical_variables)))
   
@@ -237,9 +257,8 @@ validate_input <- function(dataset, period_variable, dependent_variable, continu
   
   regex_period <- "^[0-9]{4}([Mm](0?[1-9]|1[0-2])|[Qq](0?[1-4]))$"
   
-  assertthat::assert_that(all(stringr::str_detect(dataset[[period_variable]], regex_period)), msg = "The period variable should be in the correct format, see documentation.")
+  assertthat::assert_that(all(stringr::str_detect(dataset[[period_variable]], regex_period)), msg = "The period variable should be in the correct format, for example: 2020Q1, 2020q1, 2020M1, 2020M01, 2020m01, 2020Q4, 2020q04.")
   
-  #2020Q1, 2020q1, 2020M1, 2020M01, 2020m01, 2020Q4, 2020q04
   
 }
 
@@ -407,7 +426,7 @@ calculate_hmts_index <- function(
 
 #' Calculate the geometric average of a series of values
 #'
-#' The equation for the calculation is:: exp(mean(log(reeks_values)))
+#' The equation for the calculation is:: exp(mean(log(series_values)))
 #'
 #' @author Farley Ishaak 
 #' @param values series with numeric values

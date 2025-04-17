@@ -53,12 +53,12 @@ Based on a hedonic model, an index is calculated in below steps. See also Ishaak
 1: for each period, average imputed prices are calculated with the first period as base period.
 2: step 1 is repeated for every possible base period. This result in as many series of imputed values as the number of periods.
 3: All series with imputed prices are re-estimated with a Kalman filter (also time series model/state space model)
-   This step can be turned off with a parameter.
+This step can be turned off with a parameter.
 4: The series of imputed values are transformed into index series.
 5: a specified (parameter) window is chosen of index figures that continues in the calculation.
-   This step can be turned off with a parameter.
+This step can be turned off with a parameter.
 6: Of the remaining index figures, the geometric average per period is calculated.
-   The remaining index figures form the final index.
+The remaining index figures form the final index.
 }
 \details{
 Parameter 'production_since':

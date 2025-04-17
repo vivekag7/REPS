@@ -45,7 +45,7 @@ With the model, a direct series of index figures is estimated by use of hedonic 
 \details{
 N.B.: the independent variables must be entered transformed (and ready) in the parameters.
 Hence, not: log(floor_area), but transform the variable in advance and then provide log_floor_area.
-This does not count for the dependent variable. This should be entered untransformed/
+This does not count for the dependent variable. This should be entered untransformed
 
 Within the data, it is not necessary to filter the data on relevant variables or complete records.
 This is taken care of in the function.

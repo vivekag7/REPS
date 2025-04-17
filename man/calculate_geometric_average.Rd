@@ -13,7 +13,7 @@ calculate_geometric_average(values)
 geometric average
 }
 \description{
-The equation for the calculation is:: exp(mean(log(reeks_values)))
+The equation for the calculation is:: exp(mean(log(series_values)))
 }
 \author{
 Farley Ishaak

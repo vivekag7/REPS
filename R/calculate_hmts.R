@@ -24,7 +24,7 @@
 #' $Matrix_HMTS_index table with index series based on re-estimated imputations (time series model)
 #' $Matrix_HMTS table with re-estimated imputations (time series model)
 #' $Matrix_HMTS_index table with index series based on estimated imputations (hedonic model)
-#' $Matrix_HMTS table with estimated imputations (time series model)l
+#' $Matrix_HMTS table with estimated imputations (time series model)
 #' $Matrix_HMTS_analyse table with diagnostic values of the time series model per base period
 #'
 #' @author Farley Ishaak
@@ -37,7 +37,7 @@
 #' @param periods_in_year if month, then 12. If quarter, then 4, etc. (default = 4)
 #' @param production_since 1 period in the format of the period_variable. See description above (default = NULL)
 #' @param number_preliminary_periods number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3
-#' @param resting_points Should analyses values be returned? (default = FALSE)
+#' @param resting_points should analyses values be returned? (default = FALSE)
 #' @return
 #' $Matrix_HMTS_index table with index series based on estimations with time series re-estimations
 #' $Matrix_HMTS table with estimated values based on time series re-estimations

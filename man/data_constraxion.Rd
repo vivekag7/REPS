@@ -7,16 +7,16 @@
 \format{
 A data frame with 7,800 rows and 6 columns:
 \describe{
-  \item{period}{A (string) vecor indicating a time period }
-  \item{price}{A (string) vecor indicating the transaction price of the dwelling  }
-  \item{floor_area}{A real valued vector of (the logarithm) of the floor area
-  of the dwelling}
-  \item{dist_trainstation}{A real valued vector of (the logarithm) of the
-  distance of the dwelling to the nearest train station}
-  \item{neighbourhood_code}{A categorical code/string refering to the neighbourhood
-  the dwelling belongs to}
-  \item{dummy_large_city}{A vector indicating whether the dwelling belongs to a
-  large city or not}
+\item{period}{A (string) vecor indicating a time period }
+\item{price}{A (string) vecor indicating the transaction price of the dwelling  }
+\item{floor_area}{A real valued vector of (the logarithm) of the floor area
+of the dwelling}
+\item{dist_trainstation}{A real valued vector of (the logarithm) of the
+distance of the dwelling to the nearest train station}
+\item{neighbourhood_code}{A categorical code/string refering to the neighbourhood
+the dwelling belongs to}
+\item{dummy_large_city}{A vector indicating whether the dwelling belongs to a
+large city or not}
 }
 }
 \source{
@@ -29,6 +29,6 @@ data_constraxion
 }
 \description{
 A subset of data from a fictitious real estate data frame containing transaction prices and some
- categorical and numerical characteristics of each dwelling
+categorical and numerical characteristics of each dwelling
 }
 \keyword{datasets}
