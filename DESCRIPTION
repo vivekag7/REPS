@@ -4,7 +4,7 @@ Title: Hedonic and Multilateral Index Methods for Real Estate Price Comparison
 Version: 0.1.0
 Author: Farley Ishaak, Pim Ouwehand, David Pietersz, Liu Nuo Su, Cynthia Cao, Mohammed Kardal, 
  Odens van der Zwan, Vivek Gajadhar
-Maintainer: Farley Ishaak <ff.ishaak@cbs.nl>
+Maintainer: Vivek Gajadhar <v.gajadhar@cbs.nl>
 Description: Provides functions to compute price indices using various hedonic and
     multilateral methods, including Laspeyres, Paasche, Fisher, and HMTS (Hedonic
     Multilateral Time series re-estimation with splicing). The central function
