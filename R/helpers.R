@@ -382,16 +382,16 @@ calculate_hmts_index <- function(
   window$period <- period_list
   window <- window[, c(number_of_periods + 1, 1:number_of_periods)]
   matrix_hmts$geom_avg <- matrix_hmts_index$geom_avg <- window$geom_avg <- geometric_averages
-  imputations$index <- matrix_hmts$index <- matrix_hmts_index$index <- window$index <- calculate_index(period_list, geometric_averages, reference_period = reference_period)
+  imputations$Index <- matrix_hmts$index <- matrix_hmts_index$index <- window$index <- calculate_index(period_list, geometric_averages, reference_period = reference_period)
   
   if (number_of_observations == TRUE) {
-    results <- dplyr::select(imputations, dplyr::all_of(c("period", "index", "number_observations")))
+    results <- dplyr::select(imputations, dplyr::all_of(c("period", "number_of_observations", "Index")))
   } else {
-    results <- dplyr::select(imputations, dplyr::all_of(c("period", "index")))
+    results <- dplyr::select(imputations, dplyr::all_of(c("period", "Index")))
   }
   
   if (resting_points == TRUE) {
-    results <- list(index = results
+    results <- list(Index = results
                     , window = window
                     , chosen_index_series = imputations
                     , matrix_hmts_index = matrix_hmts_index
@@ -567,7 +567,7 @@ calculate_hedonic_imputationmatrix <- function(dataset
   
   # Add numbers to calculation
   if (number_of_observations == TRUE) {
-    matrix_hmts["number_observations"] <- matrix_hmts_index["number_observations"] <- number_observations_total
+    matrix_hmts["number_of_observations"] <- matrix_hmts_index["number_of_observations"] <- number_observations_total
   }
   
   matrices <- list(matrix_hmts = matrix_hmts

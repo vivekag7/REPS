@@ -85,7 +85,7 @@ calculate_hmts <- function(
   
   if (resting_points == TRUE) {
     tbl_resting_points <- results
-    results <- as.data.frame(results$index)
+    results <- as.data.frame(results$Index)
     
     results <- list(Index = results
                     , Window = tbl_resting_points$window

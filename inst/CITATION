@@ -8,8 +8,8 @@ bibentry(
     person("Farley", "Ishaak"),
     person("Pim", "Ouwehand"),
     person("David", "Pietersz"),
-    person("Liu Nuo", "Su"),
-    person("Cynthia", "Cao"),
+    person("Liu", "Su", middle = "Nuo"),
+    person("Pei", "Cao", middle = "Xin"),
     person("Mohammed", "Kardal"),
     person("Odens", "van der Zwan"),
     person("Vivek", "Gajadhar")

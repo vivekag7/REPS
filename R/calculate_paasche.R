@@ -124,7 +124,8 @@ calculate_paasche <- function(dataset
   if (imputation == TRUE) {
     number_of_periods_plus_1 <- number_of_periods + 1
     tbl_imputations <- tbl_imputations[, c(1, number_of_periods_plus_1:column_start)] # Reverse the table (last period was calculated first)
-    tbl_imputations <- unique.data.frame(tbl_imputations) # the base period was doubled
+    tbl_imputations <- unique.data.frame(tbl_imputations)
+    tbl_imputations <- data.frame(period = period_list, Imputation = diag(as.matrix(tbl_imputations[, 2:ncol(tbl_imputations)])))
     paasche <- merge(paasche, tbl_imputations, by = "period")
   }
 
