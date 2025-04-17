@@ -8,15 +8,14 @@ bibentry(
     person("Farley", "Ishaak"),
     person("Pim", "Ouwehand"),
     person("David", "Pietersz"),
-    person("Liu", "Su", middle = "Nuo"),
-    person("Pei", "Cao", middle = "Xin"),
+    person(given =c("Liu", "Nuo"), "Su"),
+    person(given =c("Pei", "Xin"), "Cao"),
     person("Mohammed", "Kardal"),
     person("Odens", "van der Zwan"),
     person("Vivek", "Gajadhar")
   ),
   year = 2025,
   note = "R package version 0.1.0",
-  url = "https://github.com/StatNetherlands/cbsREPS"
 )
 
 bibentry(
