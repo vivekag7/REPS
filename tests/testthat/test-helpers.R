@@ -221,10 +221,7 @@ test_that("Test calculate_hedonic_imputationmatrix", {
     succeed("Reference output saved.")
   } else {
     ref_tbl <- readRDS(ref_file)
-    
-    # Round for comparison
-    hedonic_imputation_matrix_output$matrix_hmts_index <- hedonic_imputation_matrix_output$matrix_hmts_index %>%
-      mutate(across(where(is.numeric), ~ round(., 2)))
+  
     
     expect_equal(matrix_output$matrix_hmts_index, ref_tbl$matrix_hmts_index, tolerance = 1e-3)
   }
