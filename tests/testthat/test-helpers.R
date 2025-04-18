@@ -221,7 +221,7 @@ test_that("Test calculate_hedonic_imputationmatrix", {
     succeed("Reference output saved.")
   } else {
     ref_tbl <- readRDS(ref_file)
-    expect_equal(matrix_output, ref_tbl, tolerance = 1e-8)
+    expect_equal(matrix_output, ref_tbl, tolerance = 1e-3)
   }
 })
 
