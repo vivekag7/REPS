@@ -61,28 +61,6 @@
 #'   number_of_observations = TRUE
 #' )
 #' head(Tbl_Fisher)
-#'
-#' # HMTS index (advanced spliced hedonic method with time-series smoothing)
-#' HMTS <- calculate_price_index(
-#'   method = "hmts",
-#'   dataset = data_constraxion,
-#'   period_variable = "period",
-#'   dependent_variable = "price",
-#'   continuous_variables = "floor_area",
-#'   categorical_variables = "neighbourhood_code",
-#'   reference_period = 2015,
-#'   number_of_observations = TRUE,
-#'   periods_in_year = 4,
-#'   production_since = NULL,
-#'   number_preliminary_periods = 2,
-#'   resting_points = TRUE
-#' )
-#'
-#' # Access specific tables from HMTS output
-#' Tbl_HMTS_Index <- as.data.frame(HMTS$Index)
-#' Tbl_HMTS_Analysis <- as.data.frame(HMTS$Matrix_HMTS_analysis)
-#' head(Tbl_HMTS_Index)
-
 
 calculate_price_index <- function(method,
                             dataset,
