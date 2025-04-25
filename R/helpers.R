@@ -199,26 +199,7 @@ calculate_index <- function(periods
   
 }
 
-
 ### This is the third internal function
-
-#' Function for showing progress loop
-#'
-#' @param single_iteration a single iteration (usually 1 letter: i or p)
-#' @param total_iterations the total number of iterations in the loop
-#'
-#' @return this returns a progress text
-#' @keywords internal
-show_progress_loop <- function(single_iteration
-                               , total_iterations){
-  
-  # Print dynamic progress indicator in the console
-  cat(sprintf("\rProgress: %3d%%", round(single_iteration / total_iterations * 100)))
-  if (single_iteration == total_iterations) message("\n Done!")
-  
-}
-
-### This is the fourth internal function
 #' Validate Input Data for Hedonic Index Calculation
 #'
 #' This function checks whether the dataset contains all required variables, whether the dependent and continuous variables are numeric, 

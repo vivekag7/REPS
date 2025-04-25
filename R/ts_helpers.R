@@ -139,16 +139,6 @@ determine_initial_parameters <- function(model, initial_values, FUN=custom_updat
   F1 <- kalman_filter$F[(d + 1):n]^-1
   vF1v <- v * F1 * v  #v'_t * F_t^-1 * v_t
   
-  # loglik according to KFAS Vignette section 2.1
-  # univariate treatment and diffuse initialization, the diffuse log-likelihood is:
-  log_lik_diffuse <- -0.5 * sum(log(kalman_filter$Finf)) -0.5 * sum(log(2 * pi) + log(kalman_filter$F[(d + 1):n]) + vF1v)
-  # not needed here, but gives same result as KF$logLik
-  # and confirms that vF1v is computed correctly, and is needed to compute the scale factor.
-  difference_log_lik <- round(kalman_filter$logLik, 2) - round(log_lik_diffuse, 2)
-  if (difference_log_lik != 0) {
-    print(paste0("difference in LogLiks:",   kalman_filter$logLik, " vs. ", log_lik_diffuse))
-  }
-  
   # scale factor (see equation 11.7 in Commandeur and Koopman or 9.4 in Ssfpack manual, Koopman, Shepherd, Doornik, 2008)
   scale <- 1 / (n - d) * sum(vF1v)
   

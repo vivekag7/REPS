@@ -30,10 +30,6 @@ test_that("Test calculate_index", {
   expect_error(calculate_index(c("2020Q1", "2020Q2"), c(100, 110, 120)), "not of the same length")
 })
 
-test_that("Test show_progress_loop", {
-  expect_output(show_progress_loop(1, 5), "Progress:") 
-  expect_message(show_progress_loop(5, 5), "Done!")    
-})
 
 test_that("Test validate_input", {
   # Valid input should not throw an error
