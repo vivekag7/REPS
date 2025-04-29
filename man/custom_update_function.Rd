@@ -20,4 +20,4 @@ This function is used in the function: calculate_trend_line_KFAS()
 \author{
 Vivek Gajadhar
 }
-\keyword{Internal}
+\keyword{internal}

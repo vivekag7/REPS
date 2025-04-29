@@ -23,7 +23,7 @@
 #' @param imputation display the underlying average imputation values? (default = FALSE)
 #' @return
 #' table with index, imputation averages, number of observations and confidence intervals per period
-
+#' @keywords internal
 calculate_paasche <- function(dataset
                               , period_variable
                               , dependent_variable

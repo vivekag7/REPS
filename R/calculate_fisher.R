@@ -21,7 +21,7 @@
 #' @param number_of_observations number of observations per period (default = TRUE)
 #' @return
 #' table with index, imputation averages, number of observations and confidence intervals per period
-
+#' @keywords internal
 calculate_fisher <- function(dataset
                              , period_variable
                              , dependent_variable

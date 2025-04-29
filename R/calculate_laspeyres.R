@@ -37,7 +37,7 @@
 #' @importFrom assertthat assert_that
 #' @return
 #' table with index, imputation averages, number of observations and confidence intervals per period
-
+#' @keywords internal
 calculate_laspeyres <- function(dataset
                                 , period_variable
                                 , dependent_variable

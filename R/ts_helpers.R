@@ -58,7 +58,7 @@ calculate_trend_line_kfas <- function(original_series
 #' @param params startvalues
 #' @param model state space modelnumber
 #' @return Newmodel
-#' @keywords Internal
+#' @keywords internal
 
 custom_update_function <- function(params, model) {
   # Update function for state space models, with parameter transformation for Q and H matrices
