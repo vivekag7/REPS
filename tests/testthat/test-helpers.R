@@ -223,4 +223,15 @@ test_that("Test calculate_hedonic_imputationmatrix", {
   }
 })
 
+test_that("Test calculate_growth_rate", {
+  values <- c(100, 110, 121)
+  growth <- calculate_growth_rate(values)
+  
+  expect_equal(round(growth[1], 3), 1.000)
+  expect_equal(round(growth[2], 3), 1.100)
+  expect_equal(round(growth[3], 3), 1.100)
+  
+  expect_error(calculate_growth_rate(c("a", "b", "c")), "not fully numeric")
+})
+
 

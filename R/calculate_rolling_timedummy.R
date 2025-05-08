@@ -1,0 +1,78 @@
+#' Calculate Rolling Time Dummy Index
+#'
+#' Estimates a price index using rolling windows of time dummy regressions.
+#'
+#' @author Vivek Gajadhar
+#' @param dataset data frame with input data
+#' @param period_variable name of the time variable (string)
+#' @param dependent_variable name of the dependent variable (usually price, assumed unlogged)
+#' @param continuous_variables vector of numeric quality-determining variables
+#' @param categorical_variables vector of categorical variables
+#' @param reference_period period to be normalized to index = 100 (e.g., "2015")
+#' @param window_length length of each rolling window (integer)
+#' @param number_of_observations logical, whether to return number of observations per period (default = FALSE)
+#' @return data frame with period, Index, and optionally number_of_observations
+#' @importFrom stats setNames
+#' @importFrom utils tail
+#' @importFrom dplyr filter group_by summarise left_join rename
+#' @keywords internal
+
+calculate_rolling_timedummy_index <- function(dataset,
+                                              period_variable,
+                                              dependent_variable,
+                                              continuous_variables,
+                                              categorical_variables,
+                                              reference_period,
+                                              window_length,
+                                              number_of_observations = FALSE) {
+  periods_all <- sort(unique(as.character(dataset[[period_variable]])))
+  
+  # First window
+  initial_window_periods <- periods_all[1:window_length]
+  window_data <- dataset[dataset[[period_variable]] %in% initial_window_periods, ]
+  initial_index <- calculate_time_dummy_index(
+    dataset = window_data,
+    period_variable = period_variable,
+    dependent_variable = dependent_variable,
+    continuous_variables = continuous_variables,
+    categorical_variables = categorical_variables
+  )
+  growth_rates <- calculate_growth_rate(setNames(initial_index$Index / 100, initial_index$period))
+  
+  # Rolling windows
+  window_starts <- 2:(length(periods_all) - window_length + 1)
+  for (start in window_starts) {
+    window_periods <- periods_all[start:(start + window_length - 1)]
+    window_data <- dataset[dataset[[period_variable]] %in% window_periods, ]
+    
+    new_index <- calculate_time_dummy_index(
+      dataset = window_data,
+      period_variable = period_variable,
+      dependent_variable = dependent_variable,
+      continuous_variables = continuous_variables,
+      categorical_variables = categorical_variables
+    )
+    
+    last_growth <- tail(calculate_growth_rate(setNames(new_index$Index / 100, new_index$period)), 1)
+    growth_rates <- c(growth_rates, setNames(last_growth, tail(new_index$period, 1)))
+  }
+  
+  df_result <- data.frame(period = periods_all)
+  df_result$Index <- calculate_index(df_result$period, growth_rates, reference_period)
+  
+  if (number_of_observations) {
+    df_result <- df_result |>
+      dplyr::left_join(
+        dataset |>
+          dplyr::filter(.data[[period_variable]] %in% periods_all) |>
+          dplyr::group_by(.data[[period_variable]]) |>
+          dplyr::summarise(number_of_observations = dplyr::n(), .groups = "drop") |>
+          dplyr::rename(period = !!period_variable),
+        by = "period"
+      )
+    
+    df_result <- df_result[, c("period", "number_of_observations", "Index")]
+  }
+  
+  return(df_result)
+}

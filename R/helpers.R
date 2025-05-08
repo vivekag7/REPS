@@ -243,6 +243,24 @@ validate_input <- function(dataset, period_variable, dependent_variable, continu
   
 }
 
+### This is the fourth internal function
+#' Calculate Growth Rates
+#'
+#' Computes period-over-period growth rates from a numeric index vector.
+#'
+#' @param values A numeric vector representing index values.
+#' @return A numeric vector of growth rates, with 1 as the initial value.
+#' @author Vivek Gajadhar
+#' @keywords internal
+
+calculate_growth_rate <- function(values) {
+  if (!is.numeric(values)) stop("The series of values is not fully numeric.")
+  values <- as.numeric(values)
+  growth_rate <- values / dplyr::lag(values)
+  growth_rate[1] <- 1
+  return(growth_rate)
+}
+
 ## HTMS helper 1
 
 #' Calculate HMTS index only (Hedonic Multilateral Time series re-estimation Splicing)
@@ -577,8 +595,6 @@ calculate_hedonic_imputationmatrix <- function(dataset
   return(matrices)
   
 }
-
-
 
 
 
