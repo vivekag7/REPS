@@ -19,7 +19,7 @@ calculate_price_index(
   resting_points = FALSE,
   index = TRUE,
   imputation = FALSE,
-  window_length = NULL
+  window_length = 5
 )
 }
 \arguments{
@@ -60,47 +60,9 @@ A data.frame (or list for HMTS with resting_points = TRUE)
 Central hub function to calculate index figures using different methods.
 }
 \examples{
-# Laspeyres index
-Tbl_Laspeyres <- calculate_price_index(
-  method = "laspeyres",
-  dataset = data_constraxion,
-  period_variable = "period",
-  dependent_variable = "price",
-  continuous_variables = "floor_area",
-  categorical_variables = "neighbourhood_code",
-  reference_period = "2015",
-  number_of_observations = FALSE,
-  imputation = FALSE
-)
-
-# Paasche index
-Tbl_Paasche <- calculate_price_index(
-  method = "paasche",
-  dataset = data_constraxion,
-  period_variable = "period",
-  dependent_variable = "price",
-  continuous_variables = "floor_area",
-  categorical_variables = "neighbourhood_code",
-  reference_period = "2015",
-  number_of_observations = FALSE,
-  imputation = FALSE
-)
-
 # Fisher index (geometric mean of Laspeyres and Paasche)
 Tbl_Fisher <- calculate_price_index(
   method = "fisher",
-  dataset = data_constraxion,
-  period_variable = "period",
-  dependent_variable = "price",
-  continuous_variables = "floor_area",
-  categorical_variables = "neighbourhood_code",
-  reference_period = "2015",
-  number_of_observations = FALSE
-)
-
-# Time Dummy index
-Tbl_TD <- calculate_price_index(
-  method = "timedummy",
   dataset = data_constraxion,
   period_variable = "period",
   dependent_variable = "price",

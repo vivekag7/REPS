@@ -22,32 +22,6 @@
 #' @export
 #'
 #' @examples
-#' # Laspeyres index
-#' Tbl_Laspeyres <- calculate_price_index(
-#'   method = "laspeyres",
-#'   dataset = data_constraxion,
-#'   period_variable = "period",
-#'   dependent_variable = "price",
-#'   continuous_variables = "floor_area",
-#'   categorical_variables = "neighbourhood_code",
-#'   reference_period = "2015",
-#'   number_of_observations = FALSE,
-#'   imputation = FALSE
-#' )
-#'
-#' # Paasche index
-#' Tbl_Paasche <- calculate_price_index(
-#'   method = "paasche",
-#'   dataset = data_constraxion,
-#'   period_variable = "period",
-#'   dependent_variable = "price",
-#'   continuous_variables = "floor_area",
-#'   categorical_variables = "neighbourhood_code",
-#'   reference_period = "2015",
-#'   number_of_observations = FALSE,
-#'   imputation = FALSE
-#' )
-#'
 #' # Fisher index (geometric mean of Laspeyres and Paasche)
 #' Tbl_Fisher <- calculate_price_index(
 #'   method = "fisher",
@@ -59,18 +33,7 @@
 #'   reference_period = "2015",
 #'   number_of_observations = FALSE
 #' )
-#'
-#' # Time Dummy index
-#' Tbl_TD <- calculate_price_index(
-#'   method = "timedummy",
-#'   dataset = data_constraxion,
-#'   period_variable = "period",
-#'   dependent_variable = "price",
-#'   continuous_variables = "floor_area",
-#'   categorical_variables = "neighbourhood_code",
-#'   reference_period = "2015",
-#'   number_of_observations = FALSE
-#' )
+
 #'
 #' # Rolling Time Dummy index
 #' Tbl_TD_Rolling <- calculate_price_index(
@@ -98,10 +61,10 @@ calculate_price_index <- function(method,
                                   resting_points = FALSE,
                                   index = TRUE,
                                   imputation = FALSE,
-                                  window_length = NULL) {
+                                  window_length = 5) {
   
   method <- tolower(method)
-  valid_methods <- c("fisher", "laspeyres", "paasche", "hmts", "timedummy", "rolling_timedummy")
+  valid_methods <- c("fisher", "laspeyres", "paasche", "hmts", "timedummy", "rolling_timedummy", "repricing")
   
   if (!method %in% valid_methods) {
     stop(paste0("Invalid method: '", method, "'. Please choose one of: ",
@@ -188,6 +151,18 @@ calculate_price_index <- function(method,
       categorical_variables = categorical_variables,
       reference_period = reference_period,
       window_length = window_length,
+      number_of_observations = number_of_observations
+    ))
+  }
+  
+  if (method == "repricing") {
+    return(calculate_repricing(
+      dataset = dataset,
+      period_variable = period_variable,
+      dependent_variable = dependent_variable,
+      continuous_variables = continuous_variables,
+      categorical_variables = categorical_variables,
+      reference_period = reference_period,
       number_of_observations = number_of_observations
     ))
   }

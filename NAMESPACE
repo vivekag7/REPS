@@ -3,6 +3,7 @@
 export(calculate_price_index)
 importFrom(assertthat,assert_that)
 importFrom(assertthat,has_name)
+importFrom(dplyr,"%>%")
 importFrom(dplyr,across)
 importFrom(dplyr,all_of)
 importFrom(dplyr,filter)

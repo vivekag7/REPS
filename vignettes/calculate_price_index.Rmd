@@ -20,12 +20,13 @@ The `calculate_price_index()` function is the central entry point in `cbsREPS` f
 - **HMTS** – Hedonic Multilateral Time Series re-estimation Splicing  
 - **Time Dummy** – single-regression hedonic index using time dummies  
 - **Rolling Time Dummy** – chained index based on overlapping time-dummy regressions
+- **Repricing** – quasi-repeat-sales method comparing observed vs predicted price changes
 
 This vignette demonstrates how to apply each method using a consistent interface, making it easy to compare results across approaches.
 
 The HMTS method implemented in `cbsREPS` is a multilateral, time-series-based index that balances stability, limited revision, and early detection of turning points in the context of property price indices [@51c4602ed48c4adbb7b7d15176d2da7a].
 
-For broader context and international guidelines on the compilation of property price indices, including traditional methods such as hedonic double imputation Laspeyres, Paasche, and Fisher, we refer to Eurostat's *Handbook on Residential Property Price Indices (RPPIs)* [@eurostat2013rppi].
+For broader context and international guidelines on the compilation of property price indices, including traditional methods such as hedonic double imputation Laspeyres, Paasche, and Fisher, we refer to Eurostat's *Handbook on Residential Property Pricae Indices (RPPIs)* [@eurostat2013rppi].
 
 
 ## Required Data
@@ -56,8 +57,8 @@ Supported methods:
 - `"fisher"`: geometric average of Laspeyres and Paasche  
 - `"hmts"`: Hedonic Multilateral Time Series with re-estimation and splicing  
 - `"timedummy"`: single time-dummy regression (log-linear hedonic model with time factors)  
-- `"rolling_timedummy"`: chained index from overlapping time-dummy regressions
-
+- `"rolling_timedummy"`: chained index from overlapping time-dummy regressions  
+- `"repricing"`: compares observed vs predicted price growth in consecutive periods (quasi-repeat-sales)
 
 
 ## Example: Rolling Time Dummy Index

@@ -12,7 +12,7 @@ test_that("Test HMTS", {
     periods_in_year = 4,
     production_since = NULL,
     number_preliminary_periods = 2,
-    number_of_observations = TRUE,
+    number_of_observations = FALSE,
     resting_points = TRUE
   )
   
