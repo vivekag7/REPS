@@ -82,7 +82,7 @@ multi_result <- calculate_price_index(
   continuous_variables = "floor_area",
   categorical_variables = "neighbourhood_code",
   reference_period = "2015",
-  number_of_observations = TRUE
+  number_of_observations = FALSE
 )
 
 head(multi_result$fisher)

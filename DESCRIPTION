@@ -36,7 +36,8 @@ Imports:
     stats,
     assertthat,
     KFAS,
-    stringr
+    stringr,
+    ggplot2
 Suggests:
     knitr,
     rmarkdown,

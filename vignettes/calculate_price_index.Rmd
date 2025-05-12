@@ -61,7 +61,7 @@ Supported methods:
 - `"repricing"`: compares observed vs predicted price growth in consecutive periods (quasi-repeat-sales)
 
 
-## Example: Single Index Method - Time Dummy
+### Example: Single Index Method - Time Dummy
 
 ```r
 Tbl_TD <- calculate_price_index(
@@ -78,7 +78,7 @@ Tbl_TD <- calculate_price_index(
 head(Tbl_TD)
 ```
 
-## Example: Multiple Index Methods - Fisher, Paasche and Laspeyres
+### Example: Multiple Index Methods - Fisher, Paasche and Laspeyres
 
 ```r
 multi_result <- calculate_price_index(
@@ -95,6 +95,21 @@ multi_result <- calculate_price_index(
 head(multi_result$fisher)
 head(multi_result$paasche)
 head(multi_result$laspeyres)
+```
+
+### Visualizing the Index
+
+For quick and clear visualizations, the `plot_price_index()` utility function can be used to generate time-series plots of the calculated indices.
+
+While we encourage users to create custom visualizations suited to their analytical needs, this built-in plotting function provides a convenient starting point for simple and consistent line plots.
+
+
+```r
+plot_price_index(multi_result)
+
+```
+```{r echo=FALSE, out.width="100%", fig.align="center"}
+knitr::include_graphics("multi_index.png")
 ```
 
 ## Summary
