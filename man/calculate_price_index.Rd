@@ -23,7 +23,7 @@ calculate_price_index(
 )
 }
 \arguments{
-\item{method}{One of: "fisher", "laspeyres", "paasche", "hmts", "timedummy", "rolling_timedummy"}
+\item{method}{One of: "fisher", "laspeyres", "paasche", "hmts", "timedummy", "rolling_timedummy", "repricing"}
 
 \item{dataset}{Data frame with input data}
 
@@ -54,15 +54,15 @@ calculate_price_index(
 \item{window_length}{(Rolling Time Dummy only) Window size in number of periods}
 }
 \value{
-A data.frame (or list for HMTS with resting_points = TRUE)
+A data.frame (or list for HMTS with resting_points = TRUE; or named list if multiple methods are used)
 }
 \description{
 Central hub function to calculate index figures using different methods.
 }
 \examples{
-# Fisher index (geometric mean of Laspeyres and Paasche)
-Tbl_Fisher <- calculate_price_index(
-  method = "fisher",
+# Example: Time Dummy index
+Tbl_TD <- calculate_price_index(
+  method = "timedummy",
   dataset = data_constraxion,
   period_variable = "period",
   dependent_variable = "price",
@@ -70,18 +70,25 @@ Tbl_Fisher <- calculate_price_index(
   categorical_variables = "neighbourhood_code",
   reference_period = "2015",
   number_of_observations = FALSE
+)
+head(Tbl_TD)
+
+# Example: Multiple methods (Fisher, Paasche, Laspeyres)
+multi_result <- calculate_price_index(
+  method = c("fisher", "paasche", "laspeyres"),
+  dataset = data_constraxion,
+  period_variable = "period",
+  dependent_variable = "price",
+  continuous_variables = "floor_area",
+  categorical_variables = "neighbourhood_code",
+  reference_period = "2015",
+  number_of_observations = TRUE
 )
 
-# Rolling Time Dummy index
-Tbl_TD_Rolling <- calculate_price_index(
-  method = "rolling_timedummy",
-  dataset = data_constraxion,
-  period_variable = "period",
-  dependent_variable = "price",
-  continuous_variables = "floor_area",
-  categorical_variables = "neighbourhood_code",
-  reference_period = "2015",
-  window_length = 5,
-  number_of_observations = FALSE
-)
+head(multi_result$fisher)
+head(multi_result$paasche)
+head(multi_result$laspeyres)
+}
+\author{
+Vivek Gajadhar
 }

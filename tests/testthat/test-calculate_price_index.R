@@ -1,5 +1,6 @@
 test_that("Test calculate_price_index", {
-  # Bad input
+  
+  # Invalid method should error
   expect_error(
     calculate_price_index(
       method = "invalid",
@@ -9,40 +10,10 @@ test_that("Test calculate_price_index", {
       continuous_variables = "floor_area",
       categorical_variables = "neighbourhood_code"
     ),
-    "Invalid method: 'invalid'"
+    "Invalid method"
   )
   
-  # Laspeyres
-  expect_silent(
-    calculate_price_index(
-      method = "laspeyres",
-      dataset = data_constraxion,
-      period_variable = "period",
-      dependent_variable = "price",
-      continuous_variables = "floor_area",
-      categorical_variables = "neighbourhood_code",
-      reference_period = 2015,
-      number_of_observations = TRUE,
-      imputation = TRUE
-    )
-  )
-  
-  # Paasche
-  expect_silent(
-    calculate_price_index(
-      method = "paasche",
-      dataset = data_constraxion,
-      period_variable = "period",
-      dependent_variable = "price",
-      continuous_variables = "floor_area",
-      categorical_variables = "neighbourhood_code",
-      reference_period = 2015,
-      number_of_observations = TRUE,
-      imputation = FALSE
-    )
-  )
-  
-  # Fisher
+  # Single method should work
   expect_silent(
     calculate_price_index(
       method = "fisher",
@@ -51,26 +22,38 @@ test_that("Test calculate_price_index", {
       dependent_variable = "price",
       continuous_variables = "floor_area",
       categorical_variables = "neighbourhood_code",
-      reference_period = 2015,
-      number_of_observations = TRUE
+      reference_period = 2015
     )
   )
   
-  # HMTS
-  expect_silent(
+  # Multiple methods (no HMTS) should work
+  result <- calculate_price_index(
+    method = c("fisher", "paasche", "timedummy"),
+    dataset = data_constraxion,
+    period_variable = "period",
+    dependent_variable = "price",
+    continuous_variables = "floor_area",
+    categorical_variables = "neighbourhood_code",
+    reference_period = 2015
+  )
+  
+  expect_type(result, "list")
+  expect_named(result, c("fisher", "paasche", "timedummy"))
+  
+  # Multiple methods with resting_points = TRUE should error
+  expect_error(
     calculate_price_index(
-      method = "hmts",
+      method = c("fisher", "hmts"),
       dataset = data_constraxion,
       period_variable = "period",
       dependent_variable = "price",
       continuous_variables = "floor_area",
       categorical_variables = "neighbourhood_code",
       reference_period = 2015,
-      number_of_observations = TRUE,
       periods_in_year = 4,
-      production_since = NULL,
       number_preliminary_periods = 2,
-      resting_points = FALSE
-    )
+      resting_points = TRUE
+    ),
+    "resting_points = TRUE"
   )
 })

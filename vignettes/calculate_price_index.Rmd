@@ -61,45 +61,40 @@ Supported methods:
 - `"repricing"`: compares observed vs predicted price growth in consecutive periods (quasi-repeat-sales)
 
 
-## Example: Rolling Time Dummy Index
+## Example: Single Index Method - Time Dummy
 
 ```r
-Tbl_TD_Rolling <- calculate_price_index(
-  method = "rolling_timedummy",
+Tbl_TD <- calculate_price_index(
+  method = "timedummy",
   dataset = data_constraxion,
   period_variable = "period",
   dependent_variable = "price",
   continuous_variables = "floor_area",
   categorical_variables = "neighbourhood_code",
   reference_period = 2015,
-  window_length = 5,
-  number_of_observations = TRUE
+  number_of_observations = FALSE
 )
 
-head(Tbl_TD_Rolling)
+head(Tbl_TD)
 ```
 
-## Example: HMTS Index
+## Example: Multiple Index Methods - Fisher, Paasche and Laspeyres
 
 ```r
-HMTS <- calculate_price_index(
-  method = "hmts",
+multi_result <- calculate_price_index(
+  method = c("fisher", "paasche", "laspeyres"),
   dataset = data_constraxion,
   period_variable = "period",
   dependent_variable = "price",
   continuous_variables = "floor_area",
   categorical_variables = "neighbourhood_code",
   reference_period = 2015,
-  number_of_observations = TRUE,
-  periods_in_year = 4,
-  production_since = NULL,
-  number_preliminary_periods = 2,
-  resting_points = TRUE
+  number_of_observations = FALSE
 )
 
-Tbl_HMTS_Index <- as.data.frame(HMTS$Index)
-Tbl_HMTS_Analysis <- as.data.frame(HMTS$Matrix_HMTS_analysis)
-head(Tbl_HMTS_Index)
+head(multi_result$fisher)
+head(multi_result$paasche)
+head(multi_result$laspeyres)
 ```
 
 ## Summary
