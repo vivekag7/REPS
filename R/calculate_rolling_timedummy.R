@@ -25,11 +25,14 @@ calculate_rolling_timedummy_index <- function(dataset,
                                               reference_period,
                                               window_length,
                                               number_of_observations = FALSE) {
+  # Get all periods sorted chronologically
   periods_all <- sort(unique(as.character(dataset[[period_variable]])))
   
-  # First window
+  # First rolling window
   initial_window_periods <- periods_all[1:window_length]
   window_data <- dataset[dataset[[period_variable]] %in% initial_window_periods, ]
+  
+  # Run time dummy index for initial window
   initial_index <- calculate_time_dummy_index(
     dataset = window_data,
     period_variable = period_variable,
@@ -37,14 +40,17 @@ calculate_rolling_timedummy_index <- function(dataset,
     continuous_variables = continuous_variables,
     categorical_variables = categorical_variables
   )
+  
+  # Convert index to growth rates
   growth_rates <- calculate_growth_rate(setNames(initial_index$Index / 100, initial_index$period))
   
-  # Rolling windows
+  # Loop through remaining rolling windows
   window_starts <- 2:(length(periods_all) - window_length + 1)
   for (start in window_starts) {
     window_periods <- periods_all[start:(start + window_length - 1)]
     window_data <- dataset[dataset[[period_variable]] %in% window_periods, ]
     
+    # Calculate index for new window
     new_index <- calculate_time_dummy_index(
       dataset = window_data,
       period_variable = period_variable,
@@ -53,13 +59,16 @@ calculate_rolling_timedummy_index <- function(dataset,
       categorical_variables = categorical_variables
     )
     
+    # Append last growth rate from new window
     last_growth <- tail(calculate_growth_rate(setNames(new_index$Index / 100, new_index$period)), 1)
     growth_rates <- c(growth_rates, setNames(last_growth, tail(new_index$period, 1)))
   }
   
+  # Build final index series based on chained growth rates
   df_result <- data.frame(period = periods_all)
   df_result$Index <- calculate_index(df_result$period, growth_rates, reference_period)
   
+  # Optionally add number of observations
   if (number_of_observations) {
     df_result <- df_result |>
       dplyr::left_join(
@@ -71,6 +80,7 @@ calculate_rolling_timedummy_index <- function(dataset,
         by = "period"
       )
     
+    # Reorder columns
     df_result <- df_result[, c("period", "number_of_observations", "Index")]
   }
   
