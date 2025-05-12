@@ -236,9 +236,10 @@ validate_input <- function(dataset, period_variable, dependent_variable, continu
   assertthat::assert_that(all(dataset[[dependent_variable]] > 0), msg = "The dependent variable contains negative values while log transformation needs to be performed.")
  
   
-  regex_period <- "^[0-9]{4}([Mm](0?[1-9]|1[0-2])|[Qq](0?[1-4]))$"
+  regex_period <- "^([0-9]{6}|[0-9]{4}([Mm](0?[1-9]|1[0-2])|[Qq](0?[1-4])))$"
   
-  assertthat::assert_that(all(stringr::str_detect(dataset[[period_variable]], regex_period)), msg = "The period variable should be in the correct format, for example: 2020Q1, 2020q1, 2020M1, 2020M01, 2020m01, 2020Q4, 2020q04.")
+  
+  assertthat::assert_that(all(stringr::str_detect(dataset[[period_variable]], regex_period)), msg = "The period variable should be in the correct format, for example: 2020Q1, 2020q1, 2020M1, 2020M01, 2020m01, 2020Q4, 2020q04, 202001.")
   
   
 }
