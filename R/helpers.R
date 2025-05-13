@@ -217,32 +217,42 @@ calculate_index <- function(periods
 #' @author David Pietersz
 #' @keywords internal
 #' 
-#' @importFrom assertthat assert_that has_name
 #' @importFrom stringr str_detect
 
 validate_input <- function(dataset, period_variable, dependent_variable, continuous_variables, categorical_variables) {
   
   # Dataset contains all necessary columns
-  assertthat::assert_that(assertthat::has_name(dataset, c(period_variable, dependent_variable, continuous_variables, categorical_variables)))
+  required_cols <- c(period_variable, dependent_variable, continuous_variables, categorical_variables)
+  missing_cols <- required_cols[!required_cols %in% names(dataset)]
+  if (length(missing_cols) > 0) {
+    stop("Dataset is missing the following required column(s): ", paste(missing_cols, collapse = ", "))
+  }
   
   # Dependent and continuous variables only contain numeric values
   numeric_cols <- c(dependent_variable, continuous_variables)
   for (col in numeric_cols) {
-    assertthat::assert_that(is.numeric(dataset[[col]]), msg = paste("Column", col, "is not (fully) numeric."))
+    if (!is.numeric(dataset[[col]])) {
+      stop(paste("Column", col, "is not (fully) numeric."))
+    }
   }
   
-  
   # If log transformation still needs to be performed, dependent variable should contain strictly positive values.
-  assertthat::assert_that(all(dataset[[dependent_variable]] > 0), msg = "The dependent variable contains negative values while log transformation needs to be performed.")
- 
+  if (any(dataset[[dependent_variable]] <= 0, na.rm = TRUE)) {
+    stop("The dependent variable contains zero or negative values while log transformation needs to be performed.")
+  }
   
+  # Period variable should be in a standard format for correct ordering and grouping
   regex_period <- "^([0-9]{6}|[0-9]{4}([Mm](0?[1-9]|1[0-2])|[Qq](0?[1-4])))$"
-  
-  
-  assertthat::assert_that(all(stringr::str_detect(dataset[[period_variable]], regex_period)), msg = "The period variable should be in the correct format, for example: 2020Q1, 2020q1, 2020M1, 2020M01, 2020m01, 2020Q4, 2020q04, 202001.")
-  
-  
+  invalid_periods <- dataset[[period_variable]][!stringr::str_detect(dataset[[period_variable]], regex_period)]
+  if (length(invalid_periods) > 0) {
+    warning("The period variable contains values that do not follow a recognized format. 
+It is recommended to use one of the following formats to ensure proper chronological ordering: 2020Q1, 2020q1, 2020M1, 2020M01, 2020m01, 202001
+Invalid examples found: ", paste(unique(invalid_periods), collapse = ", "))
+  }
 }
+
+
+
 
 ### This is the fourth internal function
 #' Calculate Growth Rates
@@ -437,8 +447,6 @@ calculate_geometric_average <- function(values){
   
   # Remove NA values
   values <- values[!is.na(values)]
-  
-  assertthat::assert_that(is.numeric(values), msg = "Values is not (fully) numeric")
   
   return(exp(mean(log(values))))
   

@@ -34,7 +34,6 @@
 #' @importFrom stats lm
 #' @importFrom stats predict
 #' @importFrom stats runif
-#' @importFrom assertthat assert_that
 #' @return
 #' table with index, imputation averages, number of observations and confidence intervals per period
 #' @keywords internal
@@ -50,7 +49,6 @@ calculate_laspeyres <- function(dataset
   
  
   
-  assertthat::assert_that(assertthat::has_name(dataset, c(period_variable, dependent_variable, continuous_variables, categorical_variables)))
   independent_variables <- c(continuous_variables, categorical_variables)
   
   

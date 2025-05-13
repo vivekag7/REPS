@@ -25,24 +25,24 @@ calculate_repricing <- function(dataset,
                                 reference_period = NULL,
                                 number_of_observations = FALSE) {
   
-  # Combine independent variables
+  internal_period <- ".index_period_internal"
   independent_variables <- c(continuous_variables, categorical_variables)
   
   # Check if required variables exist
   required_vars <- c(period_variable, dependent_variable, independent_variables)
   stopifnot(all(required_vars %in% names(dataset)))
   
-  # Rename period variable and apply log to dependent
+  # Assign internal period column and prepare data
+  dataset[[internal_period]] <- as.character(dataset[[period_variable]])
+  
   dataset <- dataset %>%
-    dplyr::rename(period = all_of(period_variable)) %>%
     dplyr::mutate(
-      period = as.character(period),
       log_depvar = log(.data[[dependent_variable]]),
       dplyr::across(dplyr::all_of(categorical_variables), as.factor)
     )
   
   # Sorted unique periods
-  period_list <- sort(unique(dataset$period), decreasing = FALSE)
+  period_list <- sort(unique(dataset[[internal_period]]), decreasing = FALSE)
   
   results <- data.frame(period = period_list)
   growth_rate <- numeric(length(period_list))
@@ -50,14 +50,14 @@ calculate_repricing <- function(dataset,
   
   if (number_of_observations) {
     num_obs <- numeric(length(period_list))
-    num_obs[1] <- nrow(dataset %>% filter(period == period_list[1]))
+    num_obs[1] <- nrow(dataset %>% dplyr::filter(.data[[internal_period]] == period_list[1]))
   }
   
   for (t in 2:length(period_list)) {
     
     # Subset 2-period window
     relevant_periods <- period_list[(t - 1):t]
-    subset_data <- dataset %>% filter(period %in% relevant_periods)
+    subset_data <- dataset %>% dplyr::filter(.data[[internal_period]] %in% relevant_periods)
     
     # Build formula and fit model
     formula_str <- paste0("log_depvar ~ ", paste(independent_variables, collapse = " + "))
@@ -65,11 +65,11 @@ calculate_repricing <- function(dataset,
     
     # Get mean characteristics per period
     average_data <- subset_data %>%
-      group_by(period) %>%
-      summarise(
+      dplyr::group_by(.data[[internal_period]]) %>%
+      dplyr::summarise(
         observed_gmean = exp(mean(log(.data[[dependent_variable]]), na.rm = TRUE)),
-        across(all_of(continuous_variables), \(x) mean(x, na.rm = TRUE)),
-        across(all_of(categorical_variables), ~ names(sort(table(.), decreasing = TRUE))[1]),
+        dplyr::across(dplyr::all_of(continuous_variables), \(x) mean(x, na.rm = TRUE)),
+        dplyr::across(dplyr::all_of(categorical_variables), ~ names(sort(table(.), decreasing = TRUE))[1]),
         .groups = "drop"
       )
     
@@ -83,7 +83,7 @@ calculate_repricing <- function(dataset,
     growth_rate[t] <- observed_ratio / predicted_ratio
     
     if (number_of_observations) {
-      num_obs[t] <- nrow(subset_data %>% filter(period == period_list[t]))
+      num_obs[t] <- nrow(subset_data %>% dplyr::filter(.data[[internal_period]] == period_list[t]))
     }
   }
   
