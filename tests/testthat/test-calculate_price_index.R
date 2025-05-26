@@ -57,3 +57,18 @@ test_that("Test calculate_price_index", {
     "resting_points = TRUE"
   )
 })
+
+test_that("Testplot_price_index ", {
+  result <- calculate_price_index(
+    method = c("fisher", "paasche"),
+    dataset = data_constraxion,
+    period_variable = "period",
+    dependent_variable = "price",
+    continuous_variables = "floor_area",
+    categorical_variables = "neighbourhood_code",
+    reference_period = 2015
+  )
+  
+  expect_silent(plot_price_index(result))
+})
+

@@ -57,8 +57,8 @@ calculate_price_index <- function(method,
                                   dataset,
                                   period_variable,
                                   dependent_variable,
-                                  continuous_variables,
-                                  categorical_variables,
+                                  continuous_variables = NULL,
+                                  categorical_variables = NULL,
                                   reference_period = NULL,
                                   number_of_observations = TRUE,
                                   periods_in_year = 4,
@@ -193,38 +193,46 @@ calculate_price_index <- function(method,
   return(result_list)
 }
 
-#' Plot index output from calculate_price_index
+#' Plot index output from calculate_price_index (pure plotly, minimal dependencies)
 #'
-#' Plots one or more price indices over time. If multiple methods are provided, a legend is included.
-#' X-axis shows only the first period of each year for clarity.
+#' Interactive price index plot with a static colorblind-safe palette and clickable legend.
 #'
 #' @author Vivek Gajadhar
-#' @param index_output a data.frame (single method) or named list of data.frames (multi-method) from \code{calculate_price_index()}.
-#' @param title optional custom plot title.
-#' @return a ggplot object
-#' @importFrom ggplot2 ggplot aes geom_point geom_line labs theme_minimal theme element_text scale_x_discrete
+#' @param index_output A data.frame or named list of data.frames
+#' @param title Optional plot title
+#' @return A plotly object
+#' @importFrom plotly plot_ly layout add_trace
 #' @importFrom dplyr bind_rows
 #' @export
 plot_price_index <- function(index_output, title = NULL) {
-  
   get_year_start_periods <- function(periods) {
     years <- substr(periods, 1, 4)
     periods[!duplicated(years)]
   }
   
-  if (is.data.frame(index_output)) {
+  # Static colorblind-friendly palette (Okabe-Ito)
+  cb_palette <- c(
+    "#E69F00", "#56B4E9", "#009E73", "#F0E442",
+    "#0072B2", "#D55E00", "#CC79A7", "#999999"
+  )
+  
+  is_single <- is.data.frame(index_output)
+  
+  if (is_single) {
+    df <- index_output[order(index_output$period), ]
+    breaks <- get_year_start_periods(df$period)
     title_text <- if (is.null(title)) "Price Index" else title
     
-    breaks <- get_year_start_periods(index_output$period)
-    
-    ggplot2::ggplot(index_output, ggplot2::aes(x = period, y = Index, group = 1)) +
-      ggplot2::geom_point() +
-      ggplot2::geom_line() +
-      ggplot2::labs(title = title_text, x = "Period", y = "Index") +
-      ggplot2::scale_x_discrete(breaks = breaks) +
-      ggplot2::theme_minimal() +
-      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
-    
+    fig <- plotly::plot_ly(
+      data = df,
+      x = ~period,
+      y = ~Index,
+      type = 'scatter',
+      mode = 'lines+markers',
+      name = "Index",
+      line = list(color = cb_palette[1]),
+      marker = list(color = cb_palette[1])
+    )
   } else if (is.list(index_output)) {
     combined <- dplyr::bind_rows(
       lapply(names(index_output), function(name) {
@@ -236,21 +244,48 @@ plot_price_index <- function(index_output, title = NULL) {
       .id = NULL
     )
     
-    title_text <- if (is.null(title)) "Price Index Comparison" else title
     breaks <- get_year_start_periods(combined$period)
+    title_text <- if (is.null(title)) "Price Index Comparison" else title
+    fig <- plotly::plot_ly()
     
-    ggplot2::ggplot(combined, ggplot2::aes(x = period, y = Index, color = method, group = method)) +
-      ggplot2::geom_point() +
-      ggplot2::geom_line() +
-      ggplot2::labs(title = title_text, x = "Period", y = "Index", color = "Method") +
-      ggplot2::scale_x_discrete(breaks = breaks) +
-      ggplot2::theme_minimal() +
-      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
-    
+    methods <- unique(combined$method)
+    for (i in seq_along(methods)) {
+      method_name <- methods[i]
+      df <- combined[combined$method == method_name, ]
+      color <- cb_palette[(i - 1) %% length(cb_palette) + 1]
+      
+      fig <- fig %>%
+        plotly::add_trace(
+          data = df,
+          x = ~period,
+          y = ~Index,
+          type = 'scatter',
+          mode = 'lines+markers',
+          name = method_name,
+          line = list(color = color),
+          marker = list(color = color)
+        )
+    }
   } else {
     stop("Unsupported input type: must be a data.frame or list of data.frames from calculate_price_index()")
   }
+  
+  fig <- fig %>%
+    plotly::layout(
+      title = list(text = title_text),
+      xaxis = list(
+        title = "Period",
+        tickvals = breaks,
+        tickangle = 45
+      ),
+      yaxis = list(title = "Index"),
+      legend = list(title = list(text = "Method")),
+      margin = list(b = 100)
+    )
+  
+  return(fig)
 }
+
 
 
 

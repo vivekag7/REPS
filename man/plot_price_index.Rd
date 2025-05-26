@@ -2,21 +2,20 @@
 % Please edit documentation in R/calculate_price_index.R
 \name{plot_price_index}
 \alias{plot_price_index}
-\title{Plot index output from calculate_price_index}
+\title{Plot index output from calculate_price_index (pure plotly, minimal dependencies)}
 \usage{
 plot_price_index(index_output, title = NULL)
 }
 \arguments{
-\item{index_output}{a data.frame (single method) or named list of data.frames (multi-method) from \code{calculate_price_index()}.}
+\item{index_output}{A data.frame or named list of data.frames}
 
-\item{title}{optional custom plot title.}
+\item{title}{Optional plot title}
 }
 \value{
-a ggplot object
+A plotly object
 }
 \description{
-Plots one or more price indices over time. If multiple methods are provided, a legend is included.
-X-axis shows only the first period of each year for clarity.
+Interactive price index plot with a static colorblind-safe palette and clickable legend.
 }
 \author{
 Vivek Gajadhar
