@@ -4,12 +4,13 @@
 #' with the predicted mean price from a hedonic regression model. The ratio of these two values
 #' forms the basis of the repricing growth rate, which is then accumulated into an index.
 #'
-#' @author Vivek Gajadhar
+#' @author Vivek Gajadhar, Farley Ishaak
 #' @param dataset a data frame containing the data
 #' @param period_variable character name of the time period variable
 #' @param dependent_variable character name of the dependent variable (e.g., sale price)
 #' @param continuous_variables character vector of numeric quality-determining variables
 #' @param categorical_variables character vector of categorical variables (including dummies)
+#' @param periods_in_year if month, then 12. If quarter, then 4, etc. (default = 4)
 #' @param reference_period reference period (numeric or string) to normalize index to 100
 #' @param number_of_observations logical, if TRUE, adds number of observations column
 #' @return a data.frame with columns: period, Index, (optionally number_of_observations)
@@ -23,7 +24,8 @@ calculate_repricing <- function(dataset,
                                 continuous_variables,
                                 categorical_variables,
                                 reference_period = NULL,
-                                number_of_observations = FALSE) {
+                                number_of_observations = FALSE,
+                                periods_in_year = 4) {
   
   internal_period <- ".index_period_internal"
   independent_variables <- c(continuous_variables, categorical_variables)
@@ -41,66 +43,50 @@ calculate_repricing <- function(dataset,
       dplyr::across(dplyr::all_of(categorical_variables), as.factor)
     )
   
-  # Sorted unique periods
+  # Sort unique periods
   period_list <- sort(unique(dataset[[internal_period]]), decreasing = FALSE)
   
+  # Prepare table for results
   results <- data.frame(period = period_list)
-  growth_rate <- numeric(length(period_list))
-  growth_rate[1] <- 1  # set base period growth rate
+
+  # Subset base year
+  base_year <- period_list[c(1:periods_in_year)]
+  subset_data_base <- dataset %>% dplyr::filter(.data[[internal_period]] %in% base_year)
   
-  if (number_of_observations) {
-    num_obs <- numeric(length(period_list))
-    num_obs[1] <- nrow(dataset %>% dplyr::filter(.data[[internal_period]] == period_list[1]))
-  }
+  # Build formula
+  formula_str <- paste0("log_depvar ~ ", paste(independent_variables, collapse = " + "))
   
-  for (t in 2:length(period_list)) {
-    
-    # Subset 2-period window
-    relevant_periods <- period_list[(t - 1):t]
-    subset_data <- dataset %>% dplyr::filter(.data[[internal_period]] %in% relevant_periods)
-    
-    # Build formula and fit model
-    formula_str <- paste0("log_depvar ~ ", paste(independent_variables, collapse = " + "))
-    model <- lm(as.formula(formula_str), data = subset_data)
-    
-    # Get mean characteristics per period
-    average_data <- subset_data %>%
-      dplyr::group_by(.data[[internal_period]]) %>%
-      dplyr::summarise(
-        observed_gmean = exp(mean(log(.data[[dependent_variable]]), na.rm = TRUE)),
-        dplyr::across(dplyr::all_of(continuous_variables), \(x) mean(x, na.rm = TRUE)),
-        dplyr::across(dplyr::all_of(categorical_variables), ~ names(sort(table(.), decreasing = TRUE))[1]),
-        .groups = "drop"
-      )
-    
-    # Predict mean price using model
-    average_data$predicted_price <- exp(predict(model, newdata = average_data))
-    
-    # Compute growth ratio
-    observed_ratio <- average_data$observed_gmean[2] / average_data$observed_gmean[1]
-    predicted_ratio <- average_data$predicted_price[2] / average_data$predicted_price[1]
-    
-    growth_rate[t] <- observed_ratio / predicted_ratio
-    
-    if (number_of_observations) {
-      num_obs[t] <- nrow(subset_data %>% dplyr::filter(.data[[internal_period]] == period_list[t]))
-    }
-  }
+  # Fit model period base year
+  model_base <- lm(as.formula(formula_str), data = subset_data_base)
+ 
+  # Predict mean price for observations in all periods using model for base year
+  dataset$predicted_price <- exp(predict(model_base, newdata = dataset))
   
-  # Finalize index
-  Index <- cumprod(growth_rate) * 100
+  # Calculate mean, sum and numbers per period
+  average_data <- dataset %>%
+    dplyr::group_by(.data[[internal_period]]) %>%
+    dplyr::summarise(
+      observed_gmean = exp(mean(log(.data[[dependent_variable]]), na.rm = TRUE)),
+      predicted_price = sum(predicted_price),
+      num_obs = n(),
+      .groups = "drop"
+    )
+  
+  # Calculate index
+  average_data$index <- (average_data$observed_gmean / average_data$observed_gmean[1]) /
+                        (average_data$predicted_price / average_data$predicted_price[1]) * 100
   
   # Construct final result table with correct column order
   if (number_of_observations) {
     results <- data.frame(
       period = period_list,
-      number_of_observations = num_obs,
-      Index = Index
+      number_of_observations = average_data$num_obs,
+      Index = average_data$index
     )
   } else {
     results <- data.frame(
       period = period_list,
-      Index = Index
+      Index = average_data$index
     )
   }
   
