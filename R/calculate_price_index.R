@@ -177,6 +177,7 @@ calculate_price_index <- function(method,
         continuous_variables = continuous_variables,
         categorical_variables = categorical_variables,
         reference_period = reference_period,
+        periods_in_year = periods_in_year,
         number_of_observations = number_of_observations
       ))
     }
