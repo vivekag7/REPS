@@ -11,7 +11,8 @@ calculate_repricing(
   continuous_variables,
   categorical_variables,
   reference_period = NULL,
-  number_of_observations = FALSE
+  number_of_observations = FALSE,
+  periods_in_year = 4
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ calculate_repricing(
 \item{reference_period}{reference period (numeric or string) to normalize index to 100}
 
 \item{number_of_observations}{logical, if TRUE, adds number of observations column}
+
+\item{periods_in_year}{if month, then 12. If quarter, then 4, etc. (default = 4)}
 }
 \value{
 a data.frame with columns: period, Index, (optionally number_of_observations)
@@ -38,6 +41,6 @@ with the predicted mean price from a hedonic regression model. The ratio of thes
 forms the basis of the repricing growth rate, which is then accumulated into an index.
 }
 \author{
-Vivek Gajadhar
+Vivek Gajadhar, Farley Ishaak
 }
 \keyword{internal}
