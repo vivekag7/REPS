@@ -12,8 +12,7 @@ test_that("Test HMTS", {
     periods_in_year = 4,
     production_since = NULL,
     number_preliminary_periods = 2,
-    number_of_observations = FALSE,
-    resting_points = TRUE
+    diagnostics = FALSE
   )
   
   if (save_refs) {
@@ -22,6 +21,6 @@ test_that("Test HMTS", {
     succeed("Reference file saved.")  
   } else {
     ref_tbl <- readRDS(ref_file)
-    expect_equal(tbl_hmts$Index, ref_tbl$Index, tolerance = 1e-3)
+    expect_equal(tbl_hmts, ref_tbl, tolerance = 1e-3)
   }
 })

@@ -19,7 +19,7 @@
 #' @param categorical_variables vector with quality determining categorical variables (also dummies)
 #' @param index caprice index
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
-#' @param number_of_observations number of observations per period (default = TRUE)
+#' @param diagnostics number of observations per period (default = TRUE)
 #' @param imputation display the underlying average imputation values? (default = FALSE)
 #' @return
 #' table with index, imputation averages, number of observations and confidence intervals per period
@@ -31,7 +31,7 @@ calculate_paasche <- function(dataset
                               , categorical_variables
                               , reference_period = NULL
                               , index = TRUE
-                              , number_of_observations = FALSE
+                              , diagnostics = FALSE
                               , imputation = FALSE) {
 
   # Merge independent variables
@@ -70,7 +70,7 @@ calculate_paasche <- function(dataset
                                    , period_temp = "period_var_temp"
                                    , dependent_variable_temp = dependent_variable
                                    , independent_variables_temp = independent_variables
-                                   , number_of_observations_temp = number_of_observations
+                                   , diagnostics_temp = diagnostics
                                    , period_list_temp = period_list_paasche)
     if (imputation == TRUE) {
       # Retain columns that are necessary for imputations
@@ -84,10 +84,10 @@ calculate_paasche <- function(dataset
     }
     
 
-    if (number_of_observations == TRUE) {
+    if (diagnostics == TRUE) {
 
       # Insert imputations into table
-      number[imputation_period] <- tbl_average_imputation$number_of_observations[1]
+      number[imputation_period] <- tbl_average_imputation$diagnostics[1]
 
     }
 
@@ -112,13 +112,13 @@ calculate_paasche <- function(dataset
   paasche <- data.frame(period = period_list)
   column_start <- 1
 
-  if (number_of_observations == TRUE) {
-    paasche$number_of_observations <- number
+  if (diagnostics == TRUE) {
+    paasche$diagnostics <- number
     column_start <- 2
   }
-  if (index == TRUE) {
-    paasche$Index <- Index
-  }
+
+  paasche$Index <- Index
+  
 
   if (imputation == TRUE) {
     number_of_periods_plus_1 <- number_of_periods + 1

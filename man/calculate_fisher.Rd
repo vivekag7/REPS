@@ -11,7 +11,7 @@ calculate_fisher(
   continuous_variables,
   categorical_variables,
   reference_period = NULL,
-  number_of_observations = FALSE
+  diagnostics = FALSE
 )
 }
 \arguments{
@@ -27,7 +27,7 @@ calculate_fisher(
 
 \item{reference_period}{period or group of periods that will be set to 100 (numeric/string)}
 
-\item{number_of_observations}{number of observations per period (default = TRUE)}
+\item{diagnostics}{number of observations per period (default = TRUE)}
 }
 \value{
 table with index, imputation averages, number of observations and confidence intervals per period

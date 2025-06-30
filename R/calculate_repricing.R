@@ -12,8 +12,8 @@
 #' @param categorical_variables character vector of categorical variables (including dummies)
 #' @param periods_in_year if month, then 12. If quarter, then 4, etc. (default = 4)
 #' @param reference_period reference period (numeric or string) to normalize index to 100
-#' @param number_of_observations logical, if TRUE, adds number of observations column
-#' @return a data.frame with columns: period, Index, (optionally number_of_observations)
+#' @param diagnostics logical, if TRUE, adds number of observations column
+#' @return a data.frame with columns: period, Index, (optionally diagnostics)
 #' @keywords internal
 #' @importFrom dplyr %>% rename mutate filter group_by summarise all_of across
 #' @importFrom stats lm predict as.formula
@@ -24,7 +24,7 @@ calculate_repricing <- function(dataset,
                                 continuous_variables,
                                 categorical_variables,
                                 reference_period = NULL,
-                                number_of_observations = FALSE,
+                                diagnostics = FALSE,
                                 periods_in_year = 4) {
   
   internal_period <- ".index_period_internal"
@@ -77,7 +77,7 @@ calculate_repricing <- function(dataset,
                         (average_data$predicted_price / average_data$predicted_price[1]) * 100
   
   # Construct final result table with correct column order
-  if (number_of_observations) {
+  if (diagnostics) {
     results <- data.frame(
       period = period_list,
       number_of_observations = average_data$num_obs,

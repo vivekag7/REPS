@@ -11,7 +11,7 @@ calculate_hedonic_imputationmatrix(
   continuous_variables,
   categorical_variables,
   periods_in_year,
-  number_of_observations = TRUE,
+  diagnostics = TRUE,
   production_since = NULL,
   number_preliminary_periods
 )
@@ -29,7 +29,7 @@ calculate_hedonic_imputationmatrix(
 
 \item{periods_in_year}{if month, then 12. If quarter, then 4, etc. (default = 4)}
 
-\item{number_of_observations}{number of observations per period (default = TRUE)}
+\item{diagnostics}{number of observations per period (default = TRUE)}
 
 \item{production_since}{1 period in the format of the period_variable. See description above (default = NULL)}
 

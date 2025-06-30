@@ -11,7 +11,7 @@ calculate_repricing(
   continuous_variables,
   categorical_variables,
   reference_period = NULL,
-  number_of_observations = FALSE,
+  diagnostics = FALSE,
   periods_in_year = 4
 )
 }
@@ -28,12 +28,12 @@ calculate_repricing(
 
 \item{reference_period}{reference period (numeric or string) to normalize index to 100}
 
-\item{number_of_observations}{logical, if TRUE, adds number of observations column}
+\item{diagnostics}{logical, if TRUE, adds number of observations column}
 
 \item{periods_in_year}{if month, then 12. If quarter, then 4, etc. (default = 4)}
 }
 \value{
-a data.frame with columns: period, Index, (optionally number_of_observations)
+a data.frame with columns: period, Index, (optionally diagnostics)
 }
 \description{
 For each pair of subsequent periods, this method compares the observed geometric mean price

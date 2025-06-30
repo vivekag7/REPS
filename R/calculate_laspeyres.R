@@ -20,7 +20,7 @@
 #' @param continuous_variables vector with quality determining numeric variables (no dummies)
 #' @param categorical_variables vector with quality determining categorical variables (also dummies)
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
-#' @param number_of_observations number of observations per period (default = TRUE)
+#' @param diagnostics number of observations per period (default = TRUE)
 #' @param imputation display the underlying average imputation values? (default = FALSE)
 #' @param index caprice index
 #' @importFrom dplyr mutate
@@ -44,7 +44,7 @@ calculate_laspeyres <- function(dataset
                                 , categorical_variables
                                 , reference_period = NULL
                                 , index = TRUE
-                                , number_of_observations = FALSE
+                                , diagnostics = FALSE
                                 , imputation = FALSE) {
   
  
@@ -69,7 +69,7 @@ calculate_laspeyres <- function(dataset
                                  , period_temp = "period_var_temp"
                                  , dependent_variable_temp = dependent_variable
                                  , independent_variables_temp = independent_variables
-                                 , number_of_observations_temp = number_of_observations
+                                 , diagnostics_temp = diagnostics
                                  , period_list_temp = period_list)
   
   
@@ -79,15 +79,15 @@ calculate_laspeyres <- function(dataset
   # Create table
   laspeyres <- data.frame(period = tbl_average_imputation$period)
   
-  if (number_of_observations == TRUE) {
-    laspeyres$number_of_observations <- tbl_average_imputation$number_of_observations
+  if (diagnostics == TRUE) {
+    laspeyres$diagnostics <- tbl_average_imputation$diagnostics
   }
   if (imputation == TRUE) {
     laspeyres$Imputation <- tbl_average_imputation$average_imputation
   }
-  if (index == TRUE) {
-    laspeyres$Index <- Index
-  }
+
+  laspeyres$Index <- Index
+  
  
   
   return(laspeyres)

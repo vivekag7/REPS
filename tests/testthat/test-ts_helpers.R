@@ -1,6 +1,6 @@
 test_that("Test calculate_trend_line_kfas", {
   series <- c(85, 97, 100, 104, 111)
-  result <- calculate_trend_line_kfas(series, periodicity = 4, resting_points = FALSE)
+  result <- calculate_trend_line_kfas(series, periodicity = 4, diagnostics = FALSE)
   
   expect_type(result, "double")
   expect_length(result, length(series))
@@ -9,12 +9,12 @@ test_that("Test calculate_trend_line_kfas", {
 
 test_that("Test calculate_trend_line_kfas works", {
   series <- c(85, 97, 100, 104, 111)
-  result <- calculate_trend_line_kfas(series, periodicity = 4, resting_points = TRUE)
+  result <- calculate_trend_line_kfas(series, periodicity = 4, diagnostics = TRUE)
   
   expect_type(result, "list")
-  expect_named(result, c("trend_line", "resting_points"))
+  expect_named(result, c("trend_line", "diagnostics"))
   expect_true(all(result$trend_line > 0))
-  expect_s3_class(result$resting_points, "data.frame")
+  expect_s3_class(result$diagnostics, "data.frame")
 })
 
 test_that("Test set_startvalues", {

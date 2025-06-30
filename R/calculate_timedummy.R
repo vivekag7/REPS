@@ -9,8 +9,8 @@
 #' @param continuous_variables vector of numeric quality-determining variables
 #' @param categorical_variables vector of categorical variables
 #' @param reference_period period to be normalized to index = 100 (e.g., "2015")
-#' @param number_of_observations logical, whether to return number of observations per period (default = FALSE)
-#' @return data frame with period, Index, and optionally number_of_observations
+#' @param diagnostics logical, whether to return number of observations per period (default = FALSE)
+#' @return data frame with period, Index, and optionally diagnostics
 #' @importFrom stats lm coefficients as.formula na.omit
 #' @importFrom utils tail
 #' @importFrom dplyr mutate across all_of select group_by summarise left_join n
@@ -22,7 +22,7 @@ calculate_time_dummy_index <- function(dataset,
                                        continuous_variables,
                                        categorical_variables,
                                        reference_period = NULL,
-                                       number_of_observations = FALSE) {
+                                       diagnostics = FALSE) {
   # Convert categorical vars and period to factors, and log-transform dependent and continuous vars
   dataset <- dataset |>
     dplyr::mutate(dplyr::across(dplyr::all_of(c(categorical_variables, period_variable)), as.factor)) |>
@@ -60,7 +60,7 @@ calculate_time_dummy_index <- function(dataset,
   df_index <- data.frame(period = names(index), Index = as.numeric(index))
   
   # Add number of observations if requested
-  if (number_of_observations) {
+  if (diagnostics) {
     df_index <- df_index |>
       dplyr::left_join(
         calculation_data |>
@@ -76,7 +76,7 @@ calculate_time_dummy_index <- function(dataset,
   }
   
   # Reorder columns if observations included
-  if (number_of_observations) {
+  if (diagnostics) {
     df_index <- df_index[, c("period", "number_of_observations", "Index")]
   }
   

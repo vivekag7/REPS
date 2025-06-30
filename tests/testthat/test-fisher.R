@@ -9,7 +9,7 @@ test_that("Test Fisher", {
     continuous_variables = "floor_area",
     categorical_variables = "neighbourhood_code",
     reference_period = 2015,
-    number_of_observations = FALSE
+    diagnostics = FALSE
   )
   
   if (save_refs) {

@@ -9,7 +9,7 @@ test_that("Test Paasche", {
     continuous_variables = c("floor_area"),
     categorical_variables = c("neighbourhood_code"),
     reference_period = 2015,
-    number_of_observations = FALSE,
+    diagnostics = FALSE,
     imputation = TRUE
   )
   

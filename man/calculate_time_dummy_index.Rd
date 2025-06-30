@@ -11,7 +11,7 @@ calculate_time_dummy_index(
   continuous_variables,
   categorical_variables,
   reference_period = NULL,
-  number_of_observations = FALSE
+  diagnostics = FALSE
 )
 }
 \arguments{
@@ -27,10 +27,10 @@ calculate_time_dummy_index(
 
 \item{reference_period}{period to be normalized to index = 100 (e.g., "2015")}
 
-\item{number_of_observations}{logical, whether to return number of observations per period (default = FALSE)}
+\item{diagnostics}{logical, whether to return number of observations per period (default = FALSE)}
 }
 \value{
-data frame with period, Index, and optionally number_of_observations
+data frame with period, Index, and optionally diagnostics
 }
 \description{
 Estimates a price index using a single regression with time dummy variables.

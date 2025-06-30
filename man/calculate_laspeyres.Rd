@@ -12,7 +12,7 @@ calculate_laspeyres(
   categorical_variables,
   reference_period = NULL,
   index = TRUE,
-  number_of_observations = FALSE,
+  diagnostics = FALSE,
   imputation = FALSE
 )
 }
@@ -31,7 +31,7 @@ calculate_laspeyres(
 
 \item{index}{caprice index}
 
-\item{number_of_observations}{number of observations per period (default = TRUE)}
+\item{diagnostics}{number of observations per period (default = TRUE)}
 
 \item{imputation}{display the underlying average imputation values? (default = FALSE)}
 }

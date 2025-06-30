@@ -12,7 +12,7 @@ calculate_rolling_timedummy_index(
   categorical_variables,
   reference_period,
   window_length,
-  number_of_observations = FALSE
+  diagnostics = FALSE
 )
 }
 \arguments{
@@ -30,10 +30,10 @@ calculate_rolling_timedummy_index(
 
 \item{window_length}{length of each rolling window (integer)}
 
-\item{number_of_observations}{logical, whether to return number of observations per period (default = FALSE)}
+\item{diagnostics}{logical, whether to return number of observations per period (default = FALSE)}
 }
 \value{
-data frame with period, Index, and optionally number_of_observations
+data frame with period, Index, and optionally diagnostics
 }
 \description{
 Estimates a price index using rolling windows of time dummy regressions.

@@ -5,7 +5,8 @@ test_that("Test validate_input", {
     period_variable = "period",
     dependent_variable = "price",
     continuous_variables = "floor_area",
-    categorical_variables = "neighbourhood_code"
+    categorical_variables = "neighbourhood_code",
+    reference_period = NULL
   ))
   
   # Error: missing period column should throw an error
@@ -14,7 +15,8 @@ test_that("Test validate_input", {
     period_variable = "period",
     dependent_variable = "price",
     continuous_variables = "floor_area",
-    categorical_variables = "neighbourhood_code"
+    categorical_variables = "neighbourhood_code",
+    reference_period = NULL
   ), "Dataset is missing the following required column")
   
   # Error: non-numeric continuous variable should throw an error
@@ -25,7 +27,8 @@ test_that("Test validate_input", {
     period_variable = "period",
     dependent_variable = "price",
     continuous_variables = "floor_area",
-    categorical_variables = "neighbourhood_code"
+    categorical_variables = "neighbourhood_code",
+    reference_period = NULL
   ), "is not numeric")
   
   # Error: negative price should throw an error (log transformation requirement)
@@ -36,7 +39,8 @@ test_that("Test validate_input", {
     period_variable = "period",
     dependent_variable = "price",
     continuous_variables = "floor_area",
-    categorical_variables = "neighbourhood_code"
+    categorical_variables = "neighbourhood_code",
+    reference_period = NULL
   ), "contains zero or negative values")
   
   # Warning: invalid period format should trigger a warning advising correction
@@ -47,7 +51,8 @@ test_that("Test validate_input", {
     period_variable = "period",
     dependent_variable = "price",
     continuous_variables = "floor_area",
-    categorical_variables = "neighbourhood_code"
+    categorical_variables = "neighbourhood_code",
+    reference_period = NULL
   ), "The period variable contains values that do not match a recognized format")
   
   # Error: both continuous and categorical variables are NULL
@@ -56,6 +61,7 @@ test_that("Test validate_input", {
     period_variable = "period",
     dependent_variable = "price",
     continuous_variables = NULL,
-    categorical_variables = NULL
+    categorical_variables = NULL,
+    reference_period = NULL
   ), "Both continuous_variables and categorical_variables are missing or empty")
 })

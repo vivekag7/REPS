@@ -22,7 +22,7 @@ test_that("Test calculate_price_index", {
       dependent_variable = "price",
       continuous_variables = "floor_area",
       categorical_variables = "neighbourhood_code",
-      reference_period = 2015
+      reference_period = "2015Q1"
     )
   )
   
@@ -34,28 +34,13 @@ test_that("Test calculate_price_index", {
     dependent_variable = "price",
     continuous_variables = "floor_area",
     categorical_variables = "neighbourhood_code",
-    reference_period = 2015
+    reference_period = "2015Q1"
   )
   
   expect_type(result, "list")
   expect_named(result, c("fisher", "paasche", "timedummy"))
   
-  # Multiple methods with resting_points = TRUE should error
-  expect_error(
-    calculate_price_index(
-      method = c("fisher", "hmts"),
-      dataset = data_constraxion,
-      period_variable = "period",
-      dependent_variable = "price",
-      continuous_variables = "floor_area",
-      categorical_variables = "neighbourhood_code",
-      reference_period = 2015,
-      periods_in_year = 4,
-      number_preliminary_periods = 2,
-      resting_points = TRUE
-    ),
-    "resting_points = TRUE"
-  )
+  
 })
 
 test_that("Testplot_price_index ", {
@@ -66,7 +51,7 @@ test_that("Testplot_price_index ", {
     dependent_variable = "price",
     continuous_variables = "floor_area",
     categorical_variables = "neighbourhood_code",
-    reference_period = 2015
+    reference_period = "2015Q1"
   )
   
   expect_silent(plot_price_index(result))

@@ -17,7 +17,7 @@
 #' To simulate a series, where 1 period a time expires (as in production), a manual choice in the past is possible.
 #' Until this period, all periods are imputed. After that, 1 period is added.
 #'
-#' Parameter 'resting_points':
+#' Parameter 'diagnostics':
 #' If TRUE, the output is a list of tables. These tables can be called with a $ after the output.
 #' $Index table with periods, index and number of observations
 #' $Window table with the index figures within the chosen window
@@ -34,11 +34,11 @@
 #' @param continuous_variables vector with quality-determining continues variables (numeric, no dummies)
 #' @param categorical_variables vector with categorical variables (also dummy)
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
-#' @param number_of_observations number of observations per period (default = TRUE)
+#' @param diagnostics number of observations per period (default = TRUE)
 #' @param periods_in_year if month, then 12. If quarter, then 4, etc. (default = 4)
 #' @param production_since 1 period in the format of the period_variable. See description above (default = NULL)
 #' @param number_preliminary_periods number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3
-#' @param resting_points should analyses values be returned? (default = FALSE)
+#' @param diagnostics should analyses values be returned? (default = FALSE)
 #' @return
 #' $Matrix_HMTS_index table with index series based on estimations with time series re-estimations
 #' $Matrix_HMTS table with estimated values based on time series re-estimations
@@ -46,7 +46,7 @@
 #' $Matrix_HMS table with estimated values based on the hedonic model
 #' $Matrix_HMTS_analysis table with analysis values of the time series model per base period
 #' @keywords internal
-#' @return table with periods, index and number of observations. If resting_points = TRUE, then list with tables. See general description and examples.
+#' @return table with periods, index and number of observations. If diagnostics = TRUE, then list with tables. See general description and examples.
 
 
 calculate_hmts_index <- function(
@@ -59,8 +59,7 @@ calculate_hmts_index <- function(
     periods_in_year,
     production_since = NULL,
     number_preliminary_periods,
-    number_of_observations = NULL,
-    resting_points) {
+    diagnostics) {
   
   period_list <- sort(unique(dataset$period))
   number_of_periods <- length(period_list)
@@ -75,7 +74,7 @@ calculate_hmts_index <- function(
                                                              , continuous_variables = continuous_variables
                                                              , categorical_variables = categorical_variables
                                                              , periods_in_year = periods_in_year
-                                                             , number_of_observations = number_of_observations
+                                                             , diagnostics = diagnostics
                                                              , production_since = production_since
                                                              , number_preliminary_periods = number_preliminary_periods)
   
@@ -139,13 +138,13 @@ calculate_hmts_index <- function(
   matrix_hmts$geom_avg <- matrix_hmts_index$geom_avg <- window$geom_avg <- geometric_averages
   imputations$Index <- matrix_hmts$index <- matrix_hmts_index$index <- window$index <- calculate_index(period_list, geometric_averages, reference_period = reference_period)
   
-  if (number_of_observations == TRUE) {
+  if (diagnostics == TRUE) {
     results <- dplyr::select(imputations, dplyr::all_of(c("period", "number_of_observations", "Index")))
   } else {
     results <- dplyr::select(imputations, dplyr::all_of(c("period", "Index")))
   }
   
-  if (resting_points == TRUE) {
+  if (diagnostics == TRUE) {
     results <- list(Index = results
                     , window = window
                     , chosen_index_series = imputations
@@ -180,7 +179,7 @@ calculate_hmts_index <- function(
 #' @param dependent_variable usually the sale price
 #' @param continuous_variables vector with quality-determining continues variables (numeric, no dummies)
 #' @param categorical_variables vector with categorical variables (also dummy)
-#' @param number_of_observations number of observations per period (default = TRUE)
+#' @param diagnostics number of observations per period (default = TRUE)
 #' @param periods_in_year if month, then 12. If quarter, then 4, etc. (default = 4)
 #' @param production_since 1 period in the format of the period_variable. See description above (default = NULL)
 #' @param number_preliminary_periods number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3
@@ -198,7 +197,7 @@ calculate_hedonic_imputationmatrix <- function(dataset
                                                , continuous_variables
                                                , categorical_variables
                                                , periods_in_year
-                                               , number_of_observations = TRUE
+                                               , diagnostics = TRUE
                                                , production_since = NULL
                                                , number_preliminary_periods) {
   
@@ -254,7 +253,7 @@ calculate_hedonic_imputationmatrix <- function(dataset
     
     dataset_base <- subset(dataset_temp, dataset_temp[[period_variable]] == period_list[current_period])
     
-    if (number_of_observations == TRUE) {
+    if (diagnostics == TRUE) {
       number_observations_total[current_period] <- nrow(dataset_base)
     }
     
@@ -280,9 +279,9 @@ calculate_hedonic_imputationmatrix <- function(dataset
     }
     
     
-    hmts_temp <- calculate_trend_line_kfas(original_series = hms, periodicity = periods_in_year, resting_points = TRUE)
+    hmts_temp <- calculate_trend_line_kfas(original_series = hms, periodicity = periods_in_year, diagnostics = TRUE)
     hmts <- hmts_temp$trend_line
-    hmts_analysis <- hmts_temp$resting_points
+    hmts_analysis <- hmts_temp$diagnostics
     hmts_index <- calculate_index(periods = c(1:number_periods_production_since), values = hmts)
     
     
@@ -299,7 +298,7 @@ calculate_hedonic_imputationmatrix <- function(dataset
   }
   
   # Add numbers to calculation
-  if (number_of_observations == TRUE) {
+  if (diagnostics == TRUE) {
     matrix_hmts["number_of_observations"] <- matrix_hmts_index["number_of_observations"] <- number_observations_total
   }
   

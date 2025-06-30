@@ -14,8 +14,7 @@ calculate_hmts(
   periods_in_year,
   production_since = NULL,
   number_preliminary_periods,
-  number_of_observations,
-  resting_points
+  diagnostics
 )
 }
 \arguments{
@@ -35,9 +34,7 @@ calculate_hmts(
 
 \item{number_preliminary_periods}{number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3}
 
-\item{number_of_observations}{number of observations per period (default = TRUE)}
-
-\item{resting_points}{should analyses values be returned? (default = FALSE)}
+\item{diagnostics}{should analyses values be returned? (default = FALSE)}
 }
 \value{
 $Matrix_HMTS_index table with index series based on estimations with time series re-estimations
@@ -46,7 +43,7 @@ $Matrix_HMS_index table with index series based on estimations with the hedonic 
 $Matrix_HMS table with estimated values based on the hedonic model
 $Matrix_HMTS_analysis table with analysis values of the time series model per base period
 
-table with periods, index (and optional confidence intervals) and number of observations. If resting_points = TRUE, then list with tables. See general description and examples.
+table with periods, index (and optional confidence intervals) and number of observations. If diagnostics = TRUE, then list with tables. See general description and examples.
 }
 \description{
 Based on a hedonic model, an index is calculated in below steps. See also Ishaak, Ouwehand, Remoy & De Haan (2023).
@@ -65,7 +62,7 @@ Parameter 'production_since':
 To simulate a series, where 1 period a time expires (as in production), a manual choice in the past is possible.
 Until this period, all periods are imputed. After that, 1 period is added.
 
-Parameter 'resting_points':
+Parameter 'diagnostics':
 If TRUE, the output is a list of tables. These tables can be called with a $ after the output.
 $Index table with periods, index and number of observations
 $Window table with the index figures within the chosen window

@@ -9,7 +9,8 @@ validate_input(
   period_variable,
   dependent_variable,
   continuous_variables,
-  categorical_variables
+  categorical_variables,
+  reference_period = NULL
 )
 }
 \arguments{
@@ -22,16 +23,18 @@ validate_input(
 \item{continuous_variables}{A character vector with names of numeric quality-determining variables.}
 
 \item{categorical_variables}{A character vector with names of categorical variables (including dummies).}
+
+\item{reference_period}{Optional string for the base period to normalize index values (e.g., "2015", "2020Q1").}
 }
 \value{
-Returns TRUE invisibly if all checks pass. Otherwise, an error is thrown.
+Returns TRUE invisibly if all checks pass. Automatically adjusts reference_period if needed.
 }
 \description{
 This function checks whether the dataset contains all required variables, whether the dependent and continuous variables are numeric,
-and whether the period variable is formatted correctly (e.g., "2020Q1", "2020M01").
-It ensures that the data is suitable for further processing in hedonic index calculations.
+and whether the period variable is formatted correctly (e.g., "2020Q1", "2020M01", or just "2015").
+It also performs soft-matching to adjust a provided reference_period to align with the dataset.
 }
 \author{
-David Pietersz
+David Pietersz, Vivek Gajadhar
 }
 \keyword{internal}

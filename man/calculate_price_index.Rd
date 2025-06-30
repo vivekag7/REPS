@@ -12,12 +12,10 @@ calculate_price_index(
   continuous_variables = NULL,
   categorical_variables = NULL,
   reference_period = NULL,
-  number_of_observations = TRUE,
+  diagnostics = FALSE,
   periods_in_year = 4,
   production_since = NULL,
   number_preliminary_periods = 3,
-  resting_points = FALSE,
-  index = TRUE,
   imputation = FALSE,
   window_length = 5
 )
@@ -37,24 +35,20 @@ calculate_price_index(
 
 \item{reference_period}{Period or group of periods that will be set to 100}
 
-\item{number_of_observations}{Logical, whether to show number of observations (default = TRUE)}
+\item{diagnostics}{(HMTS only) Whether to return detailed outputs (default = FALSE)}
 
-\item{periods_in_year}{(HMTS only) Number of periods per year (e.g. 12 for months)}
+\item{periods_in_year}{(HMTS/Repricing only) Number of periods per year (e.g. 12 for months)}
 
 \item{production_since}{(HMTS only) Start period for production simulation}
 
 \item{number_preliminary_periods}{(HMTS only) Number of preliminary periods}
-
-\item{resting_points}{(HMTS only) Whether to return detailed outputs (default = FALSE)}
-
-\item{index}{(Laspeyres/Paasche only) Include index column? Default = TRUE}
 
 \item{imputation}{(Laspeyres/Paasche only) Include imputation values? Default = FALSE}
 
 \item{window_length}{(Rolling Time Dummy only) Window size in number of periods}
 }
 \value{
-A data.frame (or list for HMTS with resting_points = TRUE; or named list if multiple methods are used)
+A data.frame (or list for HMTS with diagnostics = TRUE; or named list if multiple methods are used)
 }
 \description{
 Central hub function to calculate index figures using different methods.
@@ -69,7 +63,7 @@ Tbl_TD <- calculate_price_index(
   continuous_variables = "floor_area",
   categorical_variables = "neighbourhood_code",
   reference_period = "2015",
-  number_of_observations = FALSE
+  diagnostics = FALSE
 )
 head(Tbl_TD)
 
@@ -82,7 +76,7 @@ multi_result <- calculate_price_index(
   continuous_variables = "floor_area",
   categorical_variables = "neighbourhood_code",
   reference_period = "2015",
-  number_of_observations = FALSE
+  diagnostics = FALSE
 )
 
 head(multi_result$fisher)
