@@ -1,4 +1,4 @@
-test_that("Test Diagnostics Calculation", {
+test_that("Test Regression Diagnostics", {
   save_refs <- FALSE  # Set to TRUE to save reference output
   ref_file <- test_path("test_data", "diagnostics_output.rds")
   
@@ -18,4 +18,18 @@ test_that("Test Diagnostics Calculation", {
     ref_tbl <- readRDS(ref_file)
     expect_equal(diagnostics_tbl, ref_tbl, tolerance = 1e-8)
   }
+})
+
+test_that("Test Diagnostics Plot", {
+  diagnostics_result <- calculate_regression_diagnostics(
+    dataset = data_constraxion,
+    period_variable = "period",
+    dependent_variable = "price",
+    numerical_variables = c("floor_area", "dist_trainstation"),
+    categorical_variables = c("dummy_large_city", "neighbourhood_code")
+  )
+  
+  expect_silent(
+    plot_regression_diagnostics(diagnostics_result)
+  )
 })
