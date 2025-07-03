@@ -12,7 +12,7 @@ calculate_paasche(
   categorical_variables,
   reference_period = NULL,
   index = TRUE,
-  diagnostics = FALSE,
+  number_of_observations = FALSE,
   imputation = FALSE
 )
 }
@@ -31,7 +31,7 @@ calculate_paasche(
 
 \item{index}{caprice index}
 
-\item{diagnostics}{number of observations per period (default = TRUE)}
+\item{number_of_observations}{number of observations per period (default = TRUE)}
 
 \item{imputation}{display the underlying average imputation values? (default = FALSE)}
 }

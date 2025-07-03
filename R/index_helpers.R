@@ -22,7 +22,7 @@ calculate_hedonic_imputation <- function(dataset_temp = dataset
                                          , period_temp = "period_var_temp"
                                          , dependent_variable_temp = dependent_variable
                                          , independent_variables_temp = independent_variables
-                                         , diagnostics_temp = diagnostics
+                                         , number_of_observations_temp = number_of_observations
                                          , period_list_temp = period_list) {
   
   # Count number of periods
@@ -72,7 +72,7 @@ calculate_hedonic_imputation <- function(dataset_temp = dataset
 
       predictmdl_0 <- exp(predictmdl_0)
 
-      if (diagnostics_temp == TRUE) {
+      if (number_of_observations_temp == TRUE) {
         number <- nrow(rekenbestand)
       }
     } else {
@@ -80,8 +80,8 @@ calculate_hedonic_imputation <- function(dataset_temp = dataset
       rekenbestand_t <- subset(dataset_temp, period_var_temp == period_list_temp[current_period])
       fitmdl <- stats::lm(model, rekenbestand_t)
       
-      # If parameter diagnostics = TRUE, then calculate numbers
-      if (diagnostics_temp == TRUE) {
+      # If parameter number_of_observations = TRUE, then calculate numbers
+      if (number_of_observations_temp == TRUE) {
         number <- nrow(rekenbestand_t)
       }
     }
@@ -101,8 +101,8 @@ calculate_hedonic_imputation <- function(dataset_temp = dataset
     
     average_imputations[current_period] <- predictmdl_t
     
-    # If parameter diagnostics = TRUE, then add numbers to table
-    if (diagnostics_temp == TRUE) {
+    # If parameter number_of_observations = TRUE, then add numbers to table
+    if (number_of_observations_temp == TRUE) {
       number_observations_total[current_period] <- number
     }
   }
@@ -110,8 +110,8 @@ calculate_hedonic_imputation <- function(dataset_temp = dataset
   # Create table
   tbl_average_imputation <- data.frame(period = period_list_temp)
   
-  # If parameter diagnostics = TRUE, then add numbers to table
-  if (diagnostics_temp == TRUE) {
+  # If parameter number_of_observations = TRUE, then add numbers to table
+  if (number_of_observations_temp == TRUE) {
     tbl_average_imputation$number_of_observations <- number_observations_total
   }
   

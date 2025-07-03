@@ -9,7 +9,7 @@ calculate_hedonic_imputation(
   period_temp = "period_var_temp",
   dependent_variable_temp = dependent_variable,
   independent_variables_temp = independent_variables,
-  diagnostics_temp = diagnostics,
+  number_of_observations_temp = number_of_observations,
   period_list_temp = period_list
 )
 }

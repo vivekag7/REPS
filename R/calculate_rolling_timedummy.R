@@ -10,8 +10,8 @@
 #' @param categorical_variables vector of categorical variables
 #' @param reference_period period to be normalized to index = 100 (e.g., "2015")
 #' @param window_length length of each rolling window (integer)
-#' @param diagnostics logical, whether to return number of observations per period (default = FALSE)
-#' @return data frame with period, Index, and optionally diagnostics
+#' @param number_of_observations logical, whether to return number of observations per period (default = FALSE)
+#' @return data frame with period, Index, and optionally number_of_observations
 #' @importFrom stats setNames
 #' @importFrom utils tail
 #' @importFrom dplyr filter group_by summarise left_join rename
@@ -24,7 +24,7 @@ calculate_rolling_timedummy_index <- function(dataset,
                                               categorical_variables,
                                               reference_period,
                                               window_length,
-                                              diagnostics = FALSE) {
+                                              number_of_observations = FALSE) {
   # Get all periods sorted chronologically
   periods_all <- sort(unique(as.character(dataset[[period_variable]])))
   
@@ -69,7 +69,7 @@ calculate_rolling_timedummy_index <- function(dataset,
   df_result$Index <- calculate_index(df_result$period, growth_rates, reference_period)
   
   # Optionally add number of observations
-  if (diagnostics) {
+  if (number_of_observations) {
     df_result <- df_result |>
       dplyr::left_join(
         dataset |>

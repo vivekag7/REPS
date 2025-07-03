@@ -18,7 +18,7 @@
 #' @param continuous_variables vector with quality determining numeric variables (no dummies)
 #' @param categorical_variables vector with quality determining categorical variables (also dummies)
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
-#' @param diagnostics number of observations per period (default = TRUE)
+#' @param number_of_observations number of observations per period (default = TRUE)
 #' @return
 #' table with index, imputation averages, number of observations and confidence intervals per period
 #' @keywords internal
@@ -28,7 +28,7 @@ calculate_fisher <- function(dataset
                              , continuous_variables
                              , categorical_variables
                              , reference_period = NULL
-                             , diagnostics = FALSE) {
+                             , number_of_observations = FALSE) {
 
   # Calculate Laspeyres with 1th period = 100
   laspeyres <- calculate_laspeyres(dataset = dataset
@@ -38,7 +38,7 @@ calculate_fisher <- function(dataset
                                    , categorical_variables = categorical_variables
                                    , reference_period = NULL
                                    , index = TRUE
-                                   , diagnostics = diagnostics
+                                   , number_of_observations = number_of_observations
                                    , imputation = FALSE)
 
   # Calculate Paasche with 1th period = 100
@@ -49,7 +49,7 @@ calculate_fisher <- function(dataset
                                , categorical_variables = categorical_variables
                                , reference_period = NULL
                                , index = TRUE
-                               , diagnostics = diagnostics
+                               , number_of_observations = number_of_observations
                                , imputation = FALSE)
 
   # Calculate Fisher (= geometric average)
@@ -61,8 +61,7 @@ calculate_fisher <- function(dataset
   # Create table
   fisher <- data.frame(period = laspeyres$period)
 
-    
-  if (diagnostics == TRUE) {
+  if (number_of_observations == TRUE) {
     fisher$number_of_observations <- laspeyres$number_of_observations
   }
 

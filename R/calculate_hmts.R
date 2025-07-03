@@ -16,7 +16,7 @@
 #' To simulate a series, where 1 period a time expires (as in production), a manual choice in the past is possible.
 #' Until this period, all periods are imputed. After that, 1 period is added.
 #'
-#' Parameter 'diagnostics':
+#' Parameter 'resting_points':
 #' If TRUE, the output is a list of tables. These tables can be called with a $ after the output.
 #' $Index table with periods, index and number of observations
 #' $Window table with the index figures within the chosen window
@@ -33,10 +33,11 @@
 #' @param continuous_variables vector with quality-determining continues variables (numeric, no dummies)
 #' @param categorical_variables vector with categorical variables (also dummy)
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
+#' @param number_of_observations number of observations per period (default = TRUE)
 #' @param periods_in_year if month, then 12. If quarter, then 4, etc. (default = 4)
 #' @param production_since 1 period in the format of the period_variable. See description above (default = NULL)
 #' @param number_preliminary_periods number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3
-#' @param diagnostics should analyses values be returned? (default = FALSE)
+#' @param resting_points should analyses values be returned? (default = FALSE)
 #' @return
 #' $Matrix_HMTS_index table with index series based on estimations with time series re-estimations
 #' $Matrix_HMTS table with estimated values based on time series re-estimations
@@ -44,7 +45,7 @@
 #' $Matrix_HMS table with estimated values based on the hedonic model
 #' $Matrix_HMTS_analysis table with analysis values of the time series model per base period
 #' @keywords internal
-#' @return table with periods, index (and optional confidence intervals) and number of observations. If diagnostics = TRUE, then list with tables. See general description and examples.
+#' @return table with periods, index (and optional confidence intervals) and number of observations. If resting_points = TRUE, then list with tables. See general description and examples.
 
 calculate_hmts <- function(
     dataset,
@@ -56,7 +57,8 @@ calculate_hmts <- function(
     periods_in_year,
     production_since = NULL,
     number_preliminary_periods,
-    diagnostics) {
+    number_of_observations,
+    resting_points) {
   
   
   periods_in_year <- as.numeric(periods_in_year)
@@ -78,18 +80,19 @@ calculate_hmts <- function(
     periods_in_year = periods_in_year,
     production_since = production_since,
     number_preliminary_periods = number_preliminary_periods,
-    diagnostics = diagnostics)
+    number_of_observations = number_of_observations,
+    resting_points = resting_points)
   
-  if (diagnostics == TRUE) {
-    tbl_diagnostics <- results
+  if (resting_points == TRUE) {
+    tbl_resting_points <- results
     results <- as.data.frame(results$Index)
     
     results <- list(Index = results
-                    , Window = tbl_diagnostics$window
-                    , Chosen_index_series = tbl_diagnostics$chosen_index_series 
-                    , Matrix_HMTS_index = tbl_diagnostics$matrix_hmts_index
-                    , Matrix_HMTS = tbl_diagnostics$matrix_hmts
-                    , Matrix_HMTS_analysis = tbl_diagnostics$matrix_hmts_analysis)
+                    , Window = tbl_resting_points$window
+                    , Chosen_index_series = tbl_resting_points$chosen_index_series 
+                    , Matrix_HMTS_index = tbl_resting_points$matrix_hmts_index
+                    , Matrix_HMTS = tbl_resting_points$matrix_hmts
+                    , Matrix_HMTS_analysis = tbl_resting_points$matrix_hmts_analysis)
   }
   
   return(results)

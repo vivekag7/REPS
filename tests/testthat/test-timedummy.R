@@ -9,7 +9,7 @@ test_that("Test Time Dummy", {
     continuous_variables = "floor_area",
     categorical_variables = "neighbourhood_code",
     reference_period = "2015",
-    diagnostics = FALSE
+    number_of_observations = FALSE
   )
   
   if (save_refs) {

@@ -11,7 +11,8 @@ test_that("Test calculate_hmts_index", {
   periods_in_year <- 4
   production_since <- NULL
   number_preliminary_periods <- 2
-  diagnostics <- FALSE 
+  number_of_observations <- TRUE
+  resting_points <- FALSE  # Set to FALSE as requested
   
   # Prepare dataset as expected by the function
   dataset <- data_constraxion |>
@@ -32,7 +33,8 @@ test_that("Test calculate_hmts_index", {
     periods_in_year = periods_in_year,
     production_since = production_since,
     number_preliminary_periods = number_preliminary_periods,
-    diagnostics = diagnostics
+    number_of_observations = number_of_observations,
+    resting_points = resting_points
   )
   
   if (save_refs) {
@@ -55,7 +57,7 @@ test_that("Test calculate_hedonic_imputationmatrix", {
   continuous_variables <- c("floor_area")
   categorical_variables <- c("neighbourhood_code")
   periods_in_year <- 4
-  diagnostics <- FALSE
+  number_of_observations <- TRUE
   production_since <- NULL
   number_preliminary_periods <- 2
   
@@ -75,7 +77,7 @@ test_that("Test calculate_hedonic_imputationmatrix", {
     continuous_variables = continuous_variables,
     categorical_variables = categorical_variables,
     periods_in_year = periods_in_year,
-    diagnostics = diagnostics,
+    number_of_observations = number_of_observations,
     production_since = production_since,
     number_preliminary_periods = number_preliminary_periods
   )

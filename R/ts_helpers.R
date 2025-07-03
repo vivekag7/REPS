@@ -9,13 +9,13 @@
 #' @author Pim Ouwehand, Farley Ishaak
 #' @param original_series time series with values in chrolological order
 #' @param periodicity if month, then  12. If quarter, then 4, etc. (defaul = 4)
-#' @param diagnostics should analyses values be returned? (default = FALSE)
+#' @param resting_points should analyses values be returned? (default = FALSE)
 #' @return Trend line
 #' @keywords internal
 
 calculate_trend_line_kfas <- function(original_series
                                       , periodicity
-                                      , diagnostics) {
+                                      , resting_points) {
   
   original_series <- log(original_series)
   
@@ -40,9 +40,9 @@ calculate_trend_line_kfas <- function(original_series
   trend_line <- exp(state_space_model$signalsubconf[, 1])
   
   
-  if (diagnostics == TRUE) {
+  if (resting_points == TRUE) {
     analysis_complete <- dplyr::bind_rows(startvalues_analysis, parameters_analysis, model_analysis)
-    trend_line <- list(trend_line = trend_line, diagnostics = analysis_complete)
+    trend_line <- list(trend_line = trend_line, resting_points = analysis_complete)
   }
   
   return(trend_line)

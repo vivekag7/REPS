@@ -10,7 +10,7 @@ test_that("Test Rolling Time Dummy", {
     categorical_variables = "neighbourhood_code",
     reference_period = "2015",
     window_length = 5,
-    diagnostics = FALSE
+    number_of_observations = FALSE
   )
   
   if (save_refs) {

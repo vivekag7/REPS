@@ -10,14 +10,16 @@
 #' @param continuous_variables Vector with numeric quality-determining variables
 #' @param categorical_variables Vector with categorical variables (also dummies)
 #' @param reference_period Period or group of periods that will be set to 100
-#' @param diagnostics (HMTS only) Whether to return detailed outputs (default = FALSE)
-#' @param periods_in_year (HMTS/Repricing only) Number of periods per year (e.g. 12 for months)
+#' @param number_of_observations Logical, whether to show number of observations (default = TRUE)
+#' @param periods_in_year (HMTS only) Number of periods per year (e.g. 12 for months)
 #' @param production_since (HMTS only) Start period for production simulation
 #' @param number_preliminary_periods (HMTS only) Number of preliminary periods
+#' @param resting_points (HMTS only) Whether to return detailed outputs (default = FALSE)
+#' @param index (Laspeyres/Paasche only) Include index column? Default = TRUE
 #' @param imputation (Laspeyres/Paasche only) Include imputation values? Default = FALSE
 #' @param window_length (Rolling Time Dummy only) Window size in number of periods
 #'
-#' @return A data.frame (or list for HMTS with diagnostics = TRUE; or named list if multiple methods are used)
+#' @return A data.frame (or list for HMTS with resting_points = TRUE; or named list if multiple methods are used)
 #' @export
 #'
 #' @examples
@@ -30,7 +32,7 @@
 #'   continuous_variables = "floor_area",
 #'   categorical_variables = "neighbourhood_code",
 #'   reference_period = "2015",
-#'   diagnostics = FALSE
+#'   number_of_observations = FALSE
 #' )
 #' head(Tbl_TD)
 #'
@@ -43,7 +45,7 @@
 #'   continuous_variables = "floor_area",
 #'   categorical_variables = "neighbourhood_code",
 #'   reference_period = "2015",
-#'   diagnostics = FALSE
+#'   number_of_observations = FALSE
 #' )
 #'
 #' head(multi_result$fisher)
@@ -58,10 +60,12 @@ calculate_price_index <- function(method,
                                   continuous_variables = NULL,
                                   categorical_variables = NULL,
                                   reference_period = NULL,
-                                  diagnostics = FALSE,
+                                  number_of_observations = TRUE,
                                   periods_in_year = 4,
                                   production_since = NULL,
                                   number_preliminary_periods = 3,
+                                  resting_points = FALSE,
+                                  index = TRUE,
                                   imputation = FALSE,
                                   window_length = 5) {
   
@@ -74,12 +78,12 @@ calculate_price_index <- function(method,
                 ". Please choose from: ", paste(valid_methods, collapse = ", "), "."))
   }
   
-  # Prevent diagnostics = TRUE in multi-method context
-  if (length(method) > 1 && diagnostics) {
-    stop("Using 'diagnostics = TRUE' is only allowed with a single method ('hmts').")
+  # Prevent resting_points = TRUE in multi-method context
+  if (length(method) > 1 && resting_points) {
+    stop("Using 'resting_points = TRUE' is only allowed with a single method ('hmts').")
   }
   
-  validate_input(dataset, period_variable, dependent_variable, continuous_variables, categorical_variables, reference_period)
+  validate_input(dataset, period_variable, dependent_variable, continuous_variables, categorical_variables)
   
   # Function that runs one method at a time
   run_method <- function(m) {
@@ -91,7 +95,7 @@ calculate_price_index <- function(method,
         continuous_variables = continuous_variables,
         categorical_variables = categorical_variables,
         reference_period = reference_period,
-        diagnostics = diagnostics
+        number_of_observations = number_of_observations
       ))
     }
     
@@ -103,7 +107,8 @@ calculate_price_index <- function(method,
         continuous_variables = continuous_variables,
         categorical_variables = categorical_variables,
         reference_period = reference_period,
-        diagnostics = diagnostics,
+        index = index,
+        number_of_observations = number_of_observations,
         imputation = imputation
       ))
     }
@@ -116,7 +121,8 @@ calculate_price_index <- function(method,
         continuous_variables = continuous_variables,
         categorical_variables = categorical_variables,
         reference_period = reference_period,
-        diagnostics = diagnostics,
+        index = index,
+        number_of_observations = number_of_observations,
         imputation = imputation
       ))
     }
@@ -132,7 +138,8 @@ calculate_price_index <- function(method,
         periods_in_year = periods_in_year,
         production_since = production_since,
         number_preliminary_periods = number_preliminary_periods,
-        diagnostics = diagnostics
+        number_of_observations = number_of_observations,
+        resting_points = resting_points
       ))
     }
     
@@ -144,7 +151,7 @@ calculate_price_index <- function(method,
         continuous_variables = continuous_variables,
         categorical_variables = categorical_variables,
         reference_period = reference_period,
-        diagnostics = diagnostics
+        number_of_observations = number_of_observations
       ))
     }
     
@@ -158,7 +165,7 @@ calculate_price_index <- function(method,
         categorical_variables = categorical_variables,
         reference_period = reference_period,
         window_length = window_length,
-        diagnostics = diagnostics
+        number_of_observations = number_of_observations
       ))
     }
     
@@ -171,7 +178,7 @@ calculate_price_index <- function(method,
         categorical_variables = categorical_variables,
         reference_period = reference_period,
         periods_in_year = periods_in_year,
-        diagnostics = diagnostics
+        number_of_observations = number_of_observations
       ))
     }
   }

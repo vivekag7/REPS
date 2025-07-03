@@ -9,7 +9,7 @@ test_that("Test Repricing", {
     continuous_variables = c("floor_area"),
     categorical_variables = c("neighbourhood_code"),
     reference_period = 2015,
-    diagnostics = FALSE
+    number_of_observations = FALSE
   )
   
   if (save_refs) {
