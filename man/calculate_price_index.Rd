@@ -9,7 +9,7 @@ calculate_price_index(
   dataset,
   period_variable,
   dependent_variable,
-  continuous_variables = NULL,
+  numerical_variables = NULL,
   categorical_variables = NULL,
   reference_period = NULL,
   number_of_observations = TRUE,
@@ -17,7 +17,6 @@ calculate_price_index(
   production_since = NULL,
   number_preliminary_periods = 3,
   resting_points = FALSE,
-  index = TRUE,
   imputation = FALSE,
   window_length = 5
 )
@@ -31,7 +30,7 @@ calculate_price_index(
 
 \item{dependent_variable}{Usually the price}
 
-\item{continuous_variables}{Vector with numeric quality-determining variables}
+\item{numerical_variables}{Vector with numeric quality-determining variables}
 
 \item{categorical_variables}{Vector with categorical variables (also dummies)}
 
@@ -46,8 +45,6 @@ calculate_price_index(
 \item{number_preliminary_periods}{(HMTS only) Number of preliminary periods}
 
 \item{resting_points}{(HMTS only) Whether to return detailed outputs (default = FALSE)}
-
-\item{index}{(Laspeyres/Paasche only) Include index column? Default = TRUE}
 
 \item{imputation}{(Laspeyres/Paasche only) Include imputation values? Default = FALSE}
 
@@ -66,7 +63,7 @@ Tbl_TD <- calculate_price_index(
   dataset = data_constraxion,
   period_variable = "period",
   dependent_variable = "price",
-  continuous_variables = "floor_area",
+  numerical_variables = "floor_area",
   categorical_variables = "neighbourhood_code",
   reference_period = "2015",
   number_of_observations = FALSE
@@ -79,7 +76,7 @@ multi_result <- calculate_price_index(
   dataset = data_constraxion,
   period_variable = "period",
   dependent_variable = "price",
-  continuous_variables = "floor_area",
+  numerical_variables = "floor_area",
   categorical_variables = "neighbourhood_code",
   reference_period = "2015",
   number_of_observations = FALSE

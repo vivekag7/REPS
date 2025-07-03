@@ -5,7 +5,7 @@ test_that("Test calculate_hmts_index", {
   # Parameters
   period_variable <- "period"
   dependent_variable <- "price"
-  continuous_variables <- c("floor_area")
+  numerical_variables <- c("floor_area")
   categorical_variables <- c("neighbourhood_code")
   reference_period <- 2015
   periods_in_year <- 4
@@ -27,7 +27,7 @@ test_that("Test calculate_hmts_index", {
     dataset = dataset,
     period_variable = period_variable,
     dependent_variable = dependent_variable,
-    continuous_variables = continuous_variables,
+    numerical_variables = numerical_variables,
     categorical_variables = categorical_variables,
     reference_period = reference_period,
     periods_in_year = periods_in_year,
@@ -54,7 +54,7 @@ test_that("Test calculate_hedonic_imputationmatrix", {
   # Parameters used by the function
   period_variable <- "period"
   dependent_variable <- "price"
-  continuous_variables <- c("floor_area")
+  numerical_variables <- c("floor_area")
   categorical_variables <- c("neighbourhood_code")
   periods_in_year <- 4
   number_of_observations <- TRUE
@@ -74,7 +74,7 @@ test_that("Test calculate_hedonic_imputationmatrix", {
     dataset = dataset,
     period_variable = "period",
     dependent_variable = dependent_variable,
-    continuous_variables = continuous_variables,
+    numerical_variables = numerical_variables,
     categorical_variables = categorical_variables,
     periods_in_year = periods_in_year,
     number_of_observations = number_of_observations,

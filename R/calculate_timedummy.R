@@ -6,7 +6,7 @@
 #' @param dataset data frame with input data
 #' @param period_variable name of the time variable (string)
 #' @param dependent_variable name of the dependent variable (usually price, assumed unlogged)
-#' @param continuous_variables vector of numeric quality-determining variables
+#' @param numerical_variables vector of numeric quality-determining variables
 #' @param categorical_variables vector of categorical variables
 #' @param reference_period period to be normalized to index = 100 (e.g., "2015")
 #' @param number_of_observations logical, whether to return number of observations per period (default = FALSE)
@@ -16,30 +16,30 @@
 #' @importFrom dplyr mutate across all_of select group_by summarise left_join n
 #' @keywords internal
 
-calculate_time_dummy_index <- function(dataset,
+calculate_time_dummy <- function(dataset,
                                        period_variable,
                                        dependent_variable,
-                                       continuous_variables,
+                                       numerical_variables,
                                        categorical_variables,
                                        reference_period = NULL,
                                        number_of_observations = FALSE) {
-  # Convert categorical vars and period to factors, and log-transform dependent and continuous vars
+  # Convert categorical vars and period to factors, and log-transform dependent and numerical vars
   dataset <- dataset |>
     dplyr::mutate(dplyr::across(dplyr::all_of(c(categorical_variables, period_variable)), as.factor)) |>
     dplyr::mutate(
       dplyr::across(dplyr::all_of(dependent_variable), log),
-      dplyr::across(dplyr::all_of(continuous_variables), log)
+      dplyr::across(dplyr::all_of(numerical_variables), log)
     )
   
   # Keep only relevant variables and drop rows with NA
-  variables_to_use <- c(dependent_variable, continuous_variables, categorical_variables, period_variable)
+  variables_to_use <- c(dependent_variable, numerical_variables, categorical_variables, period_variable)
   calculation_data <- dataset |>
     dplyr::select(dplyr::all_of(variables_to_use)) |>
     stats::na.omit() |>
     droplevels()
   
   # Build regression formula and fit model
-  formula <- stats::as.formula(paste(dependent_variable, "~", paste(c(continuous_variables, categorical_variables, period_variable), collapse = " + ")))
+  formula <- stats::as.formula(paste(dependent_variable, "~", paste(c(numerical_variables, categorical_variables, period_variable), collapse = " + ")))
   model <- stats::lm(formula, data = calculation_data)
   
   # Extract time dummy coefficients

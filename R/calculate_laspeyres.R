@@ -17,12 +17,11 @@
 #' @param dataset table with data (does not need to be a selection of relevant variables)
 #' @param period_variable variable in the table with periods
 #' @param dependent_variable usually the sale price
-#' @param continuous_variables vector with quality determining numeric variables (no dummies)
+#' @param numerical_variables vector with quality determining numeric variables (no dummies)
 #' @param categorical_variables vector with quality determining categorical variables (also dummies)
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @param number_of_observations number of observations per period (default = TRUE)
 #' @param imputation display the underlying average imputation values? (default = FALSE)
-#' @param index caprice index
 #' @importFrom dplyr mutate
 #' @importFrom dplyr rename
 #' @importFrom dplyr all_of
@@ -40,16 +39,15 @@
 calculate_laspeyres <- function(dataset
                                 , period_variable
                                 , dependent_variable
-                                , continuous_variables
+                                , numerical_variables
                                 , categorical_variables
                                 , reference_period = NULL
-                                , index = TRUE
                                 , number_of_observations = FALSE
                                 , imputation = FALSE) {
   
  
   
-  independent_variables <- c(continuous_variables, categorical_variables)
+  independent_variables <- c(numerical_variables, categorical_variables)
   
   
   # Rename period_variable and transform to character
@@ -85,9 +83,9 @@ calculate_laspeyres <- function(dataset
   if (imputation == TRUE) {
     laspeyres$Imputation <- tbl_average_imputation$average_imputation
   }
-  if (index == TRUE) {
-    laspeyres$Index <- Index
-  }
+  
+  laspeyres$Index <- Index
+  
  
   
   return(laspeyres)

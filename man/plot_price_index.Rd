@@ -2,20 +2,24 @@
 % Please edit documentation in R/calculate_price_index.R
 \name{plot_price_index}
 \alias{plot_price_index}
-\title{Plot index output from calculate_price_index (pure plotly, minimal dependencies)}
+\title{Plot index output from calculate_price_index}
 \usage{
 plot_price_index(index_output, title = NULL)
 }
 \arguments{
-\item{index_output}{A data.frame or named list of data.frames}
+\item{index_output}{A data.frame or named list of data.frames (from calculate_price_index())}
 
 \item{title}{Optional plot title}
 }
 \value{
-A plotly object
+None. Draws plots in the active graphics device.
 }
 \description{
-Interactive price index plot with a static colorblind-safe palette and clickable legend.
+Static price index plot using base R graphics with grid lines and external legend.
+}
+\details{
+Supports both single index data.frame and named list of multiple methods.
+X-axis shows only first period of each year with rotated labels to avoid clutter.
 }
 \author{
 Vivek Gajadhar

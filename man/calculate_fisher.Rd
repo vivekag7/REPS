@@ -8,7 +8,7 @@ calculate_fisher(
   dataset,
   period_variable,
   dependent_variable,
-  continuous_variables,
+  numerical_variables,
   categorical_variables,
   reference_period = NULL,
   number_of_observations = FALSE
@@ -21,7 +21,7 @@ calculate_fisher(
 
 \item{dependent_variable}{usually the sale price}
 
-\item{continuous_variables}{vector with quality determining numeric variables (no dummies)}
+\item{numerical_variables}{vector with quality determining numeric variables (no dummies)}
 
 \item{categorical_variables}{vector with quality determining categorical variables (also dummies)}
 

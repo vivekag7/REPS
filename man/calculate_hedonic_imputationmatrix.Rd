@@ -8,7 +8,7 @@ calculate_hedonic_imputationmatrix(
   dataset,
   period_variable,
   dependent_variable,
-  continuous_variables,
+  numerical_variables,
   categorical_variables,
   periods_in_year,
   number_of_observations = TRUE,
@@ -23,7 +23,7 @@ calculate_hedonic_imputationmatrix(
 
 \item{dependent_variable}{usually the sale price}
 
-\item{continuous_variables}{vector with quality-determining continues variables (numeric, no dummies)}
+\item{numerical_variables}{vector with quality-determining continues variables (numeric, no dummies)}
 
 \item{categorical_variables}{vector with categorical variables (also dummy)}
 

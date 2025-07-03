@@ -8,7 +8,7 @@
 #' @param dataset a data frame containing the data
 #' @param period_variable character name of the time period variable
 #' @param dependent_variable character name of the dependent variable (e.g., sale price)
-#' @param continuous_variables character vector of numeric quality-determining variables
+#' @param numerical_variables character vector of numeric quality-determining variables
 #' @param categorical_variables character vector of categorical variables (including dummies)
 #' @param periods_in_year if month, then 12. If quarter, then 4, etc. (default = 4)
 #' @param reference_period reference period (numeric or string) to normalize index to 100
@@ -21,14 +21,14 @@
 calculate_repricing <- function(dataset,
                                 period_variable,
                                 dependent_variable,
-                                continuous_variables,
+                                numerical_variables,
                                 categorical_variables,
                                 reference_period = NULL,
                                 number_of_observations = FALSE,
                                 periods_in_year = 4) {
   
   internal_period <- ".index_period_internal"
-  independent_variables <- c(continuous_variables, categorical_variables)
+  independent_variables <- c(numerical_variables, categorical_variables)
   
   # Check if required variables exist
   required_vars <- c(period_variable, dependent_variable, independent_variables)

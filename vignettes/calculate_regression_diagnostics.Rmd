@@ -1,0 +1,124 @@
+---
+title: "Regression Diagnostics by Period using cbsREPS"
+author: ""
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Regression Diagnostics by Period using cbsREPS}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: ./REFERENCES.bib
+---
+
+## Introduction
+
+The `calculate_regression_diagnostics()` function in **cbsREPS** provides *regression diagnostics by period*. It is designed for panel or repeated cross-section data (e.g. property transactions over time) to evaluate the quality of **period-specific log-linear regressions**.
+
+For each period, it:
+
+- Fits a log-linear regression model: `log(price) ~ covariates`
+- Computes diagnostics:
+  - **Shapiro-Wilk p-value** (normality)
+  - **Adjusted R-squared** (linearity)
+  - **Breusch-Pagan test** (heteroscedasticity)
+  - **Durbin-Watson test** (autocorrelation)
+
+These diagnostics help assess **model quality over time**, identifying periods with issues like non-normality, low fit, heteroscedasticity, or autocorrelation.
+
+This vignette shows:
+
+- Preparing data
+- Using `calculate_regression_diagnostics()`
+- Visualizing diagnostics with `plot_regression_diagnostics()`
+
+
+## Required Data
+
+Your dataset should include:
+
+- A **period variable** (e.g. quarterly/annual codes)
+- A **dependent variable** (typically price)
+- One or more **numerical independent variables** (e.g. floor area)
+- Optionally, **categorical independent variables** (e.g. neighbourhood codes)
+
+
+```r
+# Example dataset (you should already have this loaded)
+head(data_constraxion)
+```
+
+
+## Using `calculate_regression_diagnostics()`
+
+Example:
+
+```r
+diagnostics <- calculate_regression_diagnostics(
+  dataset = data_constraxion,
+  period_variable = "period",
+  dependent_variable = "price",
+  numerical_variables = c("floor_area", "dist_trainstation"),
+  categorical_variables = c("dummy_large_city", "neighbourhood_code")
+)
+
+head(diagnostics)
+```
+
+
+## Interpreting the Output
+
+Each row represents a **period-specific regression**. Columns:
+
+- **norm_pvalue**: Shapiro-Wilk p-value (> 0.05 suggests normality)
+- **r_adjust**: Adjusted R-squared (higher = better fit)
+- **bp_pvalue**: Breusch-Pagan p-value (> 0.05 suggests homoscedasticity)
+- **autoc_pvalue**: Durbin-Watson p-value (> 0.05 suggests no autocorrelation)
+- **autoc_dw**: Durbin-Watson statistic (ideal ≈ 2)
+
+Values below 0.05 for tests may signal **violations of regression assumptions**.
+
+
+## Visualizing Diagnostics
+
+For convenient visualization:
+
+```r
+plot_regression_diagnostics(diagnostics)
+```
+
+This generates a **3x2 grid** of plots:
+
+- Normality (Shapiro-Wilk)
+- Linearity (Adjusted R-squared)
+- Heteroscedasticity (Breusch-Pagan)
+- Autocorrelation (Durbin-Watson statistic)
+- Autocorrelation (p-value DW)
+
+Example:
+
+```{r echo=FALSE, out.width="100%", fig.align="center"}
+knitr::include_graphics("diagnostics_plot.png")
+```
+
+Interpretation:
+
+- Red dashed lines indicate **common thresholds** (e.g. p = 0.05).
+- Points below threshold lines suggest periods needing closer investigation.
+
+
+## Summary
+
+The `calculate_regression_diagnostics()` and `plot_regression_diagnostics()` functions in **cbsREPS** enable:
+
+- **Period-by-period regression checking**
+- **Easy comparison of assumptions over time**
+- **Detection of problematic periods**
+
+They support **robust, high-quality** hedonic price index modeling by systematically checking regression assumptions.
+
+
+## References
+
+For further details on regression diagnostics and property price index methodology:
+
+- Eurostat *Handbook on Residential Property Price Indices (RPPIs)* [@eurostat2013rppi]

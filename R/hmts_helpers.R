@@ -31,7 +31,7 @@
 #' @author Farley Ishaak
 #' @param period_variable variable in the dataset with the period
 #' @param dependent_variable usually the sale price
-#' @param continuous_variables vector with quality-determining continues variables (numeric, no dummies)
+#' @param numerical_variables vector with quality-determining continues variables (numeric, no dummies)
 #' @param categorical_variables vector with categorical variables (also dummy)
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @param number_of_observations number of observations per period (default = TRUE)
@@ -53,7 +53,7 @@ calculate_hmts_index <- function(
     dataset,
     period_variable,
     dependent_variable,
-    continuous_variables,
+    numerical_variables,
     categorical_variables,
     reference_period,
     periods_in_year,
@@ -72,7 +72,7 @@ calculate_hmts_index <- function(
   imputations_complete <- calculate_hedonic_imputationmatrix(dataset = dataset
                                                              , period_variable = "period"
                                                              , dependent_variable = dependent_variable
-                                                             , continuous_variables = continuous_variables
+                                                             , numerical_variables = numerical_variables
                                                              , categorical_variables = categorical_variables
                                                              , periods_in_year = periods_in_year
                                                              , number_of_observations = number_of_observations
@@ -178,7 +178,7 @@ calculate_hmts_index <- function(
 #' @param dataset table with data (does not need to be a selection of relevant variables)
 #' @param period_variable variable in the dataset with the period
 #' @param dependent_variable usually the sale price
-#' @param continuous_variables vector with quality-determining continues variables (numeric, no dummies)
+#' @param numerical_variables vector with quality-determining continues variables (numeric, no dummies)
 #' @param categorical_variables vector with categorical variables (also dummy)
 #' @param number_of_observations number of observations per period (default = TRUE)
 #' @param periods_in_year if month, then 12. If quarter, then 4, etc. (default = 4)
@@ -195,14 +195,14 @@ calculate_hmts_index <- function(
 calculate_hedonic_imputationmatrix <- function(dataset
                                                , period_variable
                                                , dependent_variable
-                                               , continuous_variables
+                                               , numerical_variables
                                                , categorical_variables
                                                , periods_in_year
                                                , number_of_observations = TRUE
                                                , production_since = NULL
                                                , number_preliminary_periods) {
   
-  independent_variables <- c(continuous_variables, categorical_variables)
+  independent_variables <- c(numerical_variables, categorical_variables)
   period_list <- sort(unique(as.character(dataset$period)))
   number_periods <- length(period_list)
   

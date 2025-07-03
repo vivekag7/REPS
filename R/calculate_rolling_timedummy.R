@@ -6,7 +6,7 @@
 #' @param dataset data frame with input data
 #' @param period_variable name of the time variable (string)
 #' @param dependent_variable name of the dependent variable (usually price, assumed unlogged)
-#' @param continuous_variables vector of numeric quality-determining variables
+#' @param numerical_variables vector of numeric quality-determining variables
 #' @param categorical_variables vector of categorical variables
 #' @param reference_period period to be normalized to index = 100 (e.g., "2015")
 #' @param window_length length of each rolling window (integer)
@@ -17,10 +17,10 @@
 #' @importFrom dplyr filter group_by summarise left_join rename
 #' @keywords internal
 
-calculate_rolling_timedummy_index <- function(dataset,
+calculate_rolling_timedummy <- function(dataset,
                                               period_variable,
                                               dependent_variable,
-                                              continuous_variables,
+                                              numerical_variables,
                                               categorical_variables,
                                               reference_period,
                                               window_length,
@@ -33,11 +33,11 @@ calculate_rolling_timedummy_index <- function(dataset,
   window_data <- dataset[dataset[[period_variable]] %in% initial_window_periods, ]
   
   # Run time dummy index for initial window
-  initial_index <- calculate_time_dummy_index(
+  initial_index <- calculate_time_dummy(
     dataset = window_data,
     period_variable = period_variable,
     dependent_variable = dependent_variable,
-    continuous_variables = continuous_variables,
+    numerical_variables = numerical_variables,
     categorical_variables = categorical_variables
   )
   
@@ -51,11 +51,11 @@ calculate_rolling_timedummy_index <- function(dataset,
     window_data <- dataset[dataset[[period_variable]] %in% window_periods, ]
     
     # Calculate index for new window
-    new_index <- calculate_time_dummy_index(
+    new_index <- calculate_time_dummy(
       dataset = window_data,
       period_variable = period_variable,
       dependent_variable = dependent_variable,
-      continuous_variables = continuous_variables,
+      numerical_variables = numerical_variables,
       categorical_variables = categorical_variables
     )
     

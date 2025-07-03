@@ -35,9 +35,9 @@ test_that("Test calculate_hedonic_imputation", {
   # Input variables
   period_variable <- c("period")
   dependent_variable <- c("price")
-  continuous_variables <- c("floor_area")
+  numerical_variables <- c("floor_area")
   categorical_variables <- c("neighbourhood_code")
-  independent_variables <- c(continuous_variables, categorical_variables)
+  independent_variables <- c(numerical_variables, categorical_variables)
   number_of_observations <- TRUE
   
   

@@ -2,11 +2,11 @@ test_that("Test Rolling Time Dummy", {
   save_refs <- FALSE  # Set to TRUE to save reference output
   ref_file <- test_path("test_data", "rolling_timedummy_output.rds")
   
-  tbl_rolling <- calculate_rolling_timedummy_index(
+  tbl_rolling <- calculate_rolling_timedummy(
     dataset = data_constraxion,
     period_variable = "period",
     dependent_variable = "price",
-    continuous_variables = "floor_area",
+    numerical_variables = "floor_area",
     categorical_variables = "neighbourhood_code",
     reference_period = "2015",
     window_length = 5,

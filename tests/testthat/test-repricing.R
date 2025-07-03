@@ -6,7 +6,7 @@ test_that("Test Repricing", {
     dataset = data_constraxion,
     period_variable = "period",
     dependent_variable = "price",
-    continuous_variables = c("floor_area"),
+    numerical_variables = c("floor_area"),
     categorical_variables = c("neighbourhood_code"),
     reference_period = 2015,
     number_of_observations = FALSE

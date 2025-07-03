@@ -42,7 +42,7 @@ The required variables include:
 
 - `period_variable`: the time period  
 - `dependent_variable`: usually price  
-- `continuous_variables`: e.g., `floor_area`  
+- `numerical_variables`: e.g., `floor_area`  
 - `categorical_variables`: e.g., `neighbourhood_code`
 
 
@@ -69,7 +69,7 @@ Tbl_TD <- calculate_price_index(
   dataset = data_constraxion,
   period_variable = "period",
   dependent_variable = "price",
-  continuous_variables = "floor_area",
+  numerical_variables = "floor_area",
   categorical_variables = "neighbourhood_code",
   reference_period = 2015,
   number_of_observations = FALSE
@@ -86,7 +86,7 @@ multi_result <- calculate_price_index(
   dataset = data_constraxion,
   period_variable = "period",
   dependent_variable = "price",
-  continuous_variables = "floor_area",
+  numerical_variables = "floor_area",
   categorical_variables = "neighbourhood_code",
   reference_period = 2015,
   number_of_observations = FALSE

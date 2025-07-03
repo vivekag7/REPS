@@ -8,7 +8,7 @@ calculate_repricing(
   dataset,
   period_variable,
   dependent_variable,
-  continuous_variables,
+  numerical_variables,
   categorical_variables,
   reference_period = NULL,
   number_of_observations = FALSE,
@@ -22,7 +22,7 @@ calculate_repricing(
 
 \item{dependent_variable}{character name of the dependent variable (e.g., sale price)}
 
-\item{continuous_variables}{character vector of numeric quality-determining variables}
+\item{numerical_variables}{character vector of numeric quality-determining variables}
 
 \item{categorical_variables}{character vector of categorical variables (including dummies)}
 

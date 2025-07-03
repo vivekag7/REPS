@@ -7,7 +7,7 @@ test_that("Test calculate_price_index", {
       dataset = data_constraxion,
       period_variable = "period",
       dependent_variable = "price",
-      continuous_variables = "floor_area",
+      numerical_variables = "floor_area",
       categorical_variables = "neighbourhood_code"
     ),
     "Invalid method"
@@ -20,7 +20,7 @@ test_that("Test calculate_price_index", {
       dataset = data_constraxion,
       period_variable = "period",
       dependent_variable = "price",
-      continuous_variables = "floor_area",
+      numerical_variables = "floor_area",
       categorical_variables = "neighbourhood_code",
       reference_period = 2015
     )
@@ -32,7 +32,7 @@ test_that("Test calculate_price_index", {
     dataset = data_constraxion,
     period_variable = "period",
     dependent_variable = "price",
-    continuous_variables = "floor_area",
+    numerical_variables = "floor_area",
     categorical_variables = "neighbourhood_code",
     reference_period = 2015
   )
@@ -47,7 +47,7 @@ test_that("Test calculate_price_index", {
       dataset = data_constraxion,
       period_variable = "period",
       dependent_variable = "price",
-      continuous_variables = "floor_area",
+      numerical_variables = "floor_area",
       categorical_variables = "neighbourhood_code",
       reference_period = 2015,
       periods_in_year = 4,
@@ -64,7 +64,7 @@ test_that("Testplot_price_index ", {
     dataset = data_constraxion,
     period_variable = "period",
     dependent_variable = "price",
-    continuous_variables = "floor_area",
+    numerical_variables = "floor_area",
     categorical_variables = "neighbourhood_code",
     reference_period = 2015
   )
