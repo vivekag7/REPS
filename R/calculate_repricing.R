@@ -67,7 +67,7 @@ calculate_repricing <- function(dataset,
     dplyr::group_by(.data[[internal_period]]) %>%
     dplyr::summarise(
       observed_gmean = exp(mean(log(.data[[dependent_variable]]), na.rm = TRUE)),
-      predicted_price = sum(predicted_price),
+      predicted_price = exp(mean(log(predicted_price))),
       num_obs = n(),
       .groups = "drop"
     )
