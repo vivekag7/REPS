@@ -204,6 +204,10 @@ calculate_price_index <- function(method,
 #' @importFrom graphics axis grid legend lines par plot text
 #' @export
 plot_price_index <- function(index_output, title = NULL) {
+  
+  op <- par(mfrow = c(1, 1))
+  on.exit(par(op))
+  
   # Helper to extract first period of each year
   get_year_start_periods <- function(periods) {
     years <- substr(periods, 1, 4)

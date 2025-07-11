@@ -158,6 +158,8 @@ plot_regression_diagnostics <- function(diagnostics, title = "Regression Diagnos
   soft_red   <- rgb(1, 0, 0, 0.1)
   
   op <- par(mfrow = c(3, 2), oma = c(0, 0, 3, 0), mar = c(5, 4, 4, 2) + 0.1)
+  on.exit(par(op))
+  
   
   draw_x_axis <- function() {
     axis(1, at = year_start_indices, labels = FALSE)
@@ -232,7 +234,6 @@ plot_regression_diagnostics <- function(diagnostics, title = "Regression Diagnos
   ### Overall title
   mtext(title, outer = TRUE, cex = 1.5, line = 1)
   
-  par(op)
 }
 
 
