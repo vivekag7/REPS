@@ -123,7 +123,8 @@ calculate_regression_diagnostics <- function(dataset,
 #' @param diagnostics A data.frame as returned by calculate_regression_diagnostics()
 #' @param title Optional overall title for the entire plot grid (default: "Regression Diagnostics")
 #' @return None. Produces plots in the active graphics device.
-#' @importFrom graphics abline axis mtext par plot text
+#' @importFrom graphics abline axis mtext par plot text rect lines 
+#' @importFrom grDevices rgb
 #' @export
 #'
 #' @examples
@@ -141,12 +142,10 @@ plot_regression_diagnostics <- function(diagnostics, title = "Regression Diagnos
     stop("Input must be a data.frame as returned by calculate_regression_diagnostics().")
   }
   
-  # Ensure periods are sorted and treated as factor levels
   diagnostics <- diagnostics[order(diagnostics$period), ]
   periods <- as.factor(diagnostics$period)
   period_levels <- levels(periods)
   
-  # Helper to get only first period of each year
   get_year_start_periods <- function(periods) {
     years <- sub("[^0-9].*$", "", periods)
     periods[!duplicated(years)]
@@ -154,10 +153,12 @@ plot_regression_diagnostics <- function(diagnostics, title = "Regression Diagnos
   year_start_periods <- get_year_start_periods(period_levels)
   year_start_indices <- match(year_start_periods, period_levels)
   
-  # Set up 3x2 grid with overall title space
+  # Colors
+  soft_green <- rgb(0, 1, 0, 0.1)
+  soft_red   <- rgb(1, 0, 0, 0.1)
+  
   op <- par(mfrow = c(3, 2), oma = c(0, 0, 3, 0), mar = c(5, 4, 4, 2) + 0.1)
   
-  # Helper function for consistent axis with 45-degree labels
   draw_x_axis <- function() {
     axis(1, at = year_start_indices, labels = FALSE)
     text(
@@ -171,52 +172,69 @@ plot_regression_diagnostics <- function(diagnostics, title = "Regression Diagnos
     )
   }
   
-  # 1. Normality (Shapiro-Wilk)
-  plot(
-    diagnostics$norm_pvalue, type = "b", pch = 19, xaxt = "n",
-    xlab = "", ylab = "", main = "Normality (Shapiro-Wilk)"
-  )
-  draw_x_axis()
-  abline(h = 0.05, col = "red", lty = 2)
+  x_range <- c(0, length(period_levels) + 1)
   
-  # 2. Linearity (Adjusted R-squared)
-  plot(
-    diagnostics$r_adjust, type = "b", pch = 19, xaxt = "n",
-    xlab = "", ylab = "", main = "Linearity (Adjusted R-squared)"
-  )
+  ### 1. Normality (Shapiro-Wilk)
+  y_norm <- diagnostics$norm_pvalue
+  plot(y_norm, type = "n", xaxt = "n", xlab = "", ylab = "", main = "Normality (Shapiro-Wilk)")
+  abline(h = 0.05, col = "red", lty = 2)
+  # Shading
+  usr <- par("usr")
+  rect(x_range[1], 0.05, x_range[2], usr[4], col = soft_green, border = NA)
+  rect(x_range[1], usr[3], x_range[2], 0.05, col = soft_red, border = NA)
+  lines(y_norm, type = "b", pch = 19)
   draw_x_axis()
+  
+  ### 2. Linearity (Adjusted R-squared)
+  y_r2 <- diagnostics$r_adjust
+  plot(y_r2, type = "n", xaxt = "n", xlab = "", ylab = "", main = "Linearity (Adjusted R-squared)")
   abline(h = 0.6, col = "red", lty = 2)
-  
-  # 3. Heteroscedasticity (Breusch-Pagan)
-  plot(
-    diagnostics$bp_pvalue, type = "b", pch = 19, xaxt = "n",
-    xlab = "", ylab = "", main = "Heteroscedasticity (Breusch-Pagan)"
-  )
+  usr <- par("usr")
+  rect(x_range[1], usr[3], x_range[2], 0.6, col = soft_green, border = NA)
+  rect(x_range[1], 0.6, x_range[2], usr[4], col = soft_red, border = NA)
+  lines(y_r2, type = "b", pch = 19)
   draw_x_axis()
-  abline(h = 0.05, col = "red", lty = 2)
   
-  # 4. Autocorrelation (Durbin-Watson)
-  plot(
-    diagnostics$autoc_dw, type = "b", pch = 19, xaxt = "n",
-    xlab = "", ylab = "", main = "Autocorrelation (Durbin-Watson)"
-  )
-  draw_x_axis()
+  
+  ### 4. Autocorrelation (Durbin-Watson)
+  y_dw <- diagnostics$autoc_dw
+  plot(y_dw, type = "n", xaxt = "n", xlab = "", ylab = "", main = "Autocorrelation (Durbin-Watson)")
   abline(h = c(1.75, 2.25), col = "red", lty = 2)
-  
-  # 5. Autocorrelation (p-value DW)
-  plot(
-    diagnostics$autoc_pvalue, type = "b", pch = 19, xaxt = "n",
-    xlab = "", ylab = "", main = "Autocorrelation (p-value DW)"
-  )
+  usr <- par("usr")
+  # Green band between
+  rect(x_range[1], 1.75, x_range[2], 2.25, col = soft_green, border = NA)
+  # Red bands outside
+  rect(x_range[1], usr[3], x_range[2], 1.75, col = soft_red, border = NA)
+  rect(x_range[1], 2.25, x_range[2], usr[4], col = soft_red, border = NA)
+  lines(y_dw, type = "b", pch = 19)
   draw_x_axis()
-  abline(h = 0.05, col = "red", lty = 2)
   
-  # Add overall main title
+  ### 5. Autocorrelation (p-value DW)
+  y_dwp <- diagnostics$autoc_pvalue
+  plot(y_dwp, type = "n", xaxt = "n", xlab = "", ylab = "", main = "Autocorrelation (p-value Durbin-Watson)")
+  abline(h = 0.05, col = "red", lty = 2)
+  usr <- par("usr")
+  rect(x_range[1], 0.05, x_range[2], usr[4], col = soft_green, border = NA)
+  rect(x_range[1], usr[3], x_range[2], 0.05, col = soft_red, border = NA)
+  lines(y_dwp, type = "b", pch = 19)
+  draw_x_axis()
+  
+  ### 3. Heteroscedasticity (Breusch-Pagan)
+  y_bp <- diagnostics$bp_pvalue
+  plot(y_bp, type = "n", xaxt = "n", xlab = "", ylab = "", main = "Heteroscedasticity (Breusch-Pagan)")
+  abline(h = 0.05, col = "red", lty = 2)
+  usr <- par("usr")
+  rect(x_range[1], 0.05, x_range[2], usr[4], col = soft_green, border = NA)
+  rect(x_range[1], usr[3], x_range[2], 0.05, col = soft_red, border = NA)
+  lines(y_bp, type = "b", pch = 19)
+  draw_x_axis()
+  
+  ### Overall title
   mtext(title, outer = TRUE, cex = 1.5, line = 1)
   
-  # Restore par settings
   par(op)
 }
+
 
 
 

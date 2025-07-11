@@ -29,7 +29,19 @@ test_that("Test Diagnostics Plot", {
     categorical_variables = c("dummy_large_city", "neighbourhood_code")
   )
   
+  # Open a temporary PNG device with sufficient size for multi-panel layout
+  tmpfile <- tempfile(fileext = ".png")
+  png(filename = tmpfile, width = 1200, height = 800)
+  
+  # Check that the plotting function runs without errors
   expect_silent(
     plot_regression_diagnostics(diagnostics_result)
   )
+  
+  # Close the graphics device
+  dev.off()
+  
+  # Remove the temporary file
+  unlink(tmpfile)
 })
+

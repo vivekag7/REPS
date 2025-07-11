@@ -45,6 +45,13 @@ The required variables include:
 - `numerical_variables`: e.g., `floor_area`  
 - `categorical_variables`: e.g., `neighbourhood_code`
 
+Typically, for some numerical variables you may want to apply a log transformation. For example, `floor_area` is often log-transformed to improve linearity, stabilize variance, and reduce the impact of extreme values. Log-transforming variables can help meet regression assumptions by making relationships between variables more linear and residuals more homoscedastic (constant variance).
+
+Example of log-transforming `floor_area`:
+
+```r
+data_constraxion$floor_area <- log(data_constraxion$floor_area)
+```
 
 ## Using `calculate_price_index()`
 

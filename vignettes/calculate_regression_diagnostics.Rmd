@@ -20,8 +20,8 @@ For each period, it:
 - Computes diagnostics:
   - **Shapiro-Wilk p-value** (normality)
   - **Adjusted R-squared** (linearity)
-  - **Breusch-Pagan test** (heteroscedasticity)
   - **Durbin-Watson test** (autocorrelation)
+  - **Breusch-Pagan test** (heteroscedasticity)
 
 These diagnostics help assess **model quality over time**, identifying periods with issues like non-normality, low fit, heteroscedasticity, or autocorrelation.
 
@@ -64,20 +64,6 @@ diagnostics <- calculate_regression_diagnostics(
 head(diagnostics)
 ```
 
-
-## Interpreting the Output
-
-Each row represents a **period-specific regression**. Columns:
-
-- **norm_pvalue**: Shapiro-Wilk p-value (> 0.05 suggests normality)
-- **r_adjust**: Adjusted R-squared (higher = better fit)
-- **bp_pvalue**: Breusch-Pagan p-value (> 0.05 suggests homoscedasticity)
-- **autoc_pvalue**: Durbin-Watson p-value (> 0.05 suggests no autocorrelation)
-- **autoc_dw**: Durbin-Watson statistic (ideal ≈ 2)
-
-Values below 0.05 for tests may signal **violations of regression assumptions**.
-
-
 ## Visualizing Diagnostics
 
 For convenient visualization:
@@ -90,9 +76,9 @@ This generates a **3x2 grid** of plots:
 
 - Normality (Shapiro-Wilk)
 - Linearity (Adjusted R-squared)
-- Heteroscedasticity (Breusch-Pagan)
 - Autocorrelation (Durbin-Watson statistic)
-- Autocorrelation (p-value DW)
+- Autocorrelation (p-value Durbin-Watson)
+- Heteroscedasticity (Breusch-Pagan)
 
 Example:
 
@@ -100,10 +86,20 @@ Example:
 knitr::include_graphics("diagnostics_plot.png")
 ```
 
-Interpretation:
+## Interpreting the Output
 
-- Red dashed lines indicate **common thresholds** (e.g. p = 0.05).
-- Points below threshold lines suggest periods needing closer investigation.
+The hedonic approach of the price indices relies on a linear regression model. Exploitation of this linear model in the calculation of the price index depends on valid model assumptions. The generated figure with multiple plots helps assess the linear regression model assumptions:
+
+On the left of the first row of the multiple plots is the plot of the p-values of the Shapiro-Wilk test of normality. Values of the solid line below the 0.05 significance level (dashed red line) may be an indication of violation of the normality condition of the linear regression model.
+
+On the right of the first row of the multiple plots is the plot of the adjusted R-squared (coefficient of determination) for assessing the linearity assumptions. As a rule of thumb, values beyond 0.6 (the red dashed line) can be an indication of the absence of linearity.
+
+On the left of the second row of the multiple plots is the plot of the Durbin-Watson statistic for the mutual independence condition of the residuals in the linear regression model. Values range from 0 to 4, with perfect independence at the value 2. As a rule of thumb, values out of the range 1.75–2.25 (the red dashed lines) along with the p-values (next plot) can be an indication of autocorrelated residuals in the linear regression model.
+
+On the right of the second row of the multiple plots is the plot of the p-values of the Durbin-Watson test. Values exceeding the 0.05 significance level (dashed red line) suggest that there is no significant evidence to reject the null hypothesis of the mutual independence of the residuals in the linear regression model.
+
+On the third row of the multiple plots, the plot of the p-values of the Breusch-Pagan statistic for the homoscedasticity (constant variance of the residuals) condition of the linear regression model is shown. Values of the solid line below the 0.05 significance level (dashed red line) can be an indication of the presence of heteroscedasticity (no constant variance) in the linear regression model.
+
 
 
 ## Summary
