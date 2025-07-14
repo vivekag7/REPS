@@ -192,8 +192,8 @@ plot_regression_diagnostics <- function(diagnostics, title = "Regression Diagnos
   plot(y_r2, type = "n", xaxt = "n", xlab = "", ylab = "", main = "Linearity (Adjusted R-squared)")
   abline(h = 0.6, col = "red", lty = 2)
   usr <- par("usr")
-  rect(x_range[1], usr[3], x_range[2], 0.6, col = soft_green, border = NA)
-  rect(x_range[1], 0.6, x_range[2], usr[4], col = soft_red, border = NA)
+  rect(x_range[1], usr[3], x_range[2], 0.6, col = soft_red, border = NA)
+  rect(x_range[1], 0.6, x_range[2], usr[4], col = soft_green, border = NA)
   lines(y_r2, type = "b", pch = 19)
   draw_x_axis()
   

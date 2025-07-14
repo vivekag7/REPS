@@ -45,6 +45,9 @@ Your dataset should include:
 ```r
 # Example dataset (you should already have this loaded)
 head(data_constraxion)
+
+# We log transform the floor_area again (see vignette on calculating price index as why)
+data_constraxion$floor_area <- log(data_constraxion$floor_area)
 ```
 
 
@@ -92,7 +95,7 @@ The hedonic approach of the price indices relies on a linear regression model. E
 
 On the left of the first row of the multiple plots is the plot of the p-values of the Shapiro-Wilk test of normality. Values of the solid line below the 0.05 significance level (dashed red line) may be an indication of violation of the normality condition of the linear regression model.
 
-On the right of the first row of the multiple plots is the plot of the adjusted R-squared (coefficient of determination) for assessing the linearity assumptions. As a rule of thumb, values beyond 0.6 (the red dashed line) can be an indication of the absence of linearity.
+On the right of the first row of the multiple plots is the plot of the adjusted R-squared (coefficient of determination) for assessing the linearity assumptions. As a rule of thumb, values below 0.6 (the red dashed line) can be an indication of the absence of linearity.
 
 On the left of the second row of the multiple plots is the plot of the Durbin-Watson statistic for the mutual independence condition of the residuals in the linear regression model. Values range from 0 to 4, with perfect independence at the value 2. As a rule of thumb, values out of the range 1.75–2.25 (the red dashed lines) along with the p-values (next plot) can be an indication of autocorrelated residuals in the linear regression model.
 
