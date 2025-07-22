@@ -15,8 +15,7 @@
 #' @param number_of_observations logical, if TRUE, adds number of observations column
 #' @return a data.frame with columns: period, Index, (optionally number_of_observations)
 #' @keywords internal
-#' @importFrom dplyr %>% rename mutate filter group_by summarise all_of across
-#' @importFrom stats lm predict as.formula
+#' @importFrom stats lm predict as.formula aggregate
 
 calculate_repricing <- function(dataset,
                                 period_variable,
@@ -37,11 +36,8 @@ calculate_repricing <- function(dataset,
   # Assign internal period column and prepare data
   dataset[[internal_period]] <- as.character(dataset[[period_variable]])
   
-  dataset <- dataset %>%
-    dplyr::mutate(
-      log_depvar = log(.data[[dependent_variable]]),
-      dplyr::across(dplyr::all_of(categorical_variables), as.factor)
-    )
+  dataset[["log_depvar"]] <- log(dataset[[dependent_variable]])
+  for (var in categorical_variables) dataset[[var]] <- as.factor(dataset[[var]])
   
   # Sort unique periods
   period_list <- sort(unique(dataset[[internal_period]]), decreasing = FALSE)
@@ -51,7 +47,7 @@ calculate_repricing <- function(dataset,
 
   # Subset base year
   base_year <- period_list[c(1:periods_in_year)]
-  subset_data_base <- dataset %>% dplyr::filter(.data[[internal_period]] %in% base_year)
+  subset_data_base <- dataset[dataset[[internal_period]] %in% base_year, , drop = FALSE]
   
   # Build formula
   formula_str <- paste0("log_depvar ~ ", paste(independent_variables, collapse = " + "))
@@ -63,14 +59,19 @@ calculate_repricing <- function(dataset,
   dataset$predicted_price <- exp(predict(model_base, newdata = dataset))
   
   # Calculate mean, sum and numbers per period
-  average_data <- dataset %>%
-    dplyr::group_by(.data[[internal_period]]) %>%
-    dplyr::summarise(
-      observed_gmean = exp(mean(log(.data[[dependent_variable]]), na.rm = TRUE)),
-      predicted_price = exp(mean(log(predicted_price))),
-      num_obs = n(),
-      .groups = "drop"
-    )
+  average_data <- aggregate(dataset[[dependent_variable]], 
+                            by = list(dataset[[internal_period]]), 
+                            FUN = function(x) exp(mean(log(x), na.rm = TRUE)))
+  names(average_data) <- c(internal_period, "observed_gmean")
+  
+  predicted_means <- tapply(log(dataset[["predicted_price"]]), 
+                            dataset[[internal_period]], 
+                            mean, na.rm = TRUE)
+  average_data$predicted_price <- exp(predicted_means[average_data[[internal_period]]])
+  
+  counts <- table(dataset[[internal_period]])
+  average_data$num_obs <- as.integer(counts[average_data[[internal_period]]])
+  
   
   # Calculate index
   average_data$index <- (average_data$observed_gmean / average_data$observed_gmean[1]) /

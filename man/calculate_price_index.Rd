@@ -5,8 +5,8 @@
 \title{Calculate index based on specified method (Fisher, Laspeyres, Paasche, HMTS, Time Dummy, Rolling Time Dummy)}
 \usage{
 calculate_price_index(
-  method,
   dataset,
+  method,
   period_variable,
   dependent_variable,
   numerical_variables = NULL,
@@ -22,11 +22,11 @@ calculate_price_index(
 )
 }
 \arguments{
-\item{method}{One of: "fisher", "laspeyres", "paasche", "hmts", "timedummy", "rolling_timedummy", "repricing"}
-
 \item{dataset}{Data frame with input data}
 
-\item{period_variable}{Name of the variable indicating time periods}
+\item{method}{One of: "fisher", "laspeyres", "paasche", "hmts", "timedummy", "rolling_timedummy", "repricing"}
+
+\item{period_variable}{A string with the name of the column containing time periods. Values must follow a consistent format such as "2020Q1" (quarterly), "2020M01" (monthly), "202001" (YYYYMM), "2020W01" (weekly), or "2020" (yearly). Mixed or irregular formats (e.g., "Q1_2020", "Jan2020") are not supported.}
 
 \item{dependent_variable}{Usually the price}
 

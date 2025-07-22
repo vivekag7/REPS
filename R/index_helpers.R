@@ -18,20 +18,19 @@
 #' @keywords internal
 
 
-calculate_hedonic_imputation <- function(dataset_temp = dataset
-                                         , period_temp = "period_var_temp"
-                                         , dependent_variable_temp = dependent_variable
-                                         , independent_variables_temp = independent_variables
-                                         , number_of_observations_temp = number_of_observations
-                                         , period_list_temp = period_list) {
+calculate_hedonic_imputation <- function(dataset_temp
+                                         , period_temp
+                                         , dependent_variable_temp 
+                                         , independent_variables_temp 
+                                         , number_of_observations_temp 
+                                         , period_list_temp ) {
   
   # Count number of periods
   number_of_periods <- length(period_list_temp)
   
   # Select required variables
-  dataset_temp <- dataset_temp |>
-    dplyr::select(all_of(c(period_temp, dependent_variable_temp,
-                           independent_variables_temp)))
+  dataset_temp <- dataset_temp[, c(period_temp, dependent_variable_temp, independent_variables_temp), drop = FALSE]
+  
   
   # Remove lines without values
   dataset_temp[dataset_temp == ''] <- NA
@@ -65,26 +64,24 @@ calculate_hedonic_imputation <- function(dataset_temp = dataset
     
     # Estimate coefficients of the 1st period
     if (current_period == 1) {
-      rekenbestand <- subset(dataset_temp, period_var_temp == period_list_temp[1])
+      rekenbestand <- dataset_temp[dataset_temp[[period_temp]] == period_list_temp[1], , drop = FALSE]
       fitmdl <- stats::lm(model, rekenbestand)
       predictmdl_0 <- mean(stats::predict(fitmdl, rekenbestand))
-      
-
       predictmdl_0 <- exp(predictmdl_0)
-
+      
       if (number_of_observations_temp == TRUE) {
         number <- nrow(rekenbestand)
       }
     } else {
       # Estimate coefficients of all periods after
-      rekenbestand_t <- subset(dataset_temp, period_var_temp == period_list_temp[current_period])
+      rekenbestand_t <- dataset_temp[dataset_temp[[period_temp]] == period_list_temp[current_period], , drop = FALSE]
       fitmdl <- stats::lm(model, rekenbestand_t)
       
-      # If parameter number_of_observations = TRUE, then calculate numbers
       if (number_of_observations_temp == TRUE) {
         number <- nrow(rekenbestand_t)
       }
     }
+    
     
     # Recoding of values, where the categorical variable has a level that is not estimated in the reference period
     rekenbestand_0 <- rekenbestand
@@ -185,12 +182,8 @@ calculate_index <- function(periods
   
   # Create table
   tbl_index <- data.frame(period = periods_short, value = values)
-  
-  average <- tbl_index |>
-    dplyr::filter(period == reference_period) |>
-    dplyr::summarise(value = mean(value)) |>
-    dplyr::pull(value)
-  
+  average <- mean(tbl_index[tbl_index[["period"]] == reference_period, "value"], na.rm = TRUE)
+
   # Calculate index
   tbl_index$Index <- tbl_index$value / average * 100
   
@@ -208,14 +201,16 @@ calculate_index <- function(periods
 #' @return A numeric vector of growth rates, with 1 as the initial value.
 #' @author Vivek Gajadhar
 #' @keywords internal
+#' @importFrom utils head
 
 calculate_growth_rate <- function(values) {
   if (!is.numeric(values)) stop("The series of values is not fully numeric.")
   values <- as.numeric(values)
-  growth_rate <- values / dplyr::lag(values)
+  growth_rate <- values / c(NA, head(values, -1))
   growth_rate[1] <- 1
   return(growth_rate)
 }
+
 
 
 ### Helper 4

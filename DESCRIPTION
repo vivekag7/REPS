@@ -1,4 +1,4 @@
-Package: cbsREPS
+Package: REPS
 Type: Package
 Title: Hedonic and Multilateral Index Methods for Real Estate Price Statistics 
 Version: 0.1.0
@@ -17,10 +17,9 @@ Description: Compute price indices using various Hedonic and
     multilateral methods, including Laspeyres, Paasche, Fisher, and HMTS (Hedonic
     Multilateral Time series re-estimation with splicing). The central function
     calculate_price_index() offers a unified interface for running these methods
-    on structured datasets. This package is designed to support index construction
-    workflows for real estate and other domains where quality-adjusted price
-    comparisons over time are essential. The development of this package was funded
-    by Eurostat and Statistics Netherlands (CBS), and carried out by Statistics Netherlands.
+    on structured datasets. This package is designed to support index construction workflows across a wide range of domains 
+    — including but not limited to real estate — where quality-adjusted price comparisons over time are essential. 
+    The development of this package was funded by Eurostat and Statistics Netherlands (CBS), and carried out by Statistics Netherlands.
     The HMTS method implemented here is described in Ishaak, Ouwehand and Remøy (2024)
     <doi:10.1177/0282423X241246617>. For broader methodological context, see Eurostat
     (2013, ISBN:978-92-79-25984-5, <doi:10.2785/34007>).

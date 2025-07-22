@@ -64,11 +64,10 @@ calculate_hmts <- function(
   periods_in_year <- as.numeric(periods_in_year)
   number_preliminary_periods <- as.numeric(number_preliminary_periods)
   
-  dataset <- dataset |>
-    dplyr::rename(period = all_of(period_variable)) |>
-    dplyr::mutate(period = as.character(period),
-                  dplyr::across(dplyr::all_of(categorical_variables),
-                                as.factor))
+  names(dataset)[names(dataset) == period_variable] <- "period"
+  dataset[["period"]] <- as.character(dataset[["period"]])
+  for (var in categorical_variables) dataset[[var]] <- as.factor(dataset[[var]])
+  
   
   results <- calculate_hmts_index(
     dataset = dataset,

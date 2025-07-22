@@ -14,7 +14,6 @@
 #' @return data frame with period, Index, and optionally number_of_observations
 #' @importFrom stats setNames
 #' @importFrom utils tail
-#' @importFrom dplyr filter group_by summarise left_join rename
 #' @keywords internal
 
 calculate_rolling_timedummy <- function(dataset,
@@ -70,19 +69,15 @@ calculate_rolling_timedummy <- function(dataset,
   
   # Optionally add number of observations
   if (number_of_observations) {
-    df_result <- df_result |>
-      dplyr::left_join(
-        dataset |>
-          dplyr::filter(.data[[period_variable]] %in% periods_all) |>
-          dplyr::group_by(.data[[period_variable]]) |>
-          dplyr::summarise(number_of_observations = dplyr::n(), .groups = "drop") |>
-          dplyr::rename(period = !!period_variable),
-        by = "period"
-      )
+    counts <- table(dataset[dataset[[period_variable]] %in% periods_all, period_variable])
+    obs_df <- data.frame(period = names(counts), number_of_observations = as.integer(counts))
+    df_result <- merge(df_result, obs_df, by = "period", all.x = TRUE)
     
     # Reorder columns
     df_result <- df_result[, c("period", "number_of_observations", "Index")]
-  }
+    
+    }
   
+    
   return(df_result)
 }

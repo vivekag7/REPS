@@ -5,12 +5,12 @@
 \title{Calculate imputation averages with the 1st period as base period}
 \usage{
 calculate_hedonic_imputation(
-  dataset_temp = dataset,
-  period_temp = "period_var_temp",
-  dependent_variable_temp = dependent_variable,
-  independent_variables_temp = independent_variables,
-  number_of_observations_temp = number_of_observations,
-  period_list_temp = period_list
+  dataset_temp,
+  period_temp,
+  dependent_variable_temp,
+  independent_variables_temp,
+  number_of_observations_temp,
+  period_list_temp
 )
 }
 \arguments{

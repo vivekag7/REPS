@@ -42,12 +42,11 @@ test_that("Test calculate_hedonic_imputation", {
   
   
   # Prepare dataset in right format
-  dataset <- data_constraxion |>
-    dplyr::rename(period_var_temp = dplyr::all_of(period_variable)) |>
-    dplyr::mutate(
-      period_var_temp = as.character(period_var_temp),
-      dplyr::across(dplyr::all_of(categorical_variables), as.factor)
-    )
+  dataset <- data_constraxion
+  names(dataset)[names(dataset) == period_variable] <- "period_var_temp"
+  dataset[["period_var_temp"]] <- as.character(dataset[["period_var_temp"]])
+  for (var in categorical_variables) dataset[[var]] <- as.factor(dataset[[var]])
+  
   
   period_list <- sort(unique(dataset$period_var_temp), decreasing = FALSE)
   

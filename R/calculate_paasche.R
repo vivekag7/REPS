@@ -37,11 +37,10 @@ calculate_paasche <- function(dataset
   independent_variables <- c(numerical_variables, categorical_variables)
 
   # Rename period_variable and transform to character
-  dataset <- dataset |>
-    dplyr::rename(period_var_temp = all_of(period_variable)) |>
-    dplyr::mutate(period_var_temp = as.character(period_var_temp),
-                  dplyr::across(dplyr::all_of(categorical_variables),
-                                as.factor))
+  names(dataset)[names(dataset) == period_variable] <- "period_var_temp"
+  dataset[["period_var_temp"]] <- as.character(dataset[["period_var_temp"]])
+  for (var in categorical_variables) dataset[[var]] <- as.factor(dataset[[var]])
+  
 
   ## Calculate index
 

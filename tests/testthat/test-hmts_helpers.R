@@ -15,12 +15,11 @@ test_that("Test calculate_hmts_index", {
   resting_points <- FALSE  # Set to FALSE as requested
   
   # Prepare dataset as expected by the function
-  dataset <- data_constraxion |>
-    dplyr::rename(period = dplyr::all_of(period_variable)) |>
-    dplyr::mutate(
-      period = as.character(period),
-      dplyr::across(dplyr::all_of(categorical_variables), as.factor)
-    )
+  dataset <- data_constraxion
+  names(dataset)[names(dataset) == period_variable] <- "period"
+  dataset[["period"]] <- as.character(dataset[["period"]])
+  for (var in categorical_variables) dataset[[var]] <- as.factor(dataset[[var]])
+  
   
   # Run the function
   tbl_output <- calculate_hmts_index(
@@ -62,12 +61,11 @@ test_that("Test calculate_hedonic_imputationmatrix", {
   number_preliminary_periods <- 2
   
   # Prepare dataset as expected
-  dataset <- data_constraxion |>
-    dplyr::rename(period = dplyr::all_of(period_variable)) |>
-    dplyr::mutate(
-      period = as.character(period),
-      dplyr::across(dplyr::all_of(categorical_variables), as.factor)
-    )
+  dataset <- data_constraxion
+  names(dataset)[names(dataset) == period_variable] <- "period"
+  dataset[["period"]] <- as.character(dataset[["period"]])
+  for (var in categorical_variables) dataset[[var]] <- as.factor(dataset[[var]])
+  
   
   # Run the function
   matrix_output <- calculate_hedonic_imputationmatrix(

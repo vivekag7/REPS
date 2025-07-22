@@ -13,7 +13,6 @@
 #' @return data frame with period, Index, and optionally number_of_observations
 #' @importFrom stats lm coefficients as.formula na.omit
 #' @importFrom utils tail
-#' @importFrom dplyr mutate across all_of select group_by summarise left_join n
 #' @keywords internal
 
 calculate_time_dummy <- function(dataset,
@@ -23,20 +22,19 @@ calculate_time_dummy <- function(dataset,
                                        categorical_variables,
                                        reference_period = NULL,
                                        number_of_observations = FALSE) {
+  
   # Convert categorical vars and period to factors, and log-transform dependent and numerical vars
-  dataset <- dataset |>
-    dplyr::mutate(dplyr::across(dplyr::all_of(c(categorical_variables, period_variable)), as.factor)) |>
-    dplyr::mutate(
-      dplyr::across(dplyr::all_of(dependent_variable), log),
-      dplyr::across(dplyr::all_of(numerical_variables), log)
-    )
+  for (var in c(categorical_variables, period_variable)) dataset[[var]] <- as.factor(dataset[[var]])
+  dataset[[dependent_variable]] <- log(dataset[[dependent_variable]])
+  for (var in numerical_variables) dataset[[var]] <- log(dataset[[var]])
+  
   
   # Keep only relevant variables and drop rows with NA
   variables_to_use <- c(dependent_variable, numerical_variables, categorical_variables, period_variable)
-  calculation_data <- dataset |>
-    dplyr::select(dplyr::all_of(variables_to_use)) |>
-    stats::na.omit() |>
-    droplevels()
+  calculation_data <- dataset[, variables_to_use, drop = FALSE]
+  calculation_data <- na.omit(calculation_data)
+  calculation_data[] <- lapply(calculation_data, function(x) if (is.factor(x)) droplevels(x) else x)
+  
   
   # Build regression formula and fit model
   formula <- stats::as.formula(paste(dependent_variable, "~", paste(c(numerical_variables, categorical_variables, period_variable), collapse = " + ")))
@@ -61,14 +59,11 @@ calculate_time_dummy <- function(dataset,
   
   # Add number of observations if requested
   if (number_of_observations) {
-    df_index <- df_index |>
-      dplyr::left_join(
-        calculation_data |>
-          dplyr::group_by(.data[[period_variable]]) |>
-          dplyr::summarise(number_of_observations = dplyr::n(), .groups = "drop"),
-        by = c("period" = period_variable)
-      )
+    counts <- table(calculation_data[[period_variable]])
+    obs_df <- data.frame(period = names(counts), number_of_observations = as.integer(counts))
+    df_index <- merge(df_index, obs_df, by.x = "period", by.y = "period", all.x = TRUE)
   }
+  
   
   # Normalize index to reference period if provided
   if (!is.null(reference_period)) {

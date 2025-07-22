@@ -1,18 +1,29 @@
 ---
-title: "Regression Diagnostics by Period using cbsREPS"
+title: "Regression Diagnostics by Period using REPS"
 author: ""
-date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Regression Diagnostics by Period using cbsREPS}
+  %\VignetteIndexEntry{Regression Diagnostics by Period using REPS}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 bibliography: ./REFERENCES.bib
 ---
 
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, include=FALSE}
+library(REPS)
+data("data_constraxion")
+```
+
 ## Introduction
 
-The `calculate_regression_diagnostics()` function in **cbsREPS** provides *regression diagnostics by period*. It is designed for panel or repeated cross-section data (e.g. property transactions over time) to evaluate the quality of **period-specific log-linear regressions**.
+The `calculate_regression_diagnostics()` function in **REPS** provides *regression diagnostics by period*. It is designed for panel or repeated cross-section data (e.g. property transactions over time) to evaluate the quality of **period-specific log-linear regressions**.
 
 For each period, it:
 
@@ -25,12 +36,6 @@ For each period, it:
 
 These diagnostics help assess **model quality over time**, identifying periods with issues like non-normality, low fit, heteroscedasticity, or autocorrelation.
 
-This vignette shows:
-
-- Preparing data
-- Using `calculate_regression_diagnostics()`
-- Visualizing diagnostics with `plot_regression_diagnostics()`
-
 
 ## Required Data
 
@@ -42,12 +47,13 @@ Your dataset should include:
 - Optionally, **categorical independent variables** (e.g. neighbourhood codes)
 
 
-```r
+```{r}
 # Example dataset (you should already have this loaded)
 head(data_constraxion)
 
 # We log transform the floor_area again (see vignette on calculating price index as why)
-data_constraxion$floor_area <- log(data_constraxion$floor_area)
+dataset <- data_constraxion
+dataset$floor_area <- log(dataset$floor_area)
 ```
 
 
@@ -55,9 +61,9 @@ data_constraxion$floor_area <- log(data_constraxion$floor_area)
 
 Example:
 
-```r
+```{r}
 diagnostics <- calculate_regression_diagnostics(
-  dataset = data_constraxion,
+  dataset = dataset,
   period_variable = "period",
   dependent_variable = "price",
   numerical_variables = c("floor_area", "dist_trainstation"),
@@ -107,7 +113,7 @@ On the third row of the multiple plots, the plot of the p-values of the Breusch-
 
 ## Summary
 
-The `calculate_regression_diagnostics()` and `plot_regression_diagnostics()` functions in **cbsREPS** enable:
+The `calculate_regression_diagnostics()` and `plot_regression_diagnostics()` functions in **REPS** enable:
 
 - **Period-by-period regression checking**
 - **Easy comparison of assumptions over time**

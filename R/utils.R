@@ -1,10 +1,5 @@
 # initialize parameters to avoid "no visible binding for global variable" when running check()
 
-utils::globalVariables(c("dataset", "dependent_variable", "numerical_variables", 
-                         "independent_variables", 
-                         "number_of_observations", "period_list", 
-                         "period_var_temp", "period", "value", "bind_rows", ".data","Index","method", "predicted_price"))
-
 #' Validate Input Data for Hedonic Index Calculation
 #'
 #' This function checks whether the dataset contains all required variables, whether the dependent and numerical variables are numeric, 

@@ -41,9 +41,10 @@ calculate_trend_line_kfas <- function(original_series
   
   
   if (resting_points == TRUE) {
-    analysis_complete <- dplyr::bind_rows(startvalues_analysis, parameters_analysis, model_analysis)
+    analysis_complete <- rbind(startvalues_analysis, parameters_analysis, model_analysis)
     trend_line <- list(trend_line = trend_line, resting_points = analysis_complete)
   }
+  
   
   return(trend_line)
 }

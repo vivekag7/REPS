@@ -22,13 +22,6 @@
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @param number_of_observations number of observations per period (default = TRUE)
 #' @param imputation display the underlying average imputation values? (default = FALSE)
-#' @importFrom dplyr mutate
-#' @importFrom dplyr rename
-#' @importFrom dplyr all_of
-#' @importFrom dplyr across
-#' @importFrom dplyr filter
-#' @importFrom dplyr summarise
-#' @importFrom dplyr lag
 #' @importFrom stats na.omit
 #' @importFrom stats lm
 #' @importFrom stats predict
@@ -51,11 +44,10 @@ calculate_laspeyres <- function(dataset
   
   
   # Rename period_variable and transform to character
-  dataset <- dataset |>
-    dplyr::rename(period_var_temp = all_of(period_variable)) |>
-    dplyr::mutate(period_var_temp = as.character(period_var_temp),
-                  dplyr::across(dplyr::all_of(categorical_variables),
-                                as.factor))
+  names(dataset)[names(dataset) == period_variable] <- "period_var_temp"
+  dataset[["period_var_temp"]] <- as.character(dataset[["period_var_temp"]])
+  for (var in categorical_variables) dataset[[var]] <- as.factor(dataset[[var]])
+  
   
 
   # Create list of periods

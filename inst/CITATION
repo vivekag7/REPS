@@ -1,9 +1,9 @@
-citHeader("Please cite as follows: \n\n- Package: when using the `cbsREPS` package \n- Ishaak et al. (2024): when referring to the HMTS method in your research \n- Eurostat (2013): for general context on (hedonic) property price index methods")
+citHeader("Please cite as follows: \n\n- Package: when using the `REPS` package \n- Ishaak et al. (2024): when referring to the HMTS method in your research \n- Eurostat (2013): for general context on (hedonic) property price index methods")
 
 
 bibentry(
   bibtype = "Manual",
-  title = "cbsREPS: Hedonic and Multilateral Index Methods for Real Estate Price Comparison",
+  title = "REPS: Hedonic and Multilateral Index Methods for Real Estate Price Comparison",
   author = c(
     person("Farley", "Ishaak"),
     person("Pim", "Ouwehand"),

@@ -44,11 +44,11 @@ calculate_regression_diagnostics <- function(dataset,
   independent_variables <- c(numerical_variables, categorical_variables)
   
   # Subset and clean data
-  dataset <- dataset |>
-    dplyr::select(all_of(c(period_variable, dependent_variable, independent_variables)))
+  dataset <- dataset[, c(period_variable, dependent_variable, independent_variables), drop = FALSE]
   dataset[dataset == ""] <- NA
-  dataset <- stats::na.omit(dataset)
-  dataset <- droplevels(dataset)
+  dataset <- na.omit(dataset)
+  dataset[] <- lapply(dataset, function(x) if (is.factor(x)) droplevels(x) else x)
+  
   
   # Build formula 
   dependent_log <- paste0("log(", dependent_variable, ")")
@@ -178,7 +178,7 @@ plot_regression_diagnostics <- function(diagnostics, title = "Regression Diagnos
   
   ### 1. Normality (Shapiro-Wilk)
   y_norm <- diagnostics$norm_pvalue
-  plot(y_norm, type = "n", xaxt = "n", xlab = "", ylab = "", main = "Normality (Shapiro-Wilk)")
+  plot(y_norm, type = "n", xaxt = "n", xlab = "", ylab = "", main = "Normality (p-value Shapiro-Wilk)")
   abline(h = 0.05, col = "red", lty = 2)
   # Shading
   usr <- par("usr")
@@ -223,7 +223,7 @@ plot_regression_diagnostics <- function(diagnostics, title = "Regression Diagnos
   
   ### 3. Heteroscedasticity (Breusch-Pagan)
   y_bp <- diagnostics$bp_pvalue
-  plot(y_bp, type = "n", xaxt = "n", xlab = "", ylab = "", main = "Heteroscedasticity (Breusch-Pagan)")
+  plot(y_bp, type = "n", xaxt = "n", xlab = "", ylab = "", main = "Heteroscedasticity (p-value Breusch-Pagan)")
   abline(h = 0.05, col = "red", lty = 2)
   usr <- par("usr")
   rect(x_range[1], 0.05, x_range[2], usr[4], col = soft_green, border = NA)
