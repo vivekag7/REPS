@@ -97,19 +97,37 @@ knitr::include_graphics("diagnostics_plot.png")
 
 ## Interpreting the Output
 
-The hedonic approach of the price indices relies on a linear regression model. Exploitation of this linear model in the calculation of the price index depends on valid model assumptions. The generated figure with multiple plots helps assess the linear regression model assumptions:
+The hedonic price index relies on a log-linear regression model, which assumes that certain statistical conditions hold. The diagnostics plot provides an overview of how well these assumptions are met across different periods.
 
-On the left of the first row of the multiple plots is the plot of the p-values of the Shapiro-Wilk test of normality. Values of the solid line below the 0.05 significance level (dashed red line) may be an indication of violation of the normality condition of the linear regression model.
+Each subplot corresponds to a specific model assumption:
 
-On the right of the first row of the multiple plots is the plot of the adjusted R-squared (coefficient of determination) for assessing the linearity assumptions. As a rule of thumb, values below 0.6 (the red dashed line) can be an indication of the absence of linearity.
+### Row 1: Normality and Linearity
 
-On the left of the second row of the multiple plots is the plot of the Durbin-Watson statistic for the mutual independence condition of the residuals in the linear regression model. Values range from 0 to 4, with perfect independence at the value 2. As a rule of thumb, values out of the range 1.75–2.25 (the red dashed lines) along with the p-values (next plot) can be an indication of autocorrelated residuals in the linear regression model.
+- **Shapiro-Wilk test (left plot)**  
+  - Shows p-values for the normality of residuals.  
+  - A p-value below 0.05 (dashed red line) indicates a potential violation of the normality assumption.
 
-On the right of the second row of the multiple plots is the plot of the p-values of the Durbin-Watson test. Values exceeding the 0.05 significance level (dashed red line) suggest that there is no significant evidence to reject the null hypothesis of the mutual independence of the residuals in the linear regression model.
+- **Adjusted R-squared (right plot)**  
+  - Reflects the explanatory power of the regression model.  
+  - Values below 0.6 (dashed red line) may indicate a weak linear relationship.
 
-On the third row of the multiple plots, the plot of the p-values of the Breusch-Pagan statistic for the homoscedasticity (constant variance of the residuals) condition of the linear regression model is shown. Values of the solid line below the 0.05 significance level (dashed red line) can be an indication of the presence of heteroscedasticity (no constant variance) in the linear regression model.
+### Row 2: Independence
 
+- **Durbin-Watson statistic (left plot)**  
+  - Tests for autocorrelation in residuals.  
+  - Ideal value is around 2.  
+  - Values outside the 1.75–2.25 range (dashed lines) suggest potential autocorrelation.
 
+- **Durbin-Watson p-value (right plot)**  
+  - Indicates whether autocorrelation is statistically significant.  
+  - p > 0.05: no significant evidence of autocorrelation.  
+  - p ≤ 0.05: residuals may not be independent.
+
+### Row 3: Homoscedasticity
+
+- **Breusch-Pagan p-value**  
+  - Tests whether residuals have constant variance.  
+  - A p-value below 0.05 (dashed red line) suggests heteroscedasticity (non-constant variance).
 
 ## Summary
 
@@ -124,6 +142,3 @@ They support **robust, high-quality** hedonic price index modeling by systematic
 
 ## References
 
-For further details on regression diagnostics and property price index methodology:
-
-- Eurostat *Handbook on Residential Property Price Indices (RPPIs)* [@eurostat2013rppi]
