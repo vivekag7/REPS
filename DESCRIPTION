@@ -1,7 +1,7 @@
 Package: REPS
 Type: Package
 Title: Hedonic and Multilateral Index Methods for Real Estate Price Statistics 
-Version: 0.1.0
+Version: 1.0.0
 Authors@R: c(
     person(given = "Farley", family = "Ishaak", role = "aut"),
     person(given = "Pim", family = "Ouwehand", role = "aut"),

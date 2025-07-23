@@ -15,7 +15,7 @@ bibentry(
     person("Vivek", "Gajadhar")
   ),
   year = 2025,
-  note = "R package version 0.1.0",
+  note = "R package version 1.0.0",
 )
 
 bibentry(

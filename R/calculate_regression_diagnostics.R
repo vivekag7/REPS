@@ -71,7 +71,7 @@ calculate_regression_diagnostics <- function(dataset,
     if (inherits(mod, "try-error")) return(NULL)
     
     # 1. Shapiro-Wilk test
-    df_log_price <- if (nrow(df) <= 5000) log(df[[dependent_variable]]) else log(sample(df[[dependent_variable]], 5000))
+    df_log_price <- if (nrow(df) <= 5000) log(df[[dependent_variable]]) else sample(log(df[[dependent_variable]]), 5000)
     norm_pvalue <- tryCatch(shapiro.test(df_log_price)$p.value, error = function(e) NA)
     
     # 2. Adjusted R-squared

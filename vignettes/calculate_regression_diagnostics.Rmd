@@ -83,11 +83,11 @@ plot_regression_diagnostics(diagnostics)
 
 This generates a **3x2 grid** of plots:
 
-- Normality (Shapiro-Wilk)
+- Normality (p-value Shapiro-Wilk)
 - Linearity (Adjusted R-squared)
 - Autocorrelation (Durbin-Watson statistic)
 - Autocorrelation (p-value Durbin-Watson)
-- Heteroscedasticity (Breusch-Pagan)
+- Heteroscedasticity (p-value Breusch-Pagan)
 
 Example:
 
@@ -139,6 +139,4 @@ The `calculate_regression_diagnostics()` and `plot_regression_diagnostics()` fun
 
 They support **robust, high-quality** hedonic price index modeling by systematically checking regression assumptions.
 
-
-## References
 

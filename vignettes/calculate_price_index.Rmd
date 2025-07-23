@@ -37,7 +37,7 @@ This vignette demonstrates how to apply each method using a consistent interface
 
 The HMTS method implemented in `REPS` is a multilateral, time-series-based index that balances stability, limited revision, and early detection of turning points in the context of property price indices [@51c4602ed48c4adbb7b7d15176d2da7a].
 
-For broader context and international guidelines on the compilation of property price indices, including traditional methods such as hedonic double imputation Laspeyres, Paasche, Fisher and Repricing, we refer to Eurostat's *Handbook on Residential Property Pricae Indices (RPPIs)* [@eurostat2013rppi]. For (Rolling) Time Dummy we refer to Hill et al. [@hill2018repricing; @hill2022rolling].
+For broader context and international guidelines on the compilation of property price indices, including traditional methods such as hedonic double imputation Laspeyres, Paasche, Fisher and Repricing, we refer to Eurostat's *Handbook on Residential Property Price Indices (RPPIs)* [@eurostat2013rppi]. For (Rolling) Time Dummy we refer to Hill et al. [@hill2018repricing; @hill2022rolling].
 
 
 ## Required Data
