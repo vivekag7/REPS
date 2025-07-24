@@ -1,7 +1,7 @@
 # REPS: Hedonic and Multilateral Index Methods for Real Estate Price Statistics
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/vivekag7/cbsREPS/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/vivekag7/cbsREPS/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/vivekag7/REPS/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/vivekag7/REPS/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 **REPS** (Real Estate Price Statistics) is an R package for computing price indices using a variety of hedonic regression and multilateral methods. It provides a unified interface to calculate quality-adjusted price indices across time, supporting classical index formulas as well as advanced techniques tailored to property price analysis. While developed with real estate in mind, the package is applicable to any domain where reliable, quality-adjusted price comparisons over time are needed. REPS was developed by Statistics Netherlands (CBS) with funding from Eurostat, aligning with international guidelines for compiling residential property price indices.

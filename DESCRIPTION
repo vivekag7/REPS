@@ -42,5 +42,5 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-URL: https://github.com/vivekag7/cbsREPS
-BugReports: https://github.com/vivekag7/cbsREPS/issues
+URL: https://github.com/vivekag7/REPS
+BugReports: https://github.com/vivekag7/REPS/issues

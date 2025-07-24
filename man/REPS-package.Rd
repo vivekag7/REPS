@@ -11,8 +11,8 @@ Compute price indices using various Hedonic and multilateral methods, including 
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/vivekag7/cbsREPS}
-  \item Report bugs at \url{https://github.com/vivekag7/cbsREPS/issues}
+  \item \url{https://github.com/vivekag7/REPS}
+  \item Report bugs at \url{https://github.com/vivekag7/REPS/issues}
 }
 
 }
