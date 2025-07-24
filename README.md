@@ -1,6 +1,6 @@
 # REPS: Hedonic and Multilateral Index Methods for Real Estate Price Statistics
 
-!-- badges: start -->
+<!-- badges: start -->
 [![R-CMD-check](https://github.com/vivekag7/cbsREPS/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/vivekag7/cbsREPS/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
