@@ -23,7 +23,7 @@ Description: Compute price indices using various Hedonic and
     The HMTS method implemented here is described in Ishaak, Ouwehand and Remøy (2024)
     <doi:10.1177/0282423X241246617>. For broader methodological context, see Eurostat
     (2013, ISBN:978-92-79-25984-5, <doi:10.2785/34007>).
-License: file LICENSE
+License: EUPL-1.2
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
