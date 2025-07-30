@@ -8,7 +8,7 @@ calculate_hmts(
   dataset,
   period_variable,
   dependent_variable,
-  continuous_variables,
+  numerical_variables,
   categorical_variables,
   reference_period,
   periods_in_year,
@@ -23,7 +23,7 @@ calculate_hmts(
 
 \item{dependent_variable}{usually the sale price}
 
-\item{continuous_variables}{vector with quality-determining continues variables (numeric, no dummies)}
+\item{numerical_variables}{vector with quality-determining continues variables (numeric, no dummies)}
 
 \item{categorical_variables}{vector with categorical variables (also dummy)}
 

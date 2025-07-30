@@ -8,10 +8,9 @@ calculate_laspeyres(
   dataset,
   period_variable,
   dependent_variable,
-  continuous_variables,
+  numerical_variables,
   categorical_variables,
   reference_period = NULL,
-  index = TRUE,
   number_of_observations = FALSE,
   imputation = FALSE
 )
@@ -23,13 +22,11 @@ calculate_laspeyres(
 
 \item{dependent_variable}{usually the sale price}
 
-\item{continuous_variables}{vector with quality determining numeric variables (no dummies)}
+\item{numerical_variables}{vector with quality determining numeric variables (no dummies)}
 
 \item{categorical_variables}{vector with quality determining categorical variables (also dummies)}
 
 \item{reference_period}{period or group of periods that will be set to 100 (numeric/string)}
-
-\item{index}{caprice index}
 
 \item{number_of_observations}{number of observations per period (default = TRUE)}
 
@@ -53,3 +50,4 @@ This is taken care of in the function.
 \author{
 Farley Ishaak
 }
+\keyword{internal}

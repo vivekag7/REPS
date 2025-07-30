@@ -15,36 +15,32 @@
 #' @param dataset table with data (does not need to be a selection of relevant variables)
 #' @param period_variable variable in the table with periods
 #' @param dependent_variable usually the sale price
-#' @param continuous_variables vector with quality determining numeric variables (no dummies)
+#' @param numerical_variables vector with quality determining numeric variables (no dummies)
 #' @param categorical_variables vector with quality determining categorical variables (also dummies)
-#' @param index caprice index
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @param number_of_observations number of observations per period (default = TRUE)
 #' @param imputation display the underlying average imputation values? (default = FALSE)
 #' @return
 #' table with index, imputation averages, number of observations and confidence intervals per period
-
+#' @keywords internal
 calculate_paasche <- function(dataset
                               , period_variable
                               , dependent_variable
-                              , continuous_variables
+                              , numerical_variables
                               , categorical_variables
                               , reference_period = NULL
-                              , index = TRUE
                               , number_of_observations = FALSE
                               , imputation = FALSE) {
 
   # Merge independent variables
-  # independent_variables <- c(continuous_variables, categorical_variables)
-  assertthat::assert_that(assertthat::has_name(dataset, c(period_variable, dependent_variable, continuous_variables, categorical_variables)))
-  independent_variables <- c(continuous_variables, categorical_variables)
+  # independent_variables <- c(numerical_variables, categorical_variables)
+  independent_variables <- c(numerical_variables, categorical_variables)
 
   # Rename period_variable and transform to character
-  dataset <- dataset |>
-    dplyr::rename(period_var_temp = all_of(period_variable)) |>
-    dplyr::mutate(period_var_temp = as.character(period_var_temp),
-                  dplyr::across(dplyr::all_of(categorical_variables),
-                                as.factor))
+  names(dataset)[names(dataset) == period_variable] <- "period_var_temp"
+  dataset[["period_var_temp"]] <- as.character(dataset[["period_var_temp"]])
+  for (var in categorical_variables) dataset[[var]] <- as.factor(dataset[[var]])
+  
 
   ## Calculate index
 
@@ -117,9 +113,8 @@ calculate_paasche <- function(dataset
     paasche$number_of_observations <- number
     column_start <- 2
   }
-  if (index == TRUE) {
-    paasche$Index <- Index
-  }
+
+  paasche$Index <- Index
 
   if (imputation == TRUE) {
     number_of_periods_plus_1 <- number_of_periods + 1

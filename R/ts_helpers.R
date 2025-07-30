@@ -41,9 +41,10 @@ calculate_trend_line_kfas <- function(original_series
   
   
   if (resting_points == TRUE) {
-    analysis_complete <- dplyr::bind_rows(startvalues_analysis, parameters_analysis, model_analysis)
+    analysis_complete <- rbind(startvalues_analysis, parameters_analysis, model_analysis)
     trend_line <- list(trend_line = trend_line, resting_points = analysis_complete)
   }
+  
   
   return(trend_line)
 }
@@ -58,7 +59,7 @@ calculate_trend_line_kfas <- function(original_series
 #' @param params startvalues
 #' @param model state space modelnumber
 #' @return Newmodel
-#' @keywords Internal
+#' @keywords internal
 
 custom_update_function <- function(params, model) {
   # Update function for state space models, with parameter transformation for Q and H matrices
@@ -138,16 +139,6 @@ determine_initial_parameters <- function(model, initial_values, FUN=custom_updat
   v <- kalman_filter$v[(d + 1):n]
   F1 <- kalman_filter$F[(d + 1):n]^-1
   vF1v <- v * F1 * v  #v'_t * F_t^-1 * v_t
-  
-  # loglik according to KFAS Vignette section 2.1
-  # univariate treatment and diffuse initialization, the diffuse log-likelihood is:
-  log_lik_diffuse <- -0.5 * sum(log(kalman_filter$Finf)) -0.5 * sum(log(2 * pi) + log(kalman_filter$F[(d + 1):n]) + vF1v)
-  # not needed here, but gives same result as KF$logLik
-  # and confirms that vF1v is computed correctly, and is needed to compute the scale factor.
-  difference_log_lik <- round(kalman_filter$logLik, 2) - round(log_lik_diffuse, 2)
-  if (difference_log_lik != 0) {
-    print(paste0("difference in LogLiks:",   kalman_filter$logLik, " vs. ", log_lik_diffuse))
-  }
   
   # scale factor (see equation 11.7 in Commandeur and Koopman or 9.4 in Ssfpack manual, Koopman, Shepherd, Doornik, 2008)
   scale <- 1 / (n - d) * sum(vF1v)

@@ -6,10 +6,10 @@ test_that("Test Fisher", {
     dataset = data_constraxion,
     period_variable = "period",
     dependent_variable = "price",
-    continuous_variables = "floor_area",
+    numerical_variables = "floor_area",
     categorical_variables = "neighbourhood_code",
     reference_period = 2015,
-    number_of_observations = TRUE
+    number_of_observations = FALSE
   )
   
   if (save_refs) {

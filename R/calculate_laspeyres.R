@@ -17,49 +17,37 @@
 #' @param dataset table with data (does not need to be a selection of relevant variables)
 #' @param period_variable variable in the table with periods
 #' @param dependent_variable usually the sale price
-#' @param continuous_variables vector with quality determining numeric variables (no dummies)
+#' @param numerical_variables vector with quality determining numeric variables (no dummies)
 #' @param categorical_variables vector with quality determining categorical variables (also dummies)
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @param number_of_observations number of observations per period (default = TRUE)
 #' @param imputation display the underlying average imputation values? (default = FALSE)
-#' @param index caprice index
-#' @importFrom dplyr mutate
-#' @importFrom dplyr rename
-#' @importFrom dplyr all_of
-#' @importFrom dplyr across
-#' @importFrom dplyr filter
-#' @importFrom dplyr summarise
-#' @importFrom dplyr lag
 #' @importFrom stats na.omit
 #' @importFrom stats lm
 #' @importFrom stats predict
 #' @importFrom stats runif
-#' @importFrom assertthat assert_that
 #' @return
 #' table with index, imputation averages, number of observations and confidence intervals per period
-
+#' @keywords internal
 calculate_laspeyres <- function(dataset
                                 , period_variable
                                 , dependent_variable
-                                , continuous_variables
+                                , numerical_variables
                                 , categorical_variables
                                 , reference_period = NULL
-                                , index = TRUE
                                 , number_of_observations = FALSE
                                 , imputation = FALSE) {
   
  
   
-  assertthat::assert_that(assertthat::has_name(dataset, c(period_variable, dependent_variable, continuous_variables, categorical_variables)))
-  independent_variables <- c(continuous_variables, categorical_variables)
+  independent_variables <- c(numerical_variables, categorical_variables)
   
   
   # Rename period_variable and transform to character
-  dataset <- dataset |>
-    dplyr::rename(period_var_temp = all_of(period_variable)) |>
-    dplyr::mutate(period_var_temp = as.character(period_var_temp),
-                  dplyr::across(dplyr::all_of(categorical_variables),
-                                as.factor))
+  names(dataset)[names(dataset) == period_variable] <- "period_var_temp"
+  dataset[["period_var_temp"]] <- as.character(dataset[["period_var_temp"]])
+  for (var in categorical_variables) dataset[[var]] <- as.factor(dataset[[var]])
+  
   
 
   # Create list of periods
@@ -87,9 +75,9 @@ calculate_laspeyres <- function(dataset
   if (imputation == TRUE) {
     laspeyres$Imputation <- tbl_average_imputation$average_imputation
   }
-  if (index == TRUE) {
-    laspeyres$Index <- Index
-  }
+  
+  laspeyres$Index <- Index
+  
  
   
   return(laspeyres)

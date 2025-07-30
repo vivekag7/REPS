@@ -1,0 +1,47 @@
+test_that("Test Regression Diagnostics", {
+  save_refs <- FALSE  # Set to TRUE to save reference output
+  ref_file <- test_path("test_data", "diagnostics_output.rds")
+  
+  diagnostics_tbl <- calculate_regression_diagnostics(
+    dataset = data_constraxion,
+    period_variable = "period",
+    dependent_variable = "price",
+    numerical_variables = c("floor_area", "dist_trainstation"),
+    categorical_variables = c("dummy_large_city", "neighbourhood_code")
+  )
+  
+  if (save_refs) {
+    dir.create(dirname(ref_file), showWarnings = FALSE, recursive = TRUE)
+    saveRDS(diagnostics_tbl, ref_file)
+    succeed("Reference file saved.")
+  } else {
+    ref_tbl <- readRDS(ref_file)
+    expect_equal(diagnostics_tbl, ref_tbl, tolerance = 1e-8)
+  }
+})
+
+test_that("Test Diagnostics Plot", {
+  diagnostics_result <- calculate_regression_diagnostics(
+    dataset = data_constraxion,
+    period_variable = "period",
+    dependent_variable = "price",
+    numerical_variables = c("floor_area", "dist_trainstation"),
+    categorical_variables = c("dummy_large_city", "neighbourhood_code")
+  )
+  
+  # Open a temporary PNG device with sufficient size for multi-panel layout
+  tmpfile <- tempfile(fileext = ".png")
+  png(filename = tmpfile, width = 1200, height = 800)
+  
+  # Check that the plotting function runs without errors
+  expect_silent(
+    plot_regression_diagnostics(diagnostics_result)
+  )
+  
+  # Close the graphics device
+  dev.off()
+  
+  # Remove the temporary file
+  unlink(tmpfile)
+})
+

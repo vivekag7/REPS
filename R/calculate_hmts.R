@@ -30,7 +30,7 @@
 #' @author Farley Ishaak
 #' @param period_variable variable in the dataset with the period
 #' @param dependent_variable usually the sale price
-#' @param continuous_variables vector with quality-determining continues variables (numeric, no dummies)
+#' @param numerical_variables vector with quality-determining continues variables (numeric, no dummies)
 #' @param categorical_variables vector with categorical variables (also dummy)
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @param number_of_observations number of observations per period (default = TRUE)
@@ -51,7 +51,7 @@ calculate_hmts <- function(
     dataset,
     period_variable,
     dependent_variable,
-    continuous_variables,
+    numerical_variables,
     categorical_variables,
     reference_period,
     periods_in_year,
@@ -64,17 +64,16 @@ calculate_hmts <- function(
   periods_in_year <- as.numeric(periods_in_year)
   number_preliminary_periods <- as.numeric(number_preliminary_periods)
   
-  dataset <- dataset |>
-    dplyr::rename(period = all_of(period_variable)) |>
-    dplyr::mutate(period = as.character(period),
-                  dplyr::across(dplyr::all_of(categorical_variables),
-                                as.factor))
+  names(dataset)[names(dataset) == period_variable] <- "period"
+  dataset[["period"]] <- as.character(dataset[["period"]])
+  for (var in categorical_variables) dataset[[var]] <- as.factor(dataset[[var]])
+  
   
   results <- calculate_hmts_index(
     dataset = dataset,
     period_variable = period_variable,
     dependent_variable = dependent_variable,
-    continuous_variables = continuous_variables,
+    numerical_variables = numerical_variables,
     categorical_variables = categorical_variables,
     reference_period = reference_period,
     periods_in_year = periods_in_year,

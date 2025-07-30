@@ -15,17 +15,17 @@
 #' @param dataset table with data (does not need to be a selection of relevant variables)
 #' @param period_variable variable in the table with periods
 #' @param dependent_variable usually the sale price
-#' @param continuous_variables vector with quality determining numeric variables (no dummies)
+#' @param numerical_variables vector with quality determining numeric variables (no dummies)
 #' @param categorical_variables vector with quality determining categorical variables (also dummies)
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @param number_of_observations number of observations per period (default = TRUE)
 #' @return
 #' table with index, imputation averages, number of observations and confidence intervals per period
-
+#' @keywords internal
 calculate_fisher <- function(dataset
                              , period_variable
                              , dependent_variable
-                             , continuous_variables
+                             , numerical_variables
                              , categorical_variables
                              , reference_period = NULL
                              , number_of_observations = FALSE) {
@@ -34,10 +34,9 @@ calculate_fisher <- function(dataset
   laspeyres <- calculate_laspeyres(dataset = dataset
                                    , period_variable = period_variable
                                    , dependent_variable = dependent_variable
-                                   , continuous_variables = continuous_variables
+                                   , numerical_variables = numerical_variables
                                    , categorical_variables = categorical_variables
                                    , reference_period = NULL
-                                   , index = TRUE
                                    , number_of_observations = number_of_observations
                                    , imputation = FALSE)
 
@@ -45,10 +44,9 @@ calculate_fisher <- function(dataset
   paasche <- calculate_paasche(dataset = dataset
                                , period_variable = period_variable
                                , dependent_variable = dependent_variable
-                               , continuous_variables = continuous_variables
+                               , numerical_variables = numerical_variables
                                , categorical_variables = categorical_variables
                                , reference_period = NULL
-                               , index = TRUE
                                , number_of_observations = number_of_observations
                                , imputation = FALSE)
 
