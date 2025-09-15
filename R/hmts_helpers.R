@@ -226,56 +226,54 @@ calculate_hedonic_imputationmatrix <- function(dataset
   dependent_variable <- paste0("log(", dependent_variable, ")")
   
   
-  for (indep_var in 1:length(independent_variables)) {
-    if (indep_var == 1) {
-      model <- paste0(dependent_variable, "~", independent_variables[indep_var])
-    } else {
-      model <- paste0(model, "+", independent_variables[indep_var])
-    }
-  }
-  
+  model <- paste(dependent_variable, "~", paste(independent_variables, collapse=" + "))
+
   number_observations_total <- c()
   
   matrix_hmts <- matrix_hmts_index <- data.frame(period=period_list)
   
-  for (current_period in 1:number_periods) {
+  for (cat_var in categorical_variables) {
+    if (is.character(dataset_temp[[cat_var]]) || is.factor(dataset_temp[[cat_var]])) {
+      dataset_temp[[cat_var]] <- factor(dataset_temp[[cat_var]], levels = unique(dataset_temp[[cat_var]]))
+    }
+  }
+  
+  mf_all <- model.frame(model, as.data.frame(dataset_temp))
+  X_all  <- model.matrix(as.formula(model), mf_all)
+  y_all  <- model.response(mf_all)
+  
+  rows_by_period <- split(seq_len(nrow(dataset_temp)), dataset_temp[[period_variable]])
+  
+  for (current_period in seq_len(number_periods)) {
     
-    if (current_period <= production_since_index - number_preliminary_periods) {
-      number_periods_production_since <- production_since_index
+    number_periods_production_since <- if (current_period <= production_since_index - number_preliminary_periods) {
+      production_since_index
+    } else {
+      current_period + number_preliminary_periods
     }
-    if (current_period > production_since_index - number_preliminary_periods) {
-      number_periods_production_since <- current_period + number_preliminary_periods
-    }
-    if (number_periods_production_since > number_periods) {
-      number_periods_production_since <- number_periods
-    }
+    number_periods_production_since <- min(number_periods_production_since, number_periods)
     
     difference_length_series <- number_periods - number_periods_production_since
     
-    dataset_base <- subset(dataset_temp, dataset_temp[[period_variable]] == period_list[current_period])
+    rows_base <- rows_by_period[[ period_list[current_period] ]]
+    X_base <- X_all[rows_base, , drop = FALSE]
+    y_base <- y_all[rows_base]
     
     if (number_of_observations == TRUE) {
-      number_observations_total[current_period] <- nrow(dataset_base)
+      number_observations_total[current_period] <- nrow(X_base)
     }
     
-    hms <- c()
-    hmts <- c()
-    hmts_index <- c()
-    hmts_analysis <- c()
-    
-    for (reporting_period in 1:number_periods_production_since) {
-      dataset_dynamic <- subset(dataset_temp, dataset_temp[[period_variable]] == period_list[reporting_period])
-      fitmdl <- stats::lm(model, dataset_dynamic)
+    hms <- numeric(number_periods_production_since)
+
+    for (reporting_period in seq_len(number_periods_production_since)) {
+      rows_dynamic <- rows_by_period[[ period_list[reporting_period] ]]
       
-      for (var in names(fitmdl$xlevels)) {
-        missend_in_model <- levels(dataset_base[[var]])[!(levels(dataset_base[[var]]) %in% fitmdl$xlevels[[var]])]
-        sel <- dataset_base[[var]] %in% missend_in_model
-        dataset_base[[var]][sel] <- fitmdl$xlevels[[var]][1]
-      }
+      X_dyn <- X_all[rows_dynamic, , drop = FALSE]
+      y_dyn <- y_all[rows_dynamic]
       
-      predictmdl <- mean(stats::predict(fitmdl, dataset_base))
-      predictmdl <- exp(predictmdl)
-      hms[reporting_period] <- predictmdl
+      fitmdl <- lm.fit(X_dyn, y_dyn)
+      preds <- X_base %*% fitmdl$coefficients
+      hms[reporting_period] <- exp(mean(preds))
       
     }
     
