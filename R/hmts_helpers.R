@@ -191,6 +191,8 @@ calculate_hmts_index <- function(
 #' $Matrix_HMS table with estimated values based on the hedonic model
 #' $Matrix_HMTS_analysis table with analysis values of the time series model per base period
 #' @keywords internal
+#' @importFrom stats lm.fit model.frame model.matrix model.response
+
 
 calculate_hedonic_imputationmatrix <- function(dataset
                                                , period_variable
