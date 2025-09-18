@@ -204,7 +204,10 @@ calculate_hedonic_imputationmatrix <- function(dataset
                                                , production_since = NULL
                                                , number_preliminary_periods) {
   
+  # Voeg alle hedonische variabelen samen
   independent_variables <- c(numerical_variables, categorical_variables)
+  
+  # Orden perioden
   period_list <- sort(unique(as.character(dataset$period)))
   number_periods <- length(period_list)
   
@@ -227,27 +230,32 @@ calculate_hedonic_imputationmatrix <- function(dataset
   
   dependent_variable <- paste0("log(", dependent_variable, ")")
   
-  
+  # Bepaal lineair regressiemodel
   model <- paste(dependent_variable, "~", paste(independent_variables, collapse=" + "))
 
   number_observations_total <- c()
   
   matrix_hmts <- matrix_hmts_index <- data.frame(period=period_list)
   
+  # Bepaal alle levels voor alle factor-variabelen op de complete dataset
   for (cat_var in categorical_variables) {
     if (is.character(dataset_temp[[cat_var]]) || is.factor(dataset_temp[[cat_var]])) {
       dataset_temp[[cat_var]] <- factor(dataset_temp[[cat_var]], levels = unique(dataset_temp[[cat_var]]))
     }
   }
   
+  # Herorden alle variabelen in de data volgens het model
   mf_all <- model.frame(model, as.data.frame(dataset_temp))
-  X_all  <- model.matrix(as.formula(model), mf_all)
-  y_all  <- model.response(mf_all)
+  X_all  <- model.matrix(as.formula(model), mf_all) # hedonische variabelen (x)
+  y_all  <- model.response(mf_all) # prijs (y)
   
+  # Bepaal per periode de juiste rij
   rows_by_period <- split(seq_len(nrow(dataset_temp)), dataset_temp[[period_variable]])
   
+  # Loop door alle mogelijke basisperioden heen
   for (current_period in seq_len(number_periods)) {
     
+    # Bepaal het verschil tussen aantal perioden en aantal perioden vanaf het productiemoment
     number_periods_production_since <- if (current_period <= production_since_index - number_preliminary_periods) {
       production_since_index
     } else {
@@ -257,25 +265,31 @@ calculate_hedonic_imputationmatrix <- function(dataset
     
     difference_length_series <- number_periods - number_periods_production_since
     
+    # Filter (indexeer) rijnummers per basisperiode
     rows_base <- rows_by_period[[ period_list[current_period] ]]
-    X_base <- X_all[rows_base, , drop = FALSE]
-    y_base <- y_all[rows_base]
+    X_base <- X_all[rows_base, , drop = FALSE] # hedonische variabelen (voor 1 periode)
+    y_base <- y_all[rows_base] # prijzen (voor 1 periode)
     
+    # Tel alle rijen voor indicator 'aantal transacties'
     if (number_of_observations == TRUE) {
       number_observations_total[current_period] <- nrow(X_base)
     }
     
+    # Definieer vector voor alle matrixberekeningen
     hms <- numeric(number_periods_production_since)
 
+    # Loop door alle mogelijk verslagperioden (binnen dezelfde basisperiode) heen
     for (reporting_period in seq_len(number_periods_production_since)) {
       rows_dynamic <- rows_by_period[[ period_list[reporting_period] ]]
       
+      # Filter (indexeer) rijnummers per verslagperiode
       X_dyn <- X_all[rows_dynamic, , drop = FALSE]
       y_dyn <- y_all[rows_dynamic]
       
+      # Fit lineair regressiemodel
       fitmdl <- lm.fit(X_dyn, y_dyn)
-      preds <- X_base %*% fitmdl$coefficients
-      hms[reporting_period] <- exp(mean(preds))
+      preds <- X_base %*% fitmdl$coefficients # Imputeer waarden a.d.h.v. model
+      hms[reporting_period] <- exp(mean(preds)) # Transformeer log-waarden terug
       
     }
     
