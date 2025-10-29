@@ -288,7 +288,9 @@ calculate_hedonic_imputationmatrix <- function(dataset
       
       # Fit linear regression model
       fitmdl <- lm.fit(X_dyn, y_dyn)
-      preds <- X_base %*% fitmdl$coefficients # Impute values according to model
+      fitcoef <- fitmdl$coefficients
+      fitcoef[is.na(fitcoef)] <- 0
+      preds <- X_base %*% fitcoef # Impute values according to model
       hms[reporting_period] <- exp(mean(preds)) # Transform log values back
       
     }
