@@ -17,13 +17,13 @@
 #' @keywords internal
 
 calculate_rolling_timedummy <- function(dataset,
-                                              period_variable,
-                                              dependent_variable,
-                                              numerical_variables,
-                                              categorical_variables,
-                                              reference_period,
-                                              window_length,
-                                              number_of_observations = FALSE) {
+                                        period_variable,
+                                        dependent_variable,
+                                        numerical_variables,
+                                        categorical_variables,
+                                        reference_period,
+                                        window_length,
+                                        number_of_observations = FALSE) {
   # Get all periods sorted chronologically
   periods_all <- sort(unique(as.character(dataset[[period_variable]])))
   
@@ -65,7 +65,7 @@ calculate_rolling_timedummy <- function(dataset,
   
   # Build final index series based on chained growth rates
   df_result <- data.frame(period = periods_all)
-  df_result$Index <- calculate_index(df_result$period, growth_rates, reference_period)
+  df_result$Index <- calculate_index(df_result$period, cumprod(growth_rates) * 100, reference_period)
   
   # Optionally add number of observations
   if (number_of_observations) {
