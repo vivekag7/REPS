@@ -16,17 +16,16 @@
 #' @keywords internal
 
 calculate_time_dummy <- function(dataset,
-                                       period_variable,
-                                       dependent_variable,
-                                       numerical_variables,
-                                       categorical_variables,
-                                       reference_period = NULL,
-                                       number_of_observations = FALSE) {
+                                 period_variable,
+                                 dependent_variable,
+                                 numerical_variables,
+                                 categorical_variables,
+                                 reference_period = NULL,
+                                 number_of_observations = FALSE) {
   
   # Convert categorical vars and period to factors, and log-transform dependent and numerical vars
   for (var in c(categorical_variables, period_variable)) dataset[[var]] <- as.factor(dataset[[var]])
   dataset[[dependent_variable]] <- log(dataset[[dependent_variable]])
-  for (var in numerical_variables) dataset[[var]] <- log(dataset[[var]])
   
   
   # Keep only relevant variables and drop rows with NA
@@ -46,9 +45,9 @@ calculate_time_dummy <- function(dataset,
   log_time_dummies <- setNames(rep(0, length(period_levels)), period_levels)
   time_dummy_names <- grep(paste0("^", period_variable), names(coefs), value = TRUE)
   
-  for (name in time_dummy_names) {
-    level <- sub(paste0(period_variable), "", name)
-    log_time_dummies[level] <- coefs[name]
+ for (name in time_dummy_names) {
+    level <- sub(paste0("^", period_variable), "", name)
+    if(level %in% names(log_time_dummies)) log_time_dummies[level] <- coefs[name]
   }
   
   # Convert log-index to standard index (base = 100)
