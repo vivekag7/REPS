@@ -1,0 +1,60 @@
+---
+title: "Chaining Price Indices (Annual Overlap Method)"
+author: ""
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Chaining Price Indices (Annual Overlap Method)}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+```{r setup}
+library(REPS)
+data("data_constraxion")
+```
+
+# Introduction
+
+While `calculate_price_index()` computes multilateral or direct indices over an entire dataset, long-term pooled models can suffer from structural market changes over time. To account for shifting consumer preferences, indices are often calculated over shorter periods and linked together.
+
+The `calculate_chained_index()` function acts as a supplementary wrapper. It implements the **Annual Overlap Method**, which splits the data by year, calculates a short-term index using the final period of the previous year as the overlap base, and chains them together into a continuous series.
+
+# Example: Chained Fisher Index
+
+You can use `calculate_chained_index()` with any underlying hedonic method supported by the package. Here is an example using the Fisher index.
+
+```{r}
+# Prepare data (log-transform numerical variables)
+dataset <- data_constraxion
+dataset$floor_area <- log(dataset$floor_area)
+
+# Calculate the chained index
+chained_fisher <- calculate_chained_index(
+  dataset = dataset,
+  method = "fisher",
+  period_variable = "period",
+  dependent_variable = "price",
+  numerical_variables = c("floor_area", "dist_trainstation"),
+  categorical_variables = c("dummy_large_city", "neighbourhood_code"),
+  reference_period = "2015"
+)
+
+head(chained_fisher)
+```
+
+# Visualizing the Chained Index
+
+Because the output mirrors the standard REPS dataframe structure, it is fully compatible with the package's built-in plotting utility.
+
+```{r}
+plot_price_index(chained_fisher)
+```
