@@ -41,7 +41,7 @@ calculate_rolling_timedummy <- function(dataset,
   )
   
   # Convert index to growth rates
-  growth_rates <- calculate_growth_rate(setNames(initial_index$Index / 100, initial_index$period))
+  growth_rates <- calculate_growth_rate(setNames(initial_index$Index, initial_index$period))
   
   # Loop through remaining rolling windows
   window_starts <- 2:(length(periods_all) - window_length + 1)
@@ -59,7 +59,7 @@ calculate_rolling_timedummy <- function(dataset,
     )
     
     # Append last growth rate from new window
-    last_growth <- tail(calculate_growth_rate(setNames(new_index$Index / 100, new_index$period)), 1)
+    last_growth <- tail(calculate_growth_rate(setNames(new_index$Index, new_index$period)), 1)
     growth_rates <- c(growth_rates, setNames(last_growth, tail(new_index$period, 1)))
   }
   
