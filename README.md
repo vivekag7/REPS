@@ -17,7 +17,7 @@ devtools::install_github("vivekag7/REPS")
 
 ## Hedonic Price Index Methods
 
-REPS offers a **single entry point** `calculate_price_index()` to compute price indices using different methodologies. By changing the `method` argument, you can generate indices with any of the supported approaches, all from the same dataset and function call. Supported index calculation methods include:
+REPS offers a **single entry point** `calculate_hedonic_index()` to compute price indices using different methodologies. By changing the `method` argument, you can generate indices with any of the supported approaches, all from the same dataset and function call. Supported index calculation methods include:
 
 - **Laspeyres** – Base-period weighted hedonic double imputation index.
 - **Paasche** – Current-period weighted hedonic double imputation index.
@@ -27,7 +27,7 @@ REPS offers a **single entry point** `calculate_price_index()` to compute price 
 - **Repricing** – A quasi-repeat-sales method comparing observed vs. predicted price changes between consecutive periods.
 - **HMTS** – *Hedonic Multilateral Time Series re-estimation with Splicing*. An advanced multilateral index method that leverages hedonic models across all period pairs and uses Kalman filtering to improve stability.
 
-All methods are accessed via `calculate_price_index()` with a consistent interface. The function returns either a single index or, for multiple methods, a list of results. A reference period can be specified to normalize index values (default sets the first period to 100).
+All methods are accessed via `calculate_hedonic_index()` with a consistent interface. The function returns either a single index or, for multiple methods, a list of results. A reference period can be specified to normalize index values (default sets the first period to 100).
 
 ## Diagnostics and Visualization Tools
 
@@ -37,6 +37,6 @@ All methods are accessed via `calculate_price_index()` with a consistent interfa
 ## Getting Started and Documentation
 
 - **Example Dataset:** `data_constraxion` is included (7,800 × 6), simulating real estate transactions. Use `data("data_constraxion")` to load it.
-- **Vignettes:** Use `vignette("calculate_price_index", package="REPS")` and `vignette("calculate_regression_diagnostics", package="REPS")` for step-by-step guides using the example dataset.
+- **Vignettes:** Use `vignette("calculate_hedonic_index", package="REPS")` and `vignette("calculate_regression_diagnostics", package="REPS")` for step-by-step guides using the example dataset.
 
 REPS provides a comprehensive and extensible framework to compute and evaluate real estate price indices. Its flexible architecture enables comparison across methods and statistical validation of underlying models, suitable for both official statistics and research applications.

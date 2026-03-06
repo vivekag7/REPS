@@ -7,3 +7,5 @@ inst/doc
 /doc/
 /Meta/
 REPS.Rproj
+/*.csv
+validation*.R

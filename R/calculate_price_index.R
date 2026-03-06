@@ -23,7 +23,7 @@
 #'
 #' @examples
 #' # Example: Time Dummy index
-#' Tbl_TD <- calculate_price_index(
+#' Tbl_TD <- calculate_hedonic_index(
 #'   method = "timedummy",
 #'   dataset = data_constraxion,
 #'   period_variable = "period",
@@ -36,7 +36,7 @@
 #' head(Tbl_TD)
 #'
 #' # Example: Multiple methods (Fisher, Paasche, Laspeyres)
-#' multi_result <- calculate_price_index(
+#' multi_result <- calculate_hedonic_index(
 #'   method = c("fisher", "paasche", "laspeyres"),
 #'   dataset = data_constraxion,
 #'   period_variable = "period",
@@ -52,7 +52,7 @@
 #' head(multi_result$laspeyres)
 
 
-calculate_price_index <- function(dataset,
+calculate_hedonic_index <- function(dataset,
                                   method,
                                   period_variable,
                                   dependent_variable,
@@ -190,7 +190,7 @@ calculate_price_index <- function(dataset,
   return(result_list)
 }
 
-#' Plot index output from calculate_price_index 
+#' Plot index output from calculate_hedonic_index 
 #'
 #' Static price index plot using base R graphics with grid lines and external legend.
 #'
@@ -198,7 +198,7 @@ calculate_price_index <- function(dataset,
 #' X-axis shows only first period of each year with rotated labels to avoid clutter.
 #'
 #' @author Vivek Gajadhar
-#' @param index_output A data.frame or named list of data.frames (from calculate_price_index())
+#' @param index_output A data.frame or named list of data.frames (from calculate_hedonic_index())
 #' @param title Optional plot title
 #' @return None. Draws plots in the active graphics device.
 #' @importFrom graphics axis grid legend lines par plot text
@@ -306,7 +306,7 @@ plot_price_index <- function(index_output, title = NULL) {
            xpd = TRUE)
     
   } else {
-    stop("Unsupported input type: must be a data.frame or named list of data.frames from calculate_price_index()")
+    stop("Unsupported input type: must be a data.frame or named list of data.frames from calculate_hedonic_index()")
   }
 }
 

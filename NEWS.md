@@ -7,7 +7,7 @@ The package was previously known as `cbsREPS` (version 0.1.0) and is now renamed
 
 ## Major Features
 
-### New Index Methods Supported in `calculate_price_index()`
+### New Index Methods Supported in `calculate_hedonic_index()`
 - Added support for three additional index calculation methods:
   - Repricing method (hedonic geometric adjustment)
   - Time Dummy index
@@ -15,7 +15,7 @@ The package was previously known as `cbsREPS` (version 0.1.0) and is now renamed
 - These methods can now be called individually or together via the `method` argument.
 - Example:
   ```r
-  calculate_price_index(..., method = c("fisher", "laspeyres", "repricing"))
+  calculate_hedonic_index(..., method = c("fisher", "laspeyres", "repricing"))
   ```
 
 ### Multi-Method Execution and Output

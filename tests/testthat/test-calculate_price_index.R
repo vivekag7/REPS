@@ -1,8 +1,8 @@
-test_that("Test calculate_price_index", {
+test_that("Test calculate_hedonic_index", {
   
   # Invalid method should error
   expect_error(
-    calculate_price_index(
+    calculate_hedonic_index(
       method = "invalid",
       dataset = data_constraxion,
       period_variable = "period",
@@ -15,7 +15,7 @@ test_that("Test calculate_price_index", {
   
   # Single method should work
   expect_silent(
-    calculate_price_index(
+    calculate_hedonic_index(
       method = "fisher",
       dataset = data_constraxion,
       period_variable = "period",
@@ -27,7 +27,7 @@ test_that("Test calculate_price_index", {
   )
   
   # Multiple methods (no HMTS) should work
-  result <- calculate_price_index(
+  result <- calculate_hedonic_index(
     method = c("fisher", "paasche", "timedummy"),
     dataset = data_constraxion,
     period_variable = "period",
@@ -42,7 +42,7 @@ test_that("Test calculate_price_index", {
   
   # Multiple methods with resting_points = TRUE should error
   expect_error(
-    calculate_price_index(
+    calculate_hedonic_index(
       method = c("fisher", "hmts"),
       dataset = data_constraxion,
       period_variable = "period",
@@ -59,7 +59,7 @@ test_that("Test calculate_price_index", {
 })
 
 test_that("Testplot_price_index ", {
-  result <- calculate_price_index(
+  result <- calculate_hedonic_index(
     method = c("fisher", "paasche"),
     dataset = data_constraxion,
     period_variable = "period",
