@@ -30,7 +30,7 @@ calculate_chained_index(
 
 \item{reference_period}{Period to normalize the final index to (e.g., "2015")}
 
-\item{...}{Additional arguments passed to the underlying calculate_price_index method (e.g. window_length)}
+\item{...}{Additional arguments passed to the underlying calculate_hedonic_index method (e.g. window_length)}
 }
 \value{
 A data.frame with the chained index series

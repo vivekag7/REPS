@@ -16,7 +16,7 @@
 #' @param numerical_variables Vector of numeric quality-determining variables (default = NULL)
 #' @param categorical_variables Vector of categorical variables (default = NULL)
 #' @param reference_period Period to normalize the final index to (e.g., "2015")
-#' @param ... Additional arguments passed to the underlying calculate_price_index method (e.g. window_length)
+#' @param ... Additional arguments passed to the underlying calculate_hedonic_index method (e.g. window_length)
 #' @return A data.frame with the chained index series
 #' @export
 #' @importFrom dplyr filter bind_rows mutate select arrange
@@ -57,7 +57,7 @@ calculate_chained_index <- function(dataset,
   data_subset_first <- dataset[dataset[[period_variable]] %in% first_year_periods, ]
   
   # For the first year, we calculate the index normally
-  index_first <- calculate_price_index(
+  index_first <- calculate_hedonic_index(
     dataset = data_subset_first,
     method = method,
     period_variable = period_variable,
@@ -91,7 +91,7 @@ calculate_chained_index <- function(dataset,
       
       # Calculate index for this window
       # We set the reference_period to the overlap_period to make linking easier (Overlap = 100)
-      index_current <- calculate_price_index(
+      index_current <- calculate_hedonic_index(
         dataset = data_subset,
         method = method,
         period_variable = period_variable,

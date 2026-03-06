@@ -24,7 +24,7 @@ data("data_constraxion")
 
 # Introduction
 
-While `calculate_price_index()` computes multilateral or direct indices over an entire dataset, long-term pooled models can suffer from structural market changes over time. To account for shifting consumer preferences, indices are often calculated over shorter periods and linked together.
+While `calculate_hedonic_index()` computes multilateral or direct indices over an entire dataset, long-term pooled models can suffer from structural market changes over time. To account for shifting consumer preferences, indices are often calculated over shorter periods and linked together.
 
 The `calculate_chained_index()` function acts as a supplementary wrapper. It implements the **Annual Overlap Method**, which splits the data by year, calculates a short-term index using the final period of the previous year as the overlap base, and chains them together into a continuous series.
 
