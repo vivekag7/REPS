@@ -8,6 +8,5 @@ inst/doc
 /Meta/
 REPS.Rproj
 /*.csv
-test*.R
 validatie*.R
 
