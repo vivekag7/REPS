@@ -13,12 +13,7 @@ calculate_hedonic_index(
   categorical_variables = NULL,
   reference_period = NULL,
   number_of_observations = TRUE,
-  periods_in_year = 4,
-  production_since = NULL,
-  number_preliminary_periods = 3,
-  resting_points = FALSE,
-  imputation = FALSE,
-  window_length = 5
+  ...
 )
 }
 \arguments{
@@ -26,7 +21,7 @@ calculate_hedonic_index(
 
 \item{method}{One of: "fisher", "laspeyres", "paasche", "hmts", "timedummy", "rolling_timedummy", "repricing"}
 
-\item{period_variable}{A string with the name of the column containing time periods. Values must follow a consistent format such as "2020Q1" (quarterly), "2020M01" (monthly), "202001" (YYYYMM), "2020W01" (weekly), or "2020" (yearly). Mixed or irregular formats (e.g., "Q1_2020", "Jan2020") are not supported.}
+\item{period_variable}{A string with the name of the column containing time periods.}
 
 \item{dependent_variable}{Usually the price}
 
@@ -38,53 +33,21 @@ calculate_hedonic_index(
 
 \item{number_of_observations}{Logical, whether to show number of observations (default = TRUE)}
 
-\item{periods_in_year}{(HMTS only) Number of periods per year (e.g. 12 for months)}
-
-\item{production_since}{(HMTS only) Start period for production simulation}
-
-\item{number_preliminary_periods}{(HMTS only) Number of preliminary periods}
-
-\item{resting_points}{(HMTS only) Whether to return detailed outputs (default = FALSE)}
-
-\item{imputation}{(Laspeyres/Paasche only) Include imputation values? Default = FALSE}
-
-\item{window_length}{(Rolling Time Dummy only) Window size in number of periods}
+\item{...}{Additional method-specific arguments passed to the underlying functions:
+\itemize{
+\item \code{periods_in_year}: (Required for HMTS/Repricing) Number of periods per year (e.g. 12 for months)
+\item \code{number_preliminary_periods}: (Required for HMTS) Number of preliminary periods
+\item \code{production_since}: (Optional for HMTS) Start period for production simulation. Default = NULL
+\item \code{resting_points}: (Optional for HMTS) Whether to return detailed outputs. Default = FALSE
+\item \code{imputation}: (Optional for Laspeyres/Paasche) Include imputation values? Default = FALSE
+\item \code{window_length}: (Required for Rolling Time Dummy) Window size in number of periods
+}}
 }
 \value{
 A data.frame (or list for HMTS with resting_points = TRUE; or named list if multiple methods are used)
 }
 \description{
 Central hub function to calculate index figures using different methods.
-}
-\examples{
-# Example: Time Dummy index
-Tbl_TD <- calculate_hedonic_index(
-  method = "timedummy",
-  dataset = data_constraxion,
-  period_variable = "period",
-  dependent_variable = "price",
-  numerical_variables = "floor_area",
-  categorical_variables = "neighbourhood_code",
-  reference_period = "2015",
-  number_of_observations = FALSE
-)
-head(Tbl_TD)
-
-# Example: Multiple methods (Fisher, Paasche, Laspeyres)
-multi_result <- calculate_hedonic_index(
-  method = c("fisher", "paasche", "laspeyres"),
-  dataset = data_constraxion,
-  period_variable = "period",
-  dependent_variable = "price",
-  numerical_variables = "floor_area",
-  categorical_variables = "neighbourhood_code",
-  reference_period = "2015",
-  number_of_observations = FALSE
-)
-
-head(multi_result$fisher)
-head(multi_result$paasche)
-head(multi_result$laspeyres)
 }
 \author{
 Vivek Gajadhar

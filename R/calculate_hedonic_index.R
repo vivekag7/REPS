@@ -5,53 +5,24 @@
 #' @author Vivek Gajadhar
 #' @param method One of: "fisher", "laspeyres", "paasche", "hmts", "timedummy", "rolling_timedummy", "repricing"
 #' @param dataset Data frame with input data
-#' @param period_variable A string with the name of the column containing time periods. Values must follow a consistent format such as "2020Q1" (quarterly), "2020M01" (monthly), "202001" (YYYYMM), "2020W01" (weekly), or "2020" (yearly). Mixed or irregular formats (e.g., "Q1_2020", "Jan2020") are not supported.
+#' @param period_variable A string with the name of the column containing time periods. 
 #' @param dependent_variable Usually the price
 #' @param numerical_variables Vector with numeric quality-determining variables
 #' @param categorical_variables Vector with categorical variables (also dummies)
 #' @param reference_period Period or group of periods that will be set to 100
 #' @param number_of_observations Logical, whether to show number of observations (default = TRUE)
-#' @param periods_in_year (HMTS only) Number of periods per year (e.g. 12 for months)
-#' @param production_since (HMTS only) Start period for production simulation
-#' @param number_preliminary_periods (HMTS only) Number of preliminary periods
-#' @param resting_points (HMTS only) Whether to return detailed outputs (default = FALSE)
-#' @param imputation (Laspeyres/Paasche only) Include imputation values? Default = FALSE
-#' @param window_length (Rolling Time Dummy only) Window size in number of periods
+#' @param ... Additional method-specific arguments passed to the underlying functions:
+#' \itemize{
+#'   \item \code{periods_in_year}: (Required for HMTS/Repricing) Number of periods per year (e.g. 12 for months)
+#'   \item \code{number_preliminary_periods}: (Required for HMTS) Number of preliminary periods
+#'   \item \code{production_since}: (Optional for HMTS) Start period for production simulation. Default = NULL
+#'   \item \code{resting_points}: (Optional for HMTS) Whether to return detailed outputs. Default = FALSE
+#'   \item \code{imputation}: (Optional for Laspeyres/Paasche) Include imputation values? Default = FALSE
+#'   \item \code{window_length}: (Required for Rolling Time Dummy) Window size in number of periods
+#' }
 #'
 #' @return A data.frame (or list for HMTS with resting_points = TRUE; or named list if multiple methods are used)
 #' @export
-#'
-#' @examples
-#' # Example: Time Dummy index
-#' Tbl_TD <- calculate_hedonic_index(
-#'   method = "timedummy",
-#'   dataset = data_constraxion,
-#'   period_variable = "period",
-#'   dependent_variable = "price",
-#'   numerical_variables = "floor_area",
-#'   categorical_variables = "neighbourhood_code",
-#'   reference_period = "2015",
-#'   number_of_observations = FALSE
-#' )
-#' head(Tbl_TD)
-#'
-#' # Example: Multiple methods (Fisher, Paasche, Laspeyres)
-#' multi_result <- calculate_hedonic_index(
-#'   method = c("fisher", "paasche", "laspeyres"),
-#'   dataset = data_constraxion,
-#'   period_variable = "period",
-#'   dependent_variable = "price",
-#'   numerical_variables = "floor_area",
-#'   categorical_variables = "neighbourhood_code",
-#'   reference_period = "2015",
-#'   number_of_observations = FALSE
-#' )
-#'
-#' head(multi_result$fisher)
-#' head(multi_result$paasche)
-#' head(multi_result$laspeyres)
-
-
 calculate_hedonic_index <- function(dataset,
                                   method,
                                   period_variable,
@@ -60,12 +31,7 @@ calculate_hedonic_index <- function(dataset,
                                   categorical_variables = NULL,
                                   reference_period = NULL,
                                   number_of_observations = TRUE,
-                                  periods_in_year = 4,
-                                  production_since = NULL,
-                                  number_preliminary_periods = 3,
-                                  resting_points = FALSE,
-                                  imputation = FALSE,
-                                  window_length = 5) {
+                                  ...) {
   
   # Prevents call of false methods
   method <- tolower(method)
@@ -76,107 +42,83 @@ calculate_hedonic_index <- function(dataset,
                 ". Please choose from: ", paste(valid_methods, collapse = ", "), "."))
   }
   
+  extra_args <- list(...)
+  
   # Prevent resting_points = TRUE in multi-method context
-  if (length(method) > 1 && resting_points) {
+  if (length(method) > 1 && isTRUE(extra_args$resting_points)) {
     stop("Using 'resting_points = TRUE' is only allowed with a single method ('hmts').")
   }
   
   validate_input(dataset, period_variable, dependent_variable, numerical_variables, categorical_variables)
   
-  # Function that runs one method at a time
+  # Dynamic dispatch function
   run_method <- function(m) {
-    if (m == "fisher") {
-      return(calculate_fisher(
-        dataset = dataset,
-        period_variable = period_variable,
-        dependent_variable = dependent_variable,
-        numerical_variables = numerical_variables,
-        categorical_variables = categorical_variables,
-        reference_period = reference_period,
-        number_of_observations = number_of_observations
-      ))
-    }
     
-    if (m == "laspeyres") {
-      return(calculate_laspeyres(
-        dataset = dataset,
-        period_variable = period_variable,
-        dependent_variable = dependent_variable,
-        numerical_variables = numerical_variables,
-        categorical_variables = categorical_variables,
-        reference_period = reference_period,
-        number_of_observations = number_of_observations,
-        imputation = imputation
-      ))
-    }
+    # Map the string to your actual package functions
+    func_map <- list(
+      fisher = "calculate_fisher",
+      laspeyres = "calculate_laspeyres",
+      paasche = "calculate_paasche",
+      hmts = "calculate_hmts",
+      timedummy = "calculate_time_dummy",
+      rolling_timedummy = "calculate_rolling_timedummy",
+      repricing = "calculate_repricing"
+    )
     
-    if (m == "paasche") {
-      return(calculate_paasche(
-        dataset = dataset,
-        period_variable = period_variable,
-        dependent_variable = dependent_variable,
-        numerical_variables = numerical_variables,
-        categorical_variables = categorical_variables,
-        reference_period = reference_period,
-        number_of_observations = number_of_observations,
-        imputation = imputation
-      ))
-    }
+    target_func <- func_map[[m]]
     
-    if (m == "hmts") {
-      return(calculate_hmts(
-        dataset = dataset,
-        period_variable = period_variable,
-        dependent_variable = dependent_variable,
-        numerical_variables = numerical_variables,
-        categorical_variables = categorical_variables,
-        reference_period = reference_period,
-        periods_in_year = periods_in_year,
-        production_since = production_since,
-        number_preliminary_periods = number_preliminary_periods,
-        number_of_observations = number_of_observations,
-        resting_points = resting_points
-      ))
-    }
+    # Bundle the core arguments that EVERY method uses
+    base_args <- list(
+      dataset = dataset,
+      period_variable = period_variable,
+      dependent_variable = dependent_variable,
+      numerical_variables = numerical_variables,
+      categorical_variables = categorical_variables,
+      reference_period = reference_period,
+      number_of_observations = number_of_observations
+    )
     
-    if (m == "timedummy") {
-      return(calculate_time_dummy(
-        dataset = dataset,
-        period_variable = period_variable,
-        dependent_variable = dependent_variable,
-        numerical_variables = numerical_variables,
-        categorical_variables = categorical_variables,
-        reference_period = reference_period,
-        number_of_observations = number_of_observations
-      ))
-    }
+    # Filter the `...` arguments to only pass what the target function accepts
+    accepted_args <- names(formals(target_func))
+    valid_extra_args <- extra_args[names(extra_args) %in% accepted_args]
     
+    # ==========================================================================
+    # GATEKEEPER FOR EXTRA PARAMETERS
+    # ==========================================================================
+    
+    # 1. Rolling Time Dummy Gate
     if (m == "rolling_timedummy") {
-      if (is.null(window_length)) stop("You must specify 'window_length' for rolling time dummy method.")
-      return(calculate_rolling_timedummy(
-        dataset = dataset,
-        period_variable = period_variable,
-        dependent_variable = dependent_variable,
-        numerical_variables = numerical_variables,
-        categorical_variables = categorical_variables,
-        reference_period = reference_period,
-        window_length = window_length,
-        number_of_observations = number_of_observations
-      ))
+      if (!("window_length" %in% names(valid_extra_args))) {
+        stop("Validation Error: You must specify 'window_length' (e.g., window_length = 5) for the 'rolling_timedummy' method.")
+      }
     }
     
-    if (m == "repricing") {
-      return(calculate_repricing(
-        dataset = dataset,
-        period_variable = period_variable,
-        dependent_variable = dependent_variable,
-        numerical_variables = numerical_variables,
-        categorical_variables = categorical_variables,
-        reference_period = reference_period,
-        periods_in_year = periods_in_year,
-        number_of_observations = number_of_observations
-      ))
+    # 2. HMTS Gate
+    if (m == "hmts") {
+      if (!("periods_in_year" %in% names(valid_extra_args))) stop("Validation Error: You must specify 'periods_in_year' (e.g., periods_in_year = 4) for the 'hmts' method.")
+      if (!("number_preliminary_periods" %in% names(valid_extra_args))) stop("Validation Error: You must specify 'number_preliminary_periods' for the 'hmts' method.")
+      
+      # Inject defaults for optional HMTS parameters if missing
+      if (!("production_since" %in% names(valid_extra_args))) valid_extra_args$production_since <- NULL
+      if (!("resting_points" %in% names(valid_extra_args))) valid_extra_args$resting_points <- FALSE
     }
+    
+    # 3. Repricing Gate
+    if (m == "repricing") {
+      if (!("periods_in_year" %in% names(valid_extra_args))) stop("Validation Error: You must specify 'periods_in_year' for the 'repricing' method.")
+    }
+    
+    # 4. Laspeyres & Paasche Gate
+    if (m %in% c("laspeyres", "paasche")) {
+      # Inject default for optional imputation parameter if missing
+      if (!("imputation" %in% names(valid_extra_args))) valid_extra_args$imputation <- FALSE
+    }
+    
+    # ==========================================================================
+    
+    # Execute the underlying function with the safely validated combined arguments
+    final_args <- c(base_args, valid_extra_args)
+    return(do.call(target_func, final_args))
   }
   
   # Single method: return output directly
