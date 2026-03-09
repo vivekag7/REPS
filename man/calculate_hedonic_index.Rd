@@ -13,6 +13,7 @@ calculate_hedonic_index(
   categorical_variables = NULL,
   reference_period = NULL,
   number_of_observations = TRUE,
+  chained = FALSE,
   ...
 )
 }
@@ -33,6 +34,8 @@ calculate_hedonic_index(
 
 \item{number_of_observations}{Logical, whether to show number of observations (default = TRUE)}
 
+\item{chained}{Logical. If TRUE, calculates a chained index using the Annual Overlap Method. Default is FALSE.}
+
 \item{...}{Additional method-specific arguments passed to the underlying functions:
 \itemize{
 \item \code{periods_in_year}: (Required for HMTS/Repricing) Number of periods per year (e.g. 12 for months)
@@ -47,7 +50,7 @@ calculate_hedonic_index(
 A data.frame (or list for HMTS with resting_points = TRUE; or named list if multiple methods are used)
 }
 \description{
-Central hub function to calculate index figures using different methods.
+Central hub function to calculate index figures using different methods. Can also calculate chained indices using the Annual Overlap Method.
 }
 \author{
 Vivek Gajadhar
