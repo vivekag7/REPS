@@ -2,13 +2,13 @@
 % Please edit documentation in R/deprecated.R
 \name{calculate_price_index}
 \alias{calculate_price_index}
-\title{Calculate Price Index (Defunct)}
+\title{Calculate Price Index (Deprecated)}
 \usage{
 calculate_price_index(...)
 }
 \arguments{
-\item{...}{Arguments are ignored as the function is defunct.}
+\item{...}{Arguments passed to \code{calculate_hedonic_index}.}
 }
 \description{
-This function has been removed and replaced. Please use \code{\link{calculate_hedonic_index}} instead.
+This function has been renamed. Please use \code{\link{calculate_hedonic_index}} instead.
 }
