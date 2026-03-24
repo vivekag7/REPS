@@ -13,7 +13,7 @@
 #' @param number_of_observations Logical, whether to show number of observations (default = TRUE)
 #' @param ... Additional method-specific arguments passed to the underlying functions:
 #' \itemize{
-#'   \item \code{periods_in_year}: (Required for HMTS/Repricing) Number of periods per year (e.g. 12 for months)
+#'   \item \code{periods_in_year}: (Required for Repricing) Number of periods per year (e.g. 12 for months, 4 for quarters)
 #'   \item \code{number_preliminary_periods}: (Required for HMTS) Number of preliminary periods
 #'   \item \code{production_since}: (Optional for HMTS) Start period for production simulation. Default = NULL
 #'   \item \code{resting_points}: (Optional for HMTS) Whether to return detailed outputs. Default = FALSE
@@ -23,6 +23,28 @@
 #'
 #' @return A data.frame (or list for HMTS with resting_points = TRUE; or named list if multiple methods are used)
 #' @export
+#' @examples
+#' \dontrun{
+#' data("data_constraxion")
+#' 
+#' Tbl_indices <- REPS::calculate_hedonic_index(
+#'   method = c("fisher", "hmts", "laspeyres", "paasche",
+#'  "repricing", "timedummy", "rolling_timedummy"),
+#'   dataset = data_constraxion,
+#'   period_variable = "period",
+#'   dependent_variable = "price",
+#'   numerical_variables = c("floor_area", "dist_trainstation"),
+#'   categorical_variables = c("neighbourhood_code", "dummy_large_city"),
+#'   reference_period = "2015",
+#'   number_of_observations = FALSE,
+#'   periods_in_year = 4,
+#'   number_preliminary_periods = 1,
+#'   window_length = 4,
+#'   production_since = NULL,
+#'   resting_points = FALSE,
+#'   imputation = FALSE
+#' )
+#' }
 calculate_hedonic_index <- function(dataset,
                                   method,
                                   period_variable,
@@ -89,17 +111,24 @@ calculate_hedonic_index <- function(dataset,
     # 1. Rolling Time Dummy Gate
     if (m == "rolling_timedummy") {
       if (!("window_length" %in% names(valid_extra_args))) {
-        stop("Validation Error: You must specify 'window_length' (e.g., window_length = 5) for the 'rolling_timedummy' method.")
+        valid_extra_args$window_length <- 5
+        message("Note: 'window_length' was not specified. A default value of 5 has been applied.")
       }
     }
     
     # 2. HMTS Gate
     if (m == "hmts") {
-      if (!("periods_in_year" %in% names(valid_extra_args))) stop("Validation Error: You must specify 'periods_in_year' (e.g., periods_in_year = 4) for the 'hmts' method.")
-      if (!("number_preliminary_periods" %in% names(valid_extra_args))) stop("Validation Error: You must specify 'number_preliminary_periods' for the 'hmts' method.")
+      if (!("number_preliminary_periods" %in% names(valid_extra_args))) {
+        valid_extra_args$number_preliminary_periods <- 3
+        message("Note: 'number_preliminary_periods' was not specified. A default value of 3 has been applied.")
+      }
       
-      # Inject defaults for optional HMTS parameters if missing
-      if (!("production_since" %in% names(valid_extra_args))) valid_extra_args$production_since <- NULL
+      
+      if (!("production_since" %in% names(valid_extra_args))) {
+        valid_extra_args$production_since <- NULL
+        message("Note: 'production since' was not specified. A default value of NULL has been applied. Enter the initial production period to establish a definitive timeline for all future calculations.")
+      }
+
       if (!("resting_points" %in% names(valid_extra_args))) valid_extra_args$resting_points <- FALSE
     }
     
@@ -197,7 +226,7 @@ plot_price_index <- function(index_output, title = NULL) {
   } else if (is.list(index_output)) {
     
     # ==========================================================================
-    # FIXED GATEKEEPER FOR RESTING POINTS
+    # GATEKEEPER FOR RESTING POINTS
     # ==========================================================================
     # A valid multi-method list contains ONLY dataframes that have 'period' and 'Index'
     is_valid_multi <- all(sapply(index_output, function(x) {
@@ -270,12 +299,3 @@ plot_price_index <- function(index_output, title = NULL) {
     stop("Unsupported input type: must be a data.frame or named list of data.frames from calculate_hedonic_index()")
   }
 }
-
-
-
-
-
-
-
-
-

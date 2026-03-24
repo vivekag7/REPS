@@ -11,7 +11,6 @@ calculate_hmts_index(
   numerical_variables,
   categorical_variables,
   reference_period,
-  periods_in_year,
   production_since = NULL,
   number_preliminary_periods,
   number_of_observations = NULL,
@@ -28,8 +27,6 @@ calculate_hmts_index(
 \item{categorical_variables}{vector with categorical variables (also dummy)}
 
 \item{reference_period}{period or group of periods that will be set to 100 (numeric/string)}
-
-\item{periods_in_year}{if month, then 12. If quarter, then 4, etc. (default = 4)}
 
 \item{production_since}{1 period in the format of the period_variable. See description above (default = NULL)}
 

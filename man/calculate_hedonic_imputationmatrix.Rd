@@ -10,7 +10,6 @@ calculate_hedonic_imputationmatrix(
   dependent_variable,
   numerical_variables,
   categorical_variables,
-  periods_in_year,
   number_of_observations = TRUE,
   production_since = NULL,
   number_preliminary_periods
@@ -26,8 +25,6 @@ calculate_hedonic_imputationmatrix(
 \item{numerical_variables}{vector with quality-determining continues variables (numeric, no dummies)}
 
 \item{categorical_variables}{vector with categorical variables (also dummy)}
-
-\item{periods_in_year}{if month, then 12. If quarter, then 4, etc. (default = 4)}
 
 \item{number_of_observations}{number of observations per period (default = TRUE)}
 

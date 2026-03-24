@@ -9,7 +9,6 @@ test_that("Test HMTS", {
     numerical_variables = c("floor_area"),
     categorical_variables = c("neighbourhood_code"),
     reference_period = 2015,
-    periods_in_year = 4,
     production_since = NULL,
     number_preliminary_periods = 2,
     number_of_observations = FALSE,
