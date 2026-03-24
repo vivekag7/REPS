@@ -195,6 +195,25 @@ plot_price_index <- function(index_output, title = NULL) {
       cex = 0.8
     )
   } else if (is.list(index_output)) {
+    
+    # ==========================================================================
+    # FIXED GATEKEEPER FOR RESTING POINTS
+    # ==========================================================================
+    # A valid multi-method list contains ONLY dataframes that have 'period' and 'Index'
+    is_valid_multi <- all(sapply(index_output, function(x) {
+      is.data.frame(x) && "period" %in% names(x) && "Index" %in% names(x)
+    }))
+    
+    if (!is_valid_multi) {
+      stop(paste(
+        "Error: The input list is not a valid multi-method output.",
+        "This usually happens if you used 'resting_points = TRUE' with HMTS.",
+        "Please pass the specific index dataframe to the plot function instead.",
+        "Example: plot_price_index(result$Index)"
+      ))
+    }
+    # ==========================================================================
+    
     # Multiple methods
     combined <- do.call(rbind, lapply(names(index_output), function(name) {
       df <- index_output[[name]]
