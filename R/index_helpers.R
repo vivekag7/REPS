@@ -1,3 +1,49 @@
+#' Fit a Hedonic Linear Model
+#'
+#' A centralized helper to construct the formula and fit the linear model 
+#' for hedonic index calculations. 
+#'
+#' @param dataset A data.frame containing the variables.
+#' @param dependent_variable A string specifying the name of the dependent variable.
+#' @param independent_variables A character vector of all independent variables.
+#' @return A fitted \code{lm} object.
+#' @author Vivek Gajadhar
+#' @importFrom stats as.formula lm
+#' @keywords internal
+fit_hedonic_model <- function(dataset, dependent_variable, independent_variables) {
+  
+  # Construct the model formula
+  if (length(independent_variables) == 0) {
+    formula_str <- paste(dependent_variable, "~ 1")
+  } else {
+    rhs <- paste(independent_variables, collapse = " + ")
+    formula_str <- paste(dependent_variable, "~", rhs)
+  }
+  
+  model_formula <- stats::as.formula(formula_str)
+  
+  # Fit the linear model
+  model <- stats::lm(model_formula, data = dataset)
+  
+  return(model)
+}
+
+#' Predict from a Hedonic Model
+#'
+#' Centralized prediction helper for hedonic models.
+#'
+#' @param model A fitted model object.
+#' @param newdata A data.frame to predict on.
+#' @return A numeric vector of predictions.
+#' @author Vivek Gajadhar
+#' @importFrom stats predict
+#' @keywords internal
+predict_hedonic <- function(model, newdata) {
+  
+  # Generate predictions based on the fitted model
+  stats::predict(model, newdata = newdata)
+}
+
 ### Helper 1
 
 #' Calculate imputation averages with the 1st period as base period
@@ -7,7 +53,7 @@
 #' With these values, new prices of base period observations are estimated.
 #' With this function, imputations according to the Laspeyres and Paasche method can be estimated.
 #'
-#' @author Farley Ishaak
+#' @author Farley Ishaak, Vivek Gajadhar
 #' @param dataset_temp table with data 
 #' @param period_temp 'period'
 #' @param dependent_variable_temp usually the sale price
@@ -16,8 +62,6 @@
 #' @return
 #' Table with imputation averages per period
 #' @keywords internal
-
-
 calculate_hedonic_imputation <- function(dataset_temp
                                          , period_temp
                                          , dependent_variable_temp 
@@ -31,7 +75,6 @@ calculate_hedonic_imputation <- function(dataset_temp
   # Select required variables
   dataset_temp <- dataset_temp[, c(period_temp, dependent_variable_temp, independent_variables_temp), drop = FALSE]
   
-  
   # Remove lines without values
   dataset_temp[dataset_temp == ''] <- NA
   dataset_temp <- stats::na.omit(dataset_temp)
@@ -39,22 +82,8 @@ calculate_hedonic_imputation <- function(dataset_temp
   # Remove unused levels. R remembers the original state of the levels, but if a level is not present in a certain period, this may result in an error in the bootstrap.
   dataset_temp <- droplevels(dataset_temp)
   
-  
+  # Prepare the dependent variable explicitly as a logged variable string for the helper
   dependent_variable_temp <- paste0("log(", dependent_variable_temp, ")")
-  
-  
-  ## Model
-  
-  # Construct the regression formula from independent variables.
-  for (indep_var in 1: length(independent_variables_temp)) {
-    if (indep_var == 1) {
-      model <- paste0(dependent_variable_temp, "~", independent_variables_temp[indep_var])
-    } else {
-      model <- paste0(model, "+", independent_variables_temp[indep_var])
-    }
-  }
-  
-  ## Calculate imputations per period
   
   # Empty vector for the values and numbers
   average_imputations <- c()
@@ -65,8 +94,16 @@ calculate_hedonic_imputation <- function(dataset_temp
     # Estimate coefficients of the 1st period
     if (current_period == 1) {
       rekenbestand <- dataset_temp[dataset_temp[[period_temp]] == period_list_temp[1], , drop = FALSE]
-      fitmdl <- stats::lm(model, rekenbestand)
-      predictmdl_0 <- mean(stats::predict(fitmdl, rekenbestand))
+      
+      # Use centralized helper for fitting
+      fitmdl <- fit_hedonic_model(
+        dataset = rekenbestand,
+        dependent_variable = dependent_variable_temp,
+        independent_variables = independent_variables_temp
+      )
+      
+      # Use centralized helper for prediction
+      predictmdl_0 <- mean(predict_hedonic(model = fitmdl, newdata = rekenbestand))
       predictmdl_0 <- exp(predictmdl_0)
       
       if (number_of_observations_temp == TRUE) {
@@ -75,13 +112,18 @@ calculate_hedonic_imputation <- function(dataset_temp
     } else {
       # Estimate coefficients of all periods after
       rekenbestand_t <- dataset_temp[dataset_temp[[period_temp]] == period_list_temp[current_period], , drop = FALSE]
-      fitmdl <- stats::lm(model, rekenbestand_t)
+      
+      # Use centralized helper for fitting
+      fitmdl <- fit_hedonic_model(
+        dataset = rekenbestand_t,
+        dependent_variable = dependent_variable_temp,
+        independent_variables = independent_variables_temp
+      )
       
       if (number_of_observations_temp == TRUE) {
         number <- nrow(rekenbestand_t)
       }
     }
-    
     
     # Recoding of values, where the categorical variable has a level that is not estimated in the reference period
     rekenbestand_0 <- rekenbestand
@@ -92,8 +134,9 @@ calculate_hedonic_imputation <- function(dataset_temp
       sel <- rekenbestand_0[[var]] %in% missend_in_model
       rekenbestand_0[[var]][sel] <- fitmdl$xlevels[[var]][1]
     }
-    predictmdl_t <- mean(predict(fitmdl, rekenbestand_0))
     
+    # Use centralized helper for prediction
+    predictmdl_t <- mean(predict_hedonic(model = fitmdl, newdata = rekenbestand_0))
     predictmdl_t <- exp(predictmdl_t)
     
     average_imputations[current_period] <- predictmdl_t
@@ -117,7 +160,6 @@ calculate_hedonic_imputation <- function(dataset_temp
   
   # Result
   return(tbl_average_imputation)
-  
 }
 
 ### Helper 2

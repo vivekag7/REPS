@@ -35,9 +35,15 @@ calculate_time_dummy <- function(dataset,
   calculation_data[] <- lapply(calculation_data, function(x) if (is.factor(x)) droplevels(x) else x)
   
   
-  # Build regression formula and fit model
-  formula <- stats::as.formula(paste(dependent_variable, "~", paste(c(numerical_variables, categorical_variables, period_variable), collapse = " + ")))
-  model <- stats::lm(formula, data = calculation_data)
+  # Define all independent variables
+  independent_vars <- c(numerical_variables, categorical_variables, period_variable)
+  
+  # Fit the model using the centralized helper
+  model <- fit_hedonic_model(
+    dataset = calculation_data, 
+    dependent_variable = dependent_variable, 
+    independent_variables = independent_vars
+  )
   
   # Extract time dummy coefficients
   coefs <- stats::coefficients(model)

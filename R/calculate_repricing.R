@@ -49,14 +49,15 @@ calculate_repricing <- function(dataset,
   base_year <- period_list[c(1:periods_in_year)]
   subset_data_base <- dataset[dataset[[internal_period]] %in% base_year, , drop = FALSE]
   
-  # Build formula
-  formula_str <- paste0("log_depvar ~ ", paste(independent_variables, collapse = " + "))
-  
-  # Fit model period base year
-  model_base <- lm(as.formula(formula_str), data = subset_data_base)
+  # Fit model period base year using the centralized helper
+  model_base <- fit_hedonic_model(
+    dataset = subset_data_base,
+    dependent_variable = "log_depvar", 
+    independent_variables = independent_variables
+  )
  
-  # Predict mean price for observations in all periods using model for base year
-  dataset$predicted_price <- exp(predict(model_base, newdata = dataset))
+  # Predict mean price for observations in all periods using the centralized helper
+  dataset$predicted_price <- exp(predict_hedonic(model = model_base, newdata = dataset))
   
   # Calculate mean, sum and numbers per period
   average_data <- aggregate(dataset[[dependent_variable]], 
