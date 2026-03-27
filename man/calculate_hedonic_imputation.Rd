@@ -34,6 +34,6 @@ With these values, new prices of base period observations are estimated.
 With this function, imputations according to the Laspeyres and Paasche method can be estimated.
 }
 \author{
-Farley Ishaak
+Farley Ishaak, Vivek Gajadhar
 }
 \keyword{internal}

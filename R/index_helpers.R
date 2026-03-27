@@ -1,3 +1,82 @@
+#' Prepare Data for Hedonic Modeling
+#'
+#' Standardizes the dataset by coercing categorical variables to factors,
+#' ensuring the period variable is properly formatted, and optionally 
+#' log-transforming the dependent variable. Also handles NA removal consistently.
+#'
+#' @author Vivek Gajadhar
+#' @param dataset A data.frame.
+#' @param period_variable String name of the period column.
+#' @param dependent_variable String name of the dependent variable.
+#' @param numerical_variables Character vector of numerical variables.
+#' @param categorical_variables Character vector of categorical variables.
+#' @param log_dependent Logical, whether to log-transform the dependent variable (creates a new column with the prefix "log_").
+#' @return A cleaned, formatted data.frame.
+#' @keywords internal
+prepare_hedonic_data <- function(dataset, period_variable, dependent_variable, numerical_variables, categorical_variables, log_dependent = FALSE) {
+  
+  # Keep only required columns to avoid dropping rows due to NAs in unused columns
+  vars_to_keep <- c(period_variable, dependent_variable, numerical_variables, categorical_variables)
+  dataset <- dataset[, colnames(dataset) %in% vars_to_keep, drop = FALSE]
+  
+  # Standard NA and empty string removal
+  dataset[dataset == ""] <- NA
+  dataset <- stats::na.omit(dataset)
+  dataset <- droplevels(dataset)
+  
+  # Standardize variable types
+  dataset[[period_variable]] <- as.character(dataset[[period_variable]])
+  for (var in categorical_variables) {
+    dataset[[var]] <- as.factor(dataset[[var]])
+  }
+  
+  # Safe log transformation
+  if (log_dependent) {
+    if (any(dataset[[dependent_variable]] <= 0, na.rm = TRUE)) {
+      stop("Dependent variable contains non-positive values; cannot apply log transformation.")
+    }
+    dataset[[paste0("log_", dependent_variable)]] <- log(dataset[[dependent_variable]])
+  }
+  
+  return(dataset)
+}
+
+#' Format Hedonic Index Output
+#'
+#' Constructs the standardized output table, handling observation counts,
+#' rebasing to the reference period, and enforcing strict column order.
+#'
+#' @author Vivek Gajadhar
+#' @param periods Vector of period identifiers.
+#' @param index_values Numeric vector of calculated index values.
+#' @param reference_period String indicating the base period (can be NULL).
+#' @param observation_counts Integer vector of observation counts (optional).
+#' @return A standardized data.frame with output columns  period, number_of_observations and Index
+#' @keywords internal
+format_index_output <- function(periods, index_values, reference_period = NULL, observation_counts = NULL) {
+  
+  # Build base table
+  res <- data.frame(
+    period = as.character(periods),
+    Index = as.numeric(index_values)
+  )
+  
+  # Apply rebasing if requested
+  if (!is.null(reference_period)) {
+    res$Index <- calculate_index(res$period, res$Index, reference_period)
+  }
+  
+  # Attach observation counts and enforce exact column order
+  if (!is.null(observation_counts)) {
+    res$number_of_observations <- as.integer(observation_counts)
+    res <- res[, c("period", "number_of_observations", "Index")]
+  } else {
+    res <- res[, c("period", "Index")]
+  }
+  
+  return(res)
+}
+
 #' Fit a Hedonic Linear Model
 #'
 #' A centralized helper to construct the formula and fit the linear model 
@@ -43,8 +122,6 @@ predict_hedonic <- function(model, newdata) {
   # Generate predictions based on the fitted model
   stats::predict(model, newdata = newdata)
 }
-
-### Helper 1
 
 #' Calculate imputation averages with the 1st period as base period
 #'
@@ -162,9 +239,6 @@ calculate_hedonic_imputation <- function(dataset_temp
   return(tbl_average_imputation)
 }
 
-### Helper 2
-
-
 #' Transform series into index
 #'
 #' The index can be calculated in two ways:
@@ -182,16 +256,13 @@ calculate_hedonic_imputation <- function(dataset_temp
 #' The reference period can also be a part of a period.
 #' E.g. if the series contains months (2019jan, 2019feb), the reference period can be a year (2019).
 #'
-#' @author Farley Ishaak
+#' @author Farley Ishaak, Vivek Gajadhar
 #' @param periods vector/variable with periods (numeric/string)
 #' @param values vector/variable with to be transformed values (numeric)
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @return Index series
 #' @keywords internal
-
-calculate_index <- function(periods
-                            , values
-                            , reference_period = NULL) {
+calculate_index <- function(periods, values, reference_period = NULL) {
   
   # Check length periods and values
   if (length(periods) != length(values)) {
@@ -199,7 +270,7 @@ calculate_index <- function(periods
   }
   
   # Check numeric values
-  if (is.numeric(values) == FALSE) {
+  if (!is.numeric(values)) {
     stop("The values variable is not (fully) numeric.")
   }
   
@@ -207,7 +278,7 @@ calculate_index <- function(periods
   periods <- as.character(periods)
   
   # If reference_period is not provided, then reference_period = 1st period from list
-  if (is.null(reference_period) == TRUE) {
+  if (is.null(reference_period)) {
     reference_period <- periods[1]
     periods_short <- periods
   } else {
@@ -221,20 +292,16 @@ calculate_index <- function(periods
     stop("The provided reference period is not part of the series with periods")
   }
   
+  # Vectorized operation
+  reference_values <- values[periods_short == reference_period]
+  average <- mean(reference_values, na.rm = TRUE)
   
-  # Create table
-  tbl_index <- data.frame(period = periods_short, value = values)
-  average <- mean(tbl_index[tbl_index[["period"]] == reference_period, "value"], na.rm = TRUE)
-
   # Calculate index
-  tbl_index$Index <- tbl_index$value / average * 100
+  index_series <- (values / average) * 100
   
-  # Result = index series
-  return(index = tbl_index$Index)
-  
+  return(index_series)
 }
 
-### Helper 3
 #' Calculate Growth Rates
 #'
 #' Computes period-over-period growth rates from a numeric index vector.
@@ -252,10 +319,6 @@ calculate_growth_rate <- function(values) {
   growth_rate[1] <- 1
   return(growth_rate)
 }
-
-
-
-### Helper 4
 
 #' Calculate the geometric average of a series of values
 #'

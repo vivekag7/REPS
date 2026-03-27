@@ -26,74 +26,63 @@ calculate_repricing <- function(dataset,
                                 number_of_observations = FALSE,
                                 periods_in_year = 4) {
   
-  internal_period <- ".index_period_internal"
+  # 1. PREPARE DATA
+  clean_data <- prepare_hedonic_data(
+    dataset = dataset,
+    period_variable = period_variable,
+    dependent_variable = dependent_variable,
+    numerical_variables = numerical_variables,
+    categorical_variables = categorical_variables,
+    log_dependent = TRUE # Repricing models log-prices directly
+  )
   independent_variables <- c(numerical_variables, categorical_variables)
-  
-  # Check if required variables exist
-  required_vars <- c(period_variable, dependent_variable, independent_variables)
-  stopifnot(all(required_vars %in% names(dataset)))
-  
-  # Assign internal period column and prepare data
-  dataset[[internal_period]] <- as.character(dataset[[period_variable]])
-  
-  dataset[["log_depvar"]] <- log(dataset[[dependent_variable]])
-  for (var in categorical_variables) dataset[[var]] <- as.factor(dataset[[var]])
+  dep_var_log <- paste0("log_", dependent_variable)
   
   # Sort unique periods
-  period_list <- sort(unique(dataset[[internal_period]]), decreasing = FALSE)
-  
-  # Prepare table for results
-  results <- data.frame(period = period_list)
+  period_list <- sort(unique(clean_data[[period_variable]]), decreasing = FALSE)
 
   # Subset base year
   base_year <- period_list[c(1:periods_in_year)]
-  subset_data_base <- dataset[dataset[[internal_period]] %in% base_year, , drop = FALSE]
+  subset_data_base <- clean_data[clean_data[[period_variable]] %in% base_year, , drop = FALSE]
   
   # Fit model period base year using the centralized helper
   model_base <- fit_hedonic_model(
     dataset = subset_data_base,
-    dependent_variable = "log_depvar", 
+    dependent_variable = dep_var_log, 
     independent_variables = independent_variables
   )
  
   # Predict mean price for observations in all periods using the centralized helper
-  dataset$predicted_price <- exp(predict_hedonic(model = model_base, newdata = dataset))
+  clean_data$predicted_price <- exp(predict_hedonic(model = model_base, newdata = clean_data))
   
   # Calculate mean, sum and numbers per period
-  average_data <- aggregate(dataset[[dependent_variable]], 
-                            by = list(dataset[[internal_period]]), 
+  average_data <- stats::aggregate(clean_data[[dependent_variable]], 
+                            by = list(clean_data[[period_variable]]), 
                             FUN = function(x) exp(mean(log(x), na.rm = TRUE)))
-  names(average_data) <- c(internal_period, "observed_gmean")
+  names(average_data) <- c(period_variable, "observed_gmean")
   
-  predicted_means <- tapply(log(dataset[["predicted_price"]]), 
-                            dataset[[internal_period]], 
+  predicted_means <- tapply(log(clean_data[["predicted_price"]]), 
+                            clean_data[[period_variable]], 
                             mean, na.rm = TRUE)
-  average_data$predicted_price <- exp(predicted_means[average_data[[internal_period]]])
-  
-  counts <- table(dataset[[internal_period]])
-  average_data$num_obs <- as.integer(counts[average_data[[internal_period]]])
-  
+  average_data$predicted_price <- exp(predicted_means[average_data[[period_variable]]])
   
   # Calculate index
   average_data$index <- (average_data$observed_gmean / average_data$observed_gmean[1]) /
                         (average_data$predicted_price / average_data$predicted_price[1]) * 100
   
-  # Construct final result table with correct column order
+  # 2. FORMAT OUTPUT
+  obs_counts <- NULL
   if (number_of_observations) {
-    results <- data.frame(
-      period = period_list,
-      number_of_observations = average_data$num_obs,
-      Index = average_data$index
-    )
-  } else {
-    results <- data.frame(
-      period = period_list,
-      Index = average_data$index
-    )
+    counts <- table(clean_data[[period_variable]])
+    obs_counts <- as.integer(counts[average_data[[period_variable]]])
   }
   
-  # Normalize index to reference period 
-  results$Index <- calculate_index(results$period, results$Index, reference_period)
+  results <- format_index_output(
+    periods = average_data[[period_variable]],
+    index_values = average_data$index,
+    reference_period = reference_period,
+    observation_counts = obs_counts
+  )
   
   return(results)
 }
