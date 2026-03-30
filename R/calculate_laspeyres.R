@@ -1,5 +1,3 @@
-# This is the first main function (calculate laspeyres)
-
 #' Calculate direct index according to the Laspeyres hedonic double imputation method
 #'
 #' By the parameters 'dependent_variable', 'continue_variable' and 'categorical_variables' as regression model is compiled.
@@ -12,7 +10,7 @@
 #' Within the data, it is not necessary to filter the data on relevant variables or complete records.
 #' This is taken care of in the function.
 #'
-#' @author Farley Ishaak 
+#' @author Farley Ishaak, Vivek Gajadhar 
 #'
 #' @param dataset table with data (does not need to be a selection of relevant variables)
 #' @param period_variable variable in the table with periods
@@ -38,48 +36,45 @@ calculate_laspeyres <- function(dataset
                                 , number_of_observations = FALSE
                                 , imputation = FALSE) {
   
- 
-  
+  # 1. PREPARE DATA
+  clean_data <- prepare_hedonic_data(
+    dataset = dataset,
+    period_variable = period_variable,
+    dependent_variable = dependent_variable,
+    numerical_variables = numerical_variables,
+    categorical_variables = categorical_variables,
+    log_dependent = FALSE
+  )
   independent_variables <- c(numerical_variables, categorical_variables)
   
-  
-  # Rename period_variable and transform to character
-  names(dataset)[names(dataset) == period_variable] <- "period_var_temp"
-  dataset[["period_var_temp"]] <- as.character(dataset[["period_var_temp"]])
-  for (var in categorical_variables) dataset[[var]] <- as.factor(dataset[[var]])
-  
-  
-
   # Create list of periods
-  period_list <- sort(unique(dataset$period_var_temp), decreasing = FALSE)
+  period_list <- sort(unique(clean_data[[period_variable]]), decreasing = FALSE)
   
   # Calculate laspeyres imputations and numbers
   tbl_average_imputation <-
-    calculate_hedonic_imputation(dataset_temp = dataset
-                                 , period_temp = "period_var_temp"
+    calculate_hedonic_imputation(dataset_temp = clean_data
+                                 , period_temp = period_variable
                                  , dependent_variable_temp = dependent_variable
                                  , independent_variables_temp = independent_variables
                                  , number_of_observations_temp = number_of_observations
                                  , period_list_temp = period_list)
   
+  # Calculate Index
+  index <- calculate_index(tbl_average_imputation$period, tbl_average_imputation$average_imputation, reference_period = reference_period)
   
-  # Calculate index
-  Index <- calculate_index(tbl_average_imputation$period, tbl_average_imputation$average_imputation, reference_period = reference_period)
+  # 2. FORMAT OUTPUT
+  obs_counts <- if (number_of_observations) tbl_average_imputation$number_of_observations else NULL
   
-  # Create table
-  laspeyres <- data.frame(period = tbl_average_imputation$period)
+  laspeyres <- format_index_output(
+    periods = tbl_average_imputation$period,
+    index_values = index,
+    reference_period = reference_period,
+    observation_counts = obs_counts
+  )
   
-  if (number_of_observations == TRUE) {
-    laspeyres$number_of_observations <- tbl_average_imputation$number_of_observations
-  }
   if (imputation == TRUE) {
     laspeyres$Imputation <- tbl_average_imputation$average_imputation
   }
   
-  laspeyres$Index <- Index
-  
- 
-  
   return(laspeyres)
-  
 }

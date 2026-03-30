@@ -40,7 +40,6 @@ calculate_regression_diagnostics <- function(dataset,
     categorical_variables = categorical_variables
   )
   
-  
   independent_variables <- c(numerical_variables, categorical_variables)
   
   # Subset and clean data
@@ -49,17 +48,8 @@ calculate_regression_diagnostics <- function(dataset,
   dataset <- na.omit(dataset)
   dataset[] <- lapply(dataset, function(x) if (is.factor(x)) droplevels(x) else x)
   
-  
-  # Build formula 
+  # Prepare the logged dependent variable string for the helper
   dependent_log <- paste0("log(", dependent_variable, ")")
-  model_formula <- dependent_log
-  for (i in seq_along(independent_variables)) {
-    if (i == 1) {
-      model_formula <- paste0(model_formula, "~", independent_variables[i])
-    } else {
-      model_formula <- paste0(model_formula, "+", independent_variables[i])
-    }
-  }
   
   # Loop over periods
   periods <- sort(unique(dataset[[period_variable]]))
@@ -67,7 +57,13 @@ calculate_regression_diagnostics <- function(dataset,
     df <- subset(dataset, dataset[[period_variable]] == p)
     if (nrow(df) < 3) return(NULL)
     
-    mod <- try(lm(model_formula, data = df), silent = TRUE)
+    # Use centralized helper for fitting
+    mod <- try(fit_hedonic_model(
+      dataset = df,
+      dependent_variable = dependent_log,
+      independent_variables = independent_variables
+    ), silent = TRUE)
+    
     if (inherits(mod, "try-error")) return(NULL)
     
     # 1. Shapiro-Wilk test

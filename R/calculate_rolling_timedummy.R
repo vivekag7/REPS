@@ -17,13 +17,13 @@
 #' @keywords internal
 
 calculate_rolling_timedummy <- function(dataset,
-                                              period_variable,
-                                              dependent_variable,
-                                              numerical_variables,
-                                              categorical_variables,
-                                              reference_period,
-                                              window_length,
-                                              number_of_observations = FALSE) {
+                                        period_variable,
+                                        dependent_variable,
+                                        numerical_variables,
+                                        categorical_variables,
+                                        reference_period,
+                                        window_length,
+                                        number_of_observations = FALSE) {
   # Get all periods sorted chronologically
   periods_all <- sort(unique(as.character(dataset[[period_variable]])))
   
@@ -41,7 +41,7 @@ calculate_rolling_timedummy <- function(dataset,
   )
   
   # Convert index to growth rates
-  growth_rates <- calculate_growth_rate(setNames(initial_index$Index / 100, initial_index$period))
+  growth_rates <- calculate_growth_rate(setNames(initial_index$Index, initial_index$period))
   
   # Loop through remaining rolling windows
   window_starts <- 2:(length(periods_all) - window_length + 1)
@@ -59,13 +59,13 @@ calculate_rolling_timedummy <- function(dataset,
     )
     
     # Append last growth rate from new window
-    last_growth <- tail(calculate_growth_rate(setNames(new_index$Index / 100, new_index$period)), 1)
+    last_growth <- tail(calculate_growth_rate(setNames(new_index$Index, new_index$period)), 1)
     growth_rates <- c(growth_rates, setNames(last_growth, tail(new_index$period, 1)))
   }
   
   # Build final index series based on chained growth rates
   df_result <- data.frame(period = periods_all)
-  df_result$Index <- calculate_index(df_result$period, growth_rates, reference_period)
+  df_result$Index <- calculate_index(df_result$period, cumprod(growth_rates) * 100, reference_period)
   
   # Optionally add number of observations
   if (number_of_observations) {

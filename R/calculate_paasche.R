@@ -1,4 +1,3 @@
-
 #' Calculate direct index according to the Paasche hedonic double imputation method
 #'
 #' By the parameters 'dependent_variable', 'continue_variable' and 'categorical_variables' as regression model is compiled.
@@ -11,7 +10,7 @@
 #' Within the data, it is not necessary to filter the data on relevant variables or complete records.
 #' This is taken care of in the function.
 #'
-#' @author Farley Ishaak 
+#' @author Farley Ishaak, Vivek Gajadhar
 #' @param dataset table with data (does not need to be a selection of relevant variables)
 #' @param period_variable variable in the table with periods
 #' @param dependent_variable usually the sale price
@@ -32,20 +31,19 @@ calculate_paasche <- function(dataset
                               , number_of_observations = FALSE
                               , imputation = FALSE) {
 
-  # Merge independent variables
-  # independent_variables <- c(numerical_variables, categorical_variables)
+  # 1. PREPARE DATA
+  clean_data <- prepare_hedonic_data(
+    dataset = dataset,
+    period_variable = period_variable,
+    dependent_variable = dependent_variable,
+    numerical_variables = numerical_variables,
+    categorical_variables = categorical_variables,
+    log_dependent = FALSE
+  )
   independent_variables <- c(numerical_variables, categorical_variables)
 
-  # Rename period_variable and transform to character
-  names(dataset)[names(dataset) == period_variable] <- "period_var_temp"
-  dataset[["period_var_temp"]] <- as.character(dataset[["period_var_temp"]])
-  for (var in categorical_variables) dataset[[var]] <- as.factor(dataset[[var]])
-  
-
-  ## Calculate index
-
   # Create list of periods
-  period_list <- sort(unique(dataset$period_var_temp), decreasing = FALSE)
+  period_list <- sort(unique(clean_data[[period_variable]]), decreasing = FALSE)
   number_of_periods <- number_of_periods_temp <- length(period_list)
 
   # Prepare table for imputations
@@ -59,12 +57,12 @@ calculate_paasche <- function(dataset
 
     # Select the last and first period
     period_list_paasche <- c(period_list[number_of_periods_temp], period_list[1])
-    dataset_temp <- dataset[which(dataset$period_var_temp %in% period_list_paasche), ]
+    dataset_temp <- clean_data[clean_data[[period_variable]] %in% period_list_paasche, ]
 
     # Calculate Paasche imputations and numbers
     tbl_average_imputation <-
       calculate_hedonic_imputation(dataset_temp = dataset_temp
-                                   , period_temp = "period_var_temp"
+                                   , period_temp = period_variable
                                    , dependent_variable_temp = dependent_variable
                                    , independent_variables_temp = independent_variables
                                    , number_of_observations_temp = number_of_observations
@@ -82,10 +80,8 @@ calculate_paasche <- function(dataset
     
 
     if (number_of_observations == TRUE) {
-
       # Insert imputations into table
       number[imputation_period] <- tbl_average_imputation$number_of_observations[1]
-
     }
 
     # Insert last index figure into vector
@@ -100,25 +96,21 @@ calculate_paasche <- function(dataset
   Index <- Index[imputation_period:1]
   number <- number[imputation_period:1]
 
-  # Rescale the index
-  if (!is.null(reference_period)) {
-    Index <- calculate_index(period_list, Index, reference_period)
-  }
+  # 2. FORMAT OUTPUT
+  obs_counts <- if (number_of_observations) number else NULL
+  
+  paasche <- format_index_output(
+    periods = period_list,
+    index_values = Index,
+    reference_period = reference_period,
+    observation_counts = obs_counts
+  )
 
-  # Create table
-  paasche <- data.frame(period = period_list)
-  column_start <- 1
-
-  if (number_of_observations == TRUE) {
-    paasche$number_of_observations <- number
-    column_start <- 2
-  }
-
-  paasche$Index <- Index
-
+  # Safely handle the imputation matrix attachment
   if (imputation == TRUE) {
     number_of_periods_plus_1 <- number_of_periods + 1
-    tbl_imputations <- tbl_imputations[, c(1, number_of_periods_plus_1:column_start)] # Reverse the table (last period was calculated first)
+    column_start <- if (number_of_observations) 2 else 1
+    tbl_imputations <- tbl_imputations[, c(1, number_of_periods_plus_1:column_start)] # Reverse the table
     tbl_imputations <- unique.data.frame(tbl_imputations)
     tbl_imputations <- data.frame(period = period_list, Imputation = diag(as.matrix(tbl_imputations[, 2:ncol(tbl_imputations)])))
     paasche <- merge(paasche, tbl_imputations, by = "period")

@@ -16,64 +16,57 @@
 #' @keywords internal
 
 calculate_time_dummy <- function(dataset,
-                                       period_variable,
-                                       dependent_variable,
-                                       numerical_variables,
-                                       categorical_variables,
-                                       reference_period = NULL,
-                                       number_of_observations = FALSE) {
+                                 period_variable,
+                                 dependent_variable,
+                                 numerical_variables,
+                                 categorical_variables,
+                                 reference_period = NULL,
+                                 number_of_observations = FALSE) {
+  # 1. PREPARE DATA
+  clean_data <- prepare_hedonic_data(
+    dataset = dataset, 
+    period_variable = period_variable, 
+    dependent_variable = dependent_variable, 
+    numerical_variables = numerical_variables, 
+    categorical_variables = categorical_variables,
+    log_dependent = TRUE # Time dummy logs the dependent variable
+  )
   
-  # Convert categorical vars and period to factors, and log-transform dependent and numerical vars
-  for (var in c(categorical_variables, period_variable)) dataset[[var]] <- as.factor(dataset[[var]])
-  dataset[[dependent_variable]] <- log(dataset[[dependent_variable]])
-  for (var in numerical_variables) dataset[[var]] <- log(dataset[[var]])
+  # 2. FIT MODEL
+  independent_vars <- c(numerical_variables, categorical_variables, period_variable)
+  model <- fit_hedonic_model(
+    dataset = clean_data,
+    dependent_variable = paste0("log_", dependent_variable),
+    independent_variables = independent_vars
+  )
   
-  
-  # Keep only relevant variables and drop rows with NA
-  variables_to_use <- c(dependent_variable, numerical_variables, categorical_variables, period_variable)
-  calculation_data <- dataset[, variables_to_use, drop = FALSE]
-  calculation_data <- na.omit(calculation_data)
-  calculation_data[] <- lapply(calculation_data, function(x) if (is.factor(x)) droplevels(x) else x)
-  
-  
-  # Build regression formula and fit model
-  formula <- stats::as.formula(paste(dependent_variable, "~", paste(c(numerical_variables, categorical_variables, period_variable), collapse = " + ")))
-  model <- stats::lm(formula, data = calculation_data)
-  
-  # Extract time dummy coefficients
+  # 3. EXTRACT INDEX
   coefs <- stats::coefficients(model)
-  period_levels <- levels(dataset[[period_variable]])
-  log_time_dummies <- setNames(rep(0, length(period_levels)), period_levels)
+  period_levels <- sort(unique(clean_data[[period_variable]]))
+  
+  log_time_dummies <- stats::setNames(rep(0, length(period_levels)), period_levels)
   time_dummy_names <- grep(paste0("^", period_variable), names(coefs), value = TRUE)
   
   for (name in time_dummy_names) {
-    level <- sub(paste0(period_variable), "", name)
-    log_time_dummies[level] <- coefs[name]
+    level <- sub(paste0("^", period_variable), "", name)
+    if(level %in% names(log_time_dummies)) log_time_dummies[level] <- coefs[name]
   }
   
-  # Convert log-index to standard index (base = 100)
-  index <- exp(log_time_dummies) * 100
+  # Base index values 
+  index_vals <- exp(log_time_dummies) * 100
   
-  # Create index dataframe
-  df_index <- data.frame(period = names(index), Index = as.numeric(index))
-  
-  # Add number of observations if requested
+  # 4. FORMAT OUTPUT
+  obs_counts <- NULL
   if (number_of_observations) {
-    counts <- table(calculation_data[[period_variable]])
-    obs_df <- data.frame(period = names(counts), number_of_observations = as.integer(counts))
-    df_index <- merge(df_index, obs_df, by.x = "period", by.y = "period", all.x = TRUE)
+    obs_counts <- as.integer(table(clean_data[[period_variable]])[names(index_vals)])
   }
   
+  results <- format_index_output(
+    periods = names(index_vals),
+    index_values = index_vals,
+    reference_period = reference_period,
+    observation_counts = obs_counts
+  )
   
-  # Normalize index to reference period if provided
-  if (!is.null(reference_period)) {
-    df_index$Index <- calculate_index(df_index$period, df_index$Index, reference_period)
-  }
-  
-  # Reorder columns if observations included
-  if (number_of_observations) {
-    df_index <- df_index[, c("period", "number_of_observations", "Index")]
-  }
-  
-  return(df_index)
+  return(results)
 }

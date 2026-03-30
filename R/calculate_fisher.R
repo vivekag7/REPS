@@ -1,4 +1,3 @@
-
 #' Calculate direct index according to the Fisher hedonic double imputation method
 #'
 #' By the parameters 'dependent_variable', 'continue_variable' and 'categorical_variables' as regression model is compiled.
@@ -11,7 +10,7 @@
 #' Within the data, it is not neccesary to filter the data on relevant variables or complete records.
 #' This is taken care of in the function.
 #'
-#' @author Farley Ishaak 
+#' @author Farley Ishaak, Vivek Gajadhar
 #' @param dataset table with data (does not need to be a selection of relevant variables)
 #' @param period_variable variable in the table with periods
 #' @param dependent_variable usually the sale price
@@ -53,18 +52,15 @@ calculate_fisher <- function(dataset
   # Calculate Fisher (= geometric average)
   Index <- sqrt(laspeyres$Index * paasche$Index)
 
-  # Rescale to reference_year
-  Index <- calculate_index(laspeyres$period, Index, reference_period)
-
-  # Create table
-  fisher <- data.frame(period = laspeyres$period)
-
-  if (number_of_observations == TRUE) {
-    fisher$number_of_observations <- laspeyres$number_of_observations
-  }
-
-  fisher$Index <- Index
+  # FORMAT OUTPUT
+  obs_counts <- if (number_of_observations) laspeyres$number_of_observations else NULL
+  
+  fisher <- format_index_output(
+    periods = laspeyres$period,
+    index_values = Index,
+    reference_period = reference_period,
+    observation_counts = obs_counts
+  )
 
   return(fisher)
-
 }

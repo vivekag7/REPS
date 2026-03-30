@@ -35,7 +35,6 @@
 #' @param categorical_variables vector with categorical variables (also dummy)
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @param number_of_observations number of observations per period (default = TRUE)
-#' @param periods_in_year if month, then 12. If quarter, then 4, etc. (default = 4)
 #' @param production_since 1 period in the format of the period_variable. See description above (default = NULL)
 #' @param number_preliminary_periods number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3
 #' @param resting_points should analyses values be returned? (default = FALSE)
@@ -56,7 +55,6 @@ calculate_hmts_index <- function(
     numerical_variables,
     categorical_variables,
     reference_period,
-    periods_in_year,
     production_since = NULL,
     number_preliminary_periods,
     number_of_observations = NULL,
@@ -74,7 +72,6 @@ calculate_hmts_index <- function(
                                                              , dependent_variable = dependent_variable
                                                              , numerical_variables = numerical_variables
                                                              , categorical_variables = categorical_variables
-                                                             , periods_in_year = periods_in_year
                                                              , number_of_observations = number_of_observations
                                                              , production_since = production_since
                                                              , number_preliminary_periods = number_preliminary_periods)
@@ -181,7 +178,6 @@ calculate_hmts_index <- function(
 #' @param numerical_variables vector with quality-determining continues variables (numeric, no dummies)
 #' @param categorical_variables vector with categorical variables (also dummy)
 #' @param number_of_observations number of observations per period (default = TRUE)
-#' @param periods_in_year if month, then 12. If quarter, then 4, etc. (default = 4)
 #' @param production_since 1 period in the format of the period_variable. See description above (default = NULL)
 #' @param number_preliminary_periods number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3
 #' @return
@@ -191,18 +187,22 @@ calculate_hmts_index <- function(
 #' $Matrix_HMS table with estimated values based on the hedonic model
 #' $Matrix_HMTS_analysis table with analysis values of the time series model per base period
 #' @keywords internal
+#' @importFrom stats lm.fit model.frame model.matrix model.response
+
 
 calculate_hedonic_imputationmatrix <- function(dataset
                                                , period_variable
                                                , dependent_variable
                                                , numerical_variables
                                                , categorical_variables
-                                               , periods_in_year
                                                , number_of_observations = TRUE
                                                , production_since = NULL
                                                , number_preliminary_periods) {
   
+  # Merge all hedonic variables
   independent_variables <- c(numerical_variables, categorical_variables)
+  
+  # Make and sort list of periods
   period_list <- sort(unique(as.character(dataset$period)))
   number_periods <- length(period_list)
   
@@ -225,62 +225,73 @@ calculate_hedonic_imputationmatrix <- function(dataset
   
   dependent_variable <- paste0("log(", dependent_variable, ")")
   
-  
-  for (indep_var in 1:length(independent_variables)) {
-    if (indep_var == 1) {
-      model <- paste0(dependent_variable, "~", independent_variables[indep_var])
-    } else {
-      model <- paste0(model, "+", independent_variables[indep_var])
-    }
-  }
-  
+  # Determine linear regression model
+  model <- paste(dependent_variable, "~", paste(independent_variables, collapse=" + "))
+
   number_observations_total <- c()
   
   matrix_hmts <- matrix_hmts_index <- data.frame(period=period_list)
   
-  for (current_period in 1:number_periods) {
+  # Determine all levels for all factor variables on the complete data set
+  for (cat_var in categorical_variables) {
+    if (is.character(dataset_temp[[cat_var]]) || is.factor(dataset_temp[[cat_var]])) {
+      dataset_temp[[cat_var]] <- factor(dataset_temp[[cat_var]], levels = unique(dataset_temp[[cat_var]]))
+    }
+  }
+  
+  # Sort variables in data according to the model
+  mf_all <- model.frame(model, as.data.frame(dataset_temp))
+  X_all  <- model.matrix(as.formula(model), mf_all) # hedonic variables (x)
+  y_all  <- model.response(mf_all) # prices (y)
+  
+  # Determine per period the corresponding row
+  rows_by_period <- split(seq_len(nrow(dataset_temp)), dataset_temp[[period_variable]])
+  
+  # Loop through all possible base periods
+  for (current_period in seq_len(number_periods)) {
     
-    if (current_period <= production_since_index - number_preliminary_periods) {
-      number_periods_production_since <- production_since_index
+    # Determine the difference between the number of periods and number of periods from the moment of production
+    number_periods_production_since <- if (current_period <= production_since_index - number_preliminary_periods) {
+      production_since_index
+    } else {
+      current_period + number_preliminary_periods
     }
-    if (current_period > production_since_index - number_preliminary_periods) {
-      number_periods_production_since <- current_period + number_preliminary_periods
-    }
-    if (number_periods_production_since > number_periods) {
-      number_periods_production_since <- number_periods
-    }
+    number_periods_production_since <- min(number_periods_production_since, number_periods)
     
     difference_length_series <- number_periods - number_periods_production_since
     
-    dataset_base <- subset(dataset_temp, dataset_temp[[period_variable]] == period_list[current_period])
+    # Filter (and index) row numbers per base period
+    rows_base <- rows_by_period[[ period_list[current_period] ]]
+    X_base <- X_all[rows_base, , drop = FALSE] # hedonic variables (for 1 period)
+    y_base <- y_all[rows_base] # prices (for 1 period)
     
+    # Count all rows for indicator 'number of transactions'
     if (number_of_observations == TRUE) {
-      number_observations_total[current_period] <- nrow(dataset_base)
+      number_observations_total[current_period] <- nrow(X_base)
     }
     
-    hms <- c()
-    hmts <- c()
-    hmts_index <- c()
-    hmts_analysis <- c()
-    
-    for (reporting_period in 1:number_periods_production_since) {
-      dataset_dynamic <- subset(dataset_temp, dataset_temp[[period_variable]] == period_list[reporting_period])
-      fitmdl <- stats::lm(model, dataset_dynamic)
+    # Define vector for all matrix calculations
+    hms <- numeric(number_periods_production_since)
+
+    # Loop through all possible reporting periods (within the same base period)
+    for (reporting_period in seq_len(number_periods_production_since)) {
+      rows_dynamic <- rows_by_period[[ period_list[reporting_period] ]]
       
-      for (var in names(fitmdl$xlevels)) {
-        missend_in_model <- levels(dataset_base[[var]])[!(levels(dataset_base[[var]]) %in% fitmdl$xlevels[[var]])]
-        sel <- dataset_base[[var]] %in% missend_in_model
-        dataset_base[[var]][sel] <- fitmdl$xlevels[[var]][1]
-      }
+      # Filter (and index) row numbers per reporting period
+      X_dyn <- X_all[rows_dynamic, , drop = FALSE]
+      y_dyn <- y_all[rows_dynamic]
       
-      predictmdl <- mean(stats::predict(fitmdl, dataset_base))
-      predictmdl <- exp(predictmdl)
-      hms[reporting_period] <- predictmdl
+      # Fit linear regression model
+      fitmdl <- lm.fit(X_dyn, y_dyn)
+      fitcoef <- fitmdl$coefficients
+      fitcoef[is.na(fitcoef)] <- 0
+      preds <- X_base %*% fitcoef # Impute values according to model
+      hms[reporting_period] <- exp(mean(preds)) # Transform log values back
       
     }
     
     
-    hmts_temp <- calculate_trend_line_kfas(original_series = hms, periodicity = periods_in_year, resting_points = TRUE)
+    hmts_temp <- calculate_trend_line_kfas(original_series = hms, resting_points = TRUE)
     hmts <- hmts_temp$trend_line
     hmts_analysis <- hmts_temp$resting_points
     hmts_index <- calculate_index(periods = c(1:number_periods_production_since), values = hmts)

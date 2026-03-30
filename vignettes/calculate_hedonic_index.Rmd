@@ -23,7 +23,7 @@ data("data_constraxion")
 
 ## Introduction
 
-The `calculate_price_index()` function is the central entry point in `REPS` for computing price indices using various **hedonic-based methods**. It supports six commonly used approaches:
+The `calculate_hedonic_index()` function is the central entry point in `REPS` for computing price indices using various **hedonic-based methods**. It supports six commonly used approaches:
 
 - **Laspeyres** – hedonic double imputation base-weighted index  
 - **Paasche** – hedonic double imputation current-weighted index  
@@ -65,9 +65,9 @@ dataset <- data_constraxion
 dataset$floor_area <- log(dataset$floor_area)
 ```
 
-## Using `calculate_price_index()`
+## Using `calculate_hedonic_index()`
 
-The `calculate_price_index()` function provides a unified interface for estimating hedonic price indices. You only need to specify the method via the `method` argument — the function handles the rest.
+The `calculate_hedonic_index()` function provides a unified interface for estimating hedonic price indices. You only need to specify the method via the `method` argument — the function handles the rest.
 
 Supported methods:
 
@@ -83,7 +83,7 @@ Supported methods:
 ### Example: Single Index Method - Time Dummy
 
 ```{r}
-Tbl_TD <- calculate_price_index(
+Tbl_TD <- REPS::calculate_hedonic_index(
   dataset = dataset,
   method = "timedummy",
   period_variable = "period",
@@ -100,20 +100,24 @@ head(Tbl_TD)
 ### Example: Multiple Index Methods - Fisher, Paasche and Laspeyres
 
 ```{r}
-multi_result <- calculate_price_index(
+multi_result <- REPS::calculate_hedonic_index(
+  method = c("fisher","hmts", "laspeyres", "paasche", "repricing", "timedummy", "rolling_timedummy"),
   dataset = dataset,
-  method = c("fisher", "paasche", "laspeyres"),
   period_variable = "period",
   dependent_variable = "price",
   numerical_variables = c("floor_area", "dist_trainstation"),
-  categorical_variables = c("dummy_large_city", "neighbourhood_code"),
-  reference_period = 2015,
-  number_of_observations = FALSE
+  categorical_variables = c("neighbourhood_code", "dummy_large_city"),
+  reference_period = "2015",
+  number_of_observations = FALSE,
+  periods_in_year = 4,
+  number_preliminary_periods = 1,
+  window_length = 4,
+  production_since = NULL,
+  resting_points = FALSE,
+  imputation = FALSE
 )
 
 head(multi_result$fisher)
-head(multi_result$paasche)
-head(multi_result$laspeyres)
 ```
 
 ### Visualizing the Index
@@ -133,6 +137,6 @@ knitr::include_graphics("multi_index.png")
 
 ## Summary
 
-The `calculate_price_index()` function streamlines access to multiple hedonic index methods via a consistent interface. This allows analysts to easily compare outputs and select the most appropriate method for their context.
+The `calculate_hedonic_index()` function streamlines access to multiple hedonic index methods via a consistent interface. This allows analysts to easily compare outputs and select the most appropriate method for their context.
 
 ## References
