@@ -13,6 +13,7 @@ calculate_hedonic_index(
   categorical_variables = NULL,
   reference_period = NULL,
   number_of_observations = TRUE,
+  chained = FALSE,
   ...
 )
 }
@@ -33,21 +34,23 @@ calculate_hedonic_index(
 
 \item{number_of_observations}{Logical, whether to show number of observations (default = TRUE)}
 
+\item{chained}{Logical. If TRUE, calculates a chained index using the Annual Overlap Method. Default is FALSE.}
+
 \item{...}{Additional method-specific arguments passed to the underlying functions:
 \itemize{
 \item \code{periods_in_year}: (Required for Repricing) Number of periods per year (e.g. 12 for months, 4 for quarters)
-\item \code{number_preliminary_periods}: (Required for HMTS) Number of preliminary periods
+\item \code{number_preliminary_periods}: (Optional for HMTS) Number of preliminary periods. Default = 3
 \item \code{production_since}: (Optional for HMTS) Start period for production simulation. Default = NULL
 \item \code{resting_points}: (Optional for HMTS) Whether to return detailed outputs. Default = FALSE
 \item \code{imputation}: (Optional for Laspeyres/Paasche) Include imputation values? Default = FALSE
-\item \code{window_length}: (Required for Rolling Time Dummy) Window size in number of periods
+\item \code{window_length}: (Optional for Rolling Time Dummy) Window size in number of periods. Default = 5
 }}
 }
 \value{
 A data.frame (or list for HMTS with resting_points = TRUE; or named list if multiple methods are used)
 }
 \description{
-Central hub function to calculate index figures using different methods.
+Central hub function to calculate index figures using different methods. Can also calculate chained indices using the Annual Overlap Method.
 }
 \examples{
 \dontrun{

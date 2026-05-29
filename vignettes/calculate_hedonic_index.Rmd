@@ -14,24 +14,26 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+
 ```
 
 ```{r setup, include=FALSE}
 library(REPS)
 data("data_constraxion")
+
 ```
 
 ## Introduction
 
 The `calculate_hedonic_index()` function is the central entry point in `REPS` for computing price indices using various **hedonic-based methods**. It supports six commonly used approaches:
 
-- **Laspeyres** – hedonic double imputation base-weighted index  
-- **Paasche** – hedonic double imputation current-weighted index  
-- **Fisher** – geometric average of Laspeyres and Paasche (both hedonic double imputation)  
-- **HMTS** – Hedonic Multilateral Time Series re-estimation Splicing  
-- **Time Dummy** – single-regression hedonic index using time dummies  
-- **Rolling Time Dummy** – chained index based on overlapping time-dummy regressions
-- **Repricing** – quasi-repeat-sales method comparing observed vs predicted price changes
+* **Laspeyres** – hedonic double imputation base-weighted index
+* **Paasche** – hedonic double imputation current-weighted index
+* **Fisher** – geometric average of Laspeyres and Paasche (both hedonic double imputation)
+* **HMTS** – Hedonic Multilateral Time Series re-estimation Splicing
+* **Time Dummy** – single-regression hedonic index using time dummies
+* **Rolling Time Dummy** – chained index based on overlapping time-dummy regressions
+* **Repricing** – quasi-repeat-sales method comparing observed vs predicted price changes
 
 This vignette demonstrates how to apply each method using a consistent interface, making it easy to compare results across approaches.
 
@@ -39,6 +41,7 @@ The HMTS method implemented in `REPS` is a multilateral, time-series-based index
 
 For broader context and international guidelines on the compilation of property price indices, including traditional methods such as hedonic double imputation Laspeyres, Paasche, Fisher and Repricing, we refer to Eurostat's *Handbook on Residential Property Price Indices (RPPIs)* [@eurostat2013rppi]. For (Rolling) Time Dummy we refer to Hill et al. [@hill2018repricing; @hill2022rolling].
 
+---
 
 ## Required Data
 
@@ -47,14 +50,15 @@ Before running any calculations, ensure that your dataset is available and conta
 ```{r}
 # Example dataset (you should already have this loaded)
 head(data_constraxion)
+
 ```
 
 The required variables include:
 
-- `period_variable`: the time period  
-- `dependent_variable`: usually price  
-- `numerical_variables`: e.g., `floor_area`  
-- `categorical_variables`: e.g., `neighbourhood_code`
+* `period_variable`: the time period
+* `dependent_variable`: usually price
+* `numerical_variables`: e.g., `floor_area`
+* `categorical_variables`: e.g., `neighbourhood_code`
 
 Typically, for some numerical variables you may want to apply a log transformation. For example, `floor_area` is often log-transformed to improve linearity, stabilize variance, and reduce the impact of extreme values. Log-transforming variables can help meet regression assumptions by making relationships between variables more linear and residuals more homoscedastic (constant variance).
 
@@ -63,22 +67,14 @@ Example of log-transforming `floor_area`:
 ```{r}
 dataset <- data_constraxion
 dataset$floor_area <- log(dataset$floor_area)
+
 ```
+
+---
 
 ## Using `calculate_hedonic_index()`
 
 The `calculate_hedonic_index()` function provides a unified interface for estimating hedonic price indices. You only need to specify the method via the `method` argument — the function handles the rest.
-
-Supported methods:
-
-- `"laspeyres"`: base-period weighted double imputation  
-- `"paasche"`: current-period weighted double imputation  
-- `"fisher"`: geometric average of Laspeyres and Paasche  
-- `"hmts"`: Hedonic Multilateral Time Series with re-estimation and splicing  
-- `"timedummy"`: single time-dummy regression (log-linear hedonic model with time factors)  
-- `"rolling_timedummy"`: chained index from overlapping time-dummy regressions  
-- `"repricing"`: compares observed vs predicted price growth in consecutive periods (quasi-repeat-sales)
-
 
 ### Example: Single Index Method - Time Dummy
 
@@ -95,9 +91,10 @@ Tbl_TD <- REPS::calculate_hedonic_index(
 )
 
 head(Tbl_TD)
+
 ```
 
-### Example: Multiple Index Methods - Fisher, Paasche and Laspeyres
+### Example: Multiple Index Methods 
 
 ```{r}
 multi_result <- REPS::calculate_hedonic_index(
@@ -120,23 +117,56 @@ multi_result <- REPS::calculate_hedonic_index(
 head(multi_result$fisher)
 ```
 
-### Visualizing the Index
+---
 
-For quick and clear visualizations, the `plot_price_index()` utility function can be used to generate time-series plots of the calculated indices.
+## Chaining Price Indices (Annual Overlap Method)
 
-While we encourage users to create custom visualizations suited to their analytical needs, this built-in plotting function provides a convenient starting point for simple and consistent line plots.
+While standard calls to `calculate_hedonic_index()` compute multilateral or direct indices over an entire dataset, long-term pooled models can suffer from structural market changes over time. To account for shifting consumer preferences, indices are often calculated over shorter periods and linked together.
 
+You can easily implement the **Annual Overlap Method** directly inside the hub function by setting the `chained = TRUE` argument. This tells the function to automatically split the data by year, calculate a short-term index using the final period of the previous year as the overlap base, and chain them together into a continuous series.
+
+### Example: Chained Fisher Index
+
+You can use the `chained = TRUE` parameter with any underlying hedonic method supported by the package. Here is an example using the Fisher index.
+
+```{r}
+# Calculate the chained index
+chained_fisher <- calculate_hedonic_index(
+  dataset = dataset,
+  method = "fisher",
+  chained = TRUE,
+  period_variable = "period",
+  dependent_variable = "price",
+  numerical_variables = c("floor_area", "dist_trainstation"),
+  categorical_variables = c("dummy_large_city", "neighbourhood_code"),
+  reference_period = "2015"
+)
+
+head(chained_fisher)
+
+```
+
+---
+
+## Visualizing the Index
+
+For quick and clear visualizations, the `plot_price_index()` utility function can be used to generate time-series plots of the calculated indices. Because the output of both chained and unchained indices mirrors the standard REPS dataframe structure, it is fully compatible with this built-in plotting utility.
+
+While we encourage users to create custom visualizations suited to their analytical needs, this function provides a convenient starting point for simple and consistent line plots.
 
 ```r
 plot_price_index(multi_result)
 
 ```
+
 ```{r echo=FALSE, out.width="100%", fig.align="center"}
 knitr::include_graphics("multi_index.png")
+
 ```
 
 ## Summary
 
-The `calculate_hedonic_index()` function streamlines access to multiple hedonic index methods via a consistent interface. This allows analysts to easily compare outputs and select the most appropriate method for their context.
+The `calculate_hedonic_index()` function streamlines access to multiple hedonic index methods via a consistent interface, including robust support for chained indices. This allows analysts to easily compare outputs and select the most appropriate method for their context without switching between different wrapper functions.
 
 ## References
+

@@ -1,32 +1,32 @@
 #' Calculate index based on specified method (Fisher, Laspeyres, Paasche, HMTS, Time Dummy, Rolling Time Dummy)
 #'
-#' Central hub function to calculate index figures using different methods.
+#' Central hub function to calculate index figures using different methods. Can also calculate chained indices using the Annual Overlap Method.
 #'
 #' @author Vivek Gajadhar
 #' @param method One of: "fisher", "laspeyres", "paasche", "hmts", "timedummy", "rolling_timedummy", "repricing"
 #' @param dataset Data frame with input data
-#' @param period_variable A string with the name of the column containing time periods. 
+#' @param period_variable A string with the name of the column containing time periods.
 #' @param dependent_variable Usually the price
 #' @param numerical_variables Vector with numeric quality-determining variables
 #' @param categorical_variables Vector with categorical variables (also dummies)
 #' @param reference_period Period or group of periods that will be set to 100
 #' @param number_of_observations Logical, whether to show number of observations (default = TRUE)
+#' @param chained Logical. If TRUE, calculates a chained index using the Annual Overlap Method. Default is FALSE.
 #' @param ... Additional method-specific arguments passed to the underlying functions:
 #' \itemize{
 #'   \item \code{periods_in_year}: (Required for Repricing) Number of periods per year (e.g. 12 for months, 4 for quarters)
-#'   \item \code{number_preliminary_periods}: (Required for HMTS) Number of preliminary periods
+#'   \item \code{number_preliminary_periods}: (Optional for HMTS) Number of preliminary periods. Default = 3
 #'   \item \code{production_since}: (Optional for HMTS) Start period for production simulation. Default = NULL
 #'   \item \code{resting_points}: (Optional for HMTS) Whether to return detailed outputs. Default = FALSE
 #'   \item \code{imputation}: (Optional for Laspeyres/Paasche) Include imputation values? Default = FALSE
-#'   \item \code{window_length}: (Required for Rolling Time Dummy) Window size in number of periods
+#'   \item \code{window_length}: (Optional for Rolling Time Dummy) Window size in number of periods. Default = 5
 #' }
 #'
 #' @return A data.frame (or list for HMTS with resting_points = TRUE; or named list if multiple methods are used)
-#' @export
 #' @examples
 #' \dontrun{
 #' data("data_constraxion")
-#' 
+#'
 #' Tbl_indices <- REPS::calculate_hedonic_index(
 #'   method = c("fisher", "hmts", "laspeyres", "paasche",
 #'  "repricing", "timedummy", "rolling_timedummy"),
@@ -45,20 +45,25 @@
 #'   imputation = FALSE
 #' )
 #' }
+#' @export
+#' @importFrom dplyr bind_rows
+#' @importFrom utils tail
 calculate_hedonic_index <- function(dataset,
-                                  method,
-                                  period_variable,
-                                  dependent_variable,
-                                  numerical_variables = NULL,
-                                  categorical_variables = NULL,
-                                  reference_period = NULL,
-                                  number_of_observations = TRUE,
-                                  ...) {
+                                    method,
+                                    period_variable,
+                                    dependent_variable,
+                                    numerical_variables = NULL,
+                                    categorical_variables = NULL,
+                                    reference_period = NULL,
+                                    number_of_observations = TRUE,
+                                    chained = FALSE,
+                                    ...) {
   
   # Prevents call of false methods
   method <- tolower(method)
   valid_methods <- c("fisher", "laspeyres", "paasche", "hmts", "timedummy", "rolling_timedummy", "repricing")
   invalid_methods <- setdiff(method, valid_methods)
+  
   if (length(invalid_methods) > 0) {
     stop(paste0("Invalid method(s): ", paste(invalid_methods, collapse = ", "),
                 ". Please choose from: ", paste(valid_methods, collapse = ", "), "."))
@@ -71,12 +76,18 @@ calculate_hedonic_index <- function(dataset,
     stop("Using 'resting_points = TRUE' is only allowed with a single method ('hmts').")
   }
   
+  # Prevent resting_points = TRUE in chained context
+  if (isTRUE(chained) && isTRUE(extra_args$resting_points)) {
+    stop("Using 'chained = TRUE' together with 'resting_points = TRUE' is not supported, because chained calculations require a regular index data.frame.")
+  }
+  
   validate_input(dataset, period_variable, dependent_variable, numerical_variables, categorical_variables)
   
-  # Dynamic dispatch function
-  run_method <- function(m) {
+  # ============================================================================
+  # INTERNAL CALCULATION ENGINE & GATEKEEPER
+  # ============================================================================
+  run_method <- function(m, target_dataset, target_reference_period) {
     
-    # Map the string to your actual package functions
     func_map <- list(
       fisher = "calculate_fisher",
       laspeyres = "calculate_laspeyres",
@@ -88,27 +99,22 @@ calculate_hedonic_index <- function(dataset,
     )
     
     target_func <- func_map[[m]]
+    target_function <- get(target_func, mode = "function")
     
-    # Bundle the core arguments that EVERY method uses
     base_args <- list(
-      dataset = dataset,
+      dataset = target_dataset,
       period_variable = period_variable,
       dependent_variable = dependent_variable,
       numerical_variables = numerical_variables,
       categorical_variables = categorical_variables,
-      reference_period = reference_period,
+      reference_period = target_reference_period,
       number_of_observations = number_of_observations
     )
     
-    # Filter the `...` arguments to only pass what the target function accepts
-    accepted_args <- names(formals(target_func))
+    accepted_args <- names(formals(target_function))
     valid_extra_args <- extra_args[names(extra_args) %in% accepted_args]
     
-    # ==========================================================================
-    # GATEKEEPER FOR EXTRA PARAMETERS
-    # ==========================================================================
-    
-    # 1. Rolling Time Dummy Gate
+    # --- Gatekeeper ---
     if (m == "rolling_timedummy") {
       if (!("window_length" %in% names(valid_extra_args))) {
         valid_extra_args$window_length <- 5
@@ -116,7 +122,6 @@ calculate_hedonic_index <- function(dataset,
       }
     }
     
-    # 2. HMTS Gate
     if (m == "hmts") {
       if (!("number_preliminary_periods" %in% names(valid_extra_args))) {
         valid_extra_args$number_preliminary_periods <- 3
@@ -128,36 +133,157 @@ calculate_hedonic_index <- function(dataset,
         valid_extra_args$production_since <- NULL
         message("Note: 'production since' was not specified. A default value of NULL has been applied. Enter the initial production period to establish a definitive timeline for all future calculations.")
       }
-
-      if (!("resting_points" %in% names(valid_extra_args))) valid_extra_args$resting_points <- FALSE
+      
+      if (!("resting_points" %in% names(valid_extra_args))) {
+        valid_extra_args$resting_points <- FALSE
+      }
     }
     
-    # 3. Repricing Gate
     if (m == "repricing") {
-      if (!("periods_in_year" %in% names(valid_extra_args))) stop("Validation Error: You must specify 'periods_in_year' for the 'repricing' method.")
+      if (!("periods_in_year" %in% names(valid_extra_args))) {
+        stop("Validation Error: You must specify 'periods_in_year' for the 'repricing' method.")
+      }
     }
     
-    # 4. Laspeyres & Paasche Gate
     if (m %in% c("laspeyres", "paasche")) {
-      # Inject default for optional imputation parameter if missing
-      if (!("imputation" %in% names(valid_extra_args))) valid_extra_args$imputation <- FALSE
+      if (!("imputation" %in% names(valid_extra_args))) {
+        valid_extra_args$imputation <- FALSE
+      }
     }
     
-    # ==========================================================================
-    
-    # Execute the underlying function with the safely validated combined arguments
     final_args <- c(base_args, valid_extra_args)
-    return(do.call(target_func, final_args))
+    
+    return(do.call(target_function, final_args))
   }
   
-  # Single method: return output directly
+  # ============================================================================
+  # PROCESSING LOGIC (CHAINED vs UNCHAINED)
+  # ============================================================================
+  process_single_method <- function(m) {
+    
+    # Option 1: Standard calculation (Unchained)
+    if (!isTRUE(chained)) {
+      return(run_method(m, dataset, reference_period))
+    }
+    
+    # Option 2: Chained calculation (Annual Overlap)
+    periods_raw <- as.character(dataset[[period_variable]])
+    unique_periods <- sort(unique(periods_raw))
+    
+    get_year <- function(p) {
+      as.integer(substr(p, 1, 4))
+    }
+    
+    years <- unique(get_year(unique_periods))
+    
+    if (any(is.na(years))) {
+      stop("Chained index calculation requires period values where the first four characters represent the year, for example '2015Q1', '2015-01', or '201501'.")
+    }
+    
+    short_term_results <- list()
+    
+    # Year 1
+    first_year <- min(years)
+    first_year_periods <- unique_periods[get_year(unique_periods) == first_year]
+    data_subset_first <- dataset[dataset[[period_variable]] %in% first_year_periods, ]
+    
+    short_term_results[[as.character(first_year)]] <- run_method(m, data_subset_first, NULL)
+    
+    if (!is.data.frame(short_term_results[[as.character(first_year)]]) ||
+        !("period" %in% names(short_term_results[[as.character(first_year)]])) ||
+        !("Index" %in% names(short_term_results[[as.character(first_year)]]))) {
+      stop("Chained index calculation requires each method to return a data.frame with columns 'period' and 'Index'.")
+    }
+    
+    # Year 2+
+    if (length(years) > 1) {
+      for (i in 2:length(years)) {
+        current_year <- years[i]
+        prev_year <- years[i - 1]
+        
+        current_periods <- unique_periods[get_year(unique_periods) == current_year]
+        prev_periods <- unique_periods[get_year(unique_periods) == prev_year]
+        overlap_period <- utils::tail(sort(prev_periods), 1)
+        
+        calculation_periods <- c(overlap_period, current_periods)
+        data_subset <- dataset[dataset[[period_variable]] %in% calculation_periods, ]
+        
+        index_current <- run_method(m, data_subset, overlap_period)
+        
+        if (!is.data.frame(index_current) ||
+            !("period" %in% names(index_current)) ||
+            !("Index" %in% names(index_current))) {
+          stop("Chained index calculation requires each method to return a data.frame with columns 'period' and 'Index'.")
+        }
+        
+        index_current_clean <- index_current[index_current$period != overlap_period, ]
+        
+        short_term_results[[as.character(current_year)]] <- index_current_clean
+      }
+    }
+    
+    # Bind everything together
+    full_series <- dplyr::bind_rows(short_term_results)
+    full_series <- full_series[order(full_series$period), ]
+    
+    final_index <- numeric(nrow(full_series))
+    periods_vec <- full_series$period
+    
+    first_year_key <- as.character(first_year)
+    n_y1 <- nrow(short_term_results[[first_year_key]])
+    
+    if (n_y1 == 0) {
+      stop("The first year does not contain enough observations to calculate a chained index.")
+    }
+    
+    final_index[1:n_y1] <-
+      short_term_results[[first_year_key]]$Index /
+      short_term_results[[first_year_key]]$Index[1] *
+      100
+    
+    current_idx <- n_y1 + 1
+    
+    if (length(short_term_results) > 1) {
+      for (i in 2:length(short_term_results)) {
+        factors <- short_term_results[[i]]$Index / 100
+        previous_level <- final_index[current_idx - 1]
+        
+        n_obs <- length(factors)
+        
+        final_index[current_idx:(current_idx + n_obs - 1)] <-
+          factors * previous_level
+        
+        current_idx <- current_idx + n_obs
+      }
+    }
+    
+    result_table <- data.frame(
+      period = periods_vec,
+      Index = final_index
+    )
+    
+    # Re-reference the chained index to the target year
+    if (!is.null(reference_period)) {
+      result_table$Index <- calculate_index(
+        result_table$period,
+        result_table$Index,
+        reference_period
+      )
+    }
+    
+    return(result_table)
+  }
+  
+  # ============================================================================
+  # OUTPUT (Single or Multi Method)
+  # ============================================================================
   if (length(method) == 1) {
-    return(run_method(method))
+    return(process_single_method(method))
   }
   
-  # Multiple methods: return named list
-  result_list <- lapply(method, run_method)
+  result_list <- lapply(method, process_single_method)
   names(result_list) <- method
+  
   return(result_list)
 }
 
