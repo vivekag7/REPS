@@ -94,7 +94,7 @@ head(Tbl_TD)
 
 ```
 
-### Example: Multiple Index Methods - Fisher, Paasche and Laspeyres
+### Example: Multiple Index Methods 
 
 ```{r}
 multi_result <- REPS::calculate_hedonic_index(
