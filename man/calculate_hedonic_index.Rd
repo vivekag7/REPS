@@ -38,12 +38,12 @@ calculate_hedonic_index(
 
 \item{...}{Additional method-specific arguments passed to the underlying functions:
 \itemize{
-\item \code{periods_in_year}: (Required for HMTS/Repricing) Number of periods per year (e.g. 12 for months)
-\item \code{number_preliminary_periods}: (Required for HMTS) Number of preliminary periods
+\item \code{periods_in_year}: (Required for Repricing) Number of periods per year (e.g. 12 for months, 4 for quarters)
+\item \code{number_preliminary_periods}: (Optional for HMTS) Number of preliminary periods. Default = 3
 \item \code{production_since}: (Optional for HMTS) Start period for production simulation. Default = NULL
 \item \code{resting_points}: (Optional for HMTS) Whether to return detailed outputs. Default = FALSE
 \item \code{imputation}: (Optional for Laspeyres/Paasche) Include imputation values? Default = FALSE
-\item \code{window_length}: (Required for Rolling Time Dummy) Window size in number of periods
+\item \code{window_length}: (Optional for Rolling Time Dummy) Window size in number of periods. Default = 5
 }}
 }
 \value{
@@ -51,6 +51,29 @@ A data.frame (or list for HMTS with resting_points = TRUE; or named list if mult
 }
 \description{
 Central hub function to calculate index figures using different methods. Can also calculate chained indices using the Annual Overlap Method.
+}
+\examples{
+\dontrun{
+data("data_constraxion")
+
+Tbl_indices <- REPS::calculate_hedonic_index(
+  method = c("fisher", "hmts", "laspeyres", "paasche",
+ "repricing", "timedummy", "rolling_timedummy"),
+  dataset = data_constraxion,
+  period_variable = "period",
+  dependent_variable = "price",
+  numerical_variables = c("floor_area", "dist_trainstation"),
+  categorical_variables = c("neighbourhood_code", "dummy_large_city"),
+  reference_period = "2015",
+  number_of_observations = FALSE,
+  periods_in_year = 4,
+  number_preliminary_periods = 1,
+  window_length = 4,
+  production_since = NULL,
+  resting_points = FALSE,
+  imputation = FALSE
+)
+}
 }
 \author{
 Vivek Gajadhar

@@ -1,14 +1,16 @@
-#' @title Calculate Price Index (Defunct)
-#' @description This function has been removed and replaced. Please use \code{\link{calculate_hedonic_index}} instead.
-#' @param ... Arguments are ignored as the function is defunct.
+#' @title Calculate Price Index (Deprecated)
+#' @description This function has been renamed. Please use \code{\link{calculate_hedonic_index}} instead.
+#' @param ... Arguments passed to \code{calculate_hedonic_index}.
 #' @export
 calculate_price_index <- function(...) {
   
-  # Throws a hard error and immediately stops the user's script
-  .Defunct(
+  # Throws a soft warning but allows the script to continue
+  .Deprecated(
     new = "calculate_hedonic_index", 
     package = "REPS", 
-    msg = "Error: 'calculate_price_index()' has been permanently removed from this package. Please use 'calculate_hedonic_index()' from now on."
+    msg = "Warning: 'calculate_price_index()' is deprecated and will be removed in a future version. Please use 'calculate_hedonic_index()' from now on."
   )
   
+  # Passes all arguments to the new function so the user's code still runs perfectly
+  calculate_hedonic_index(...)
 }

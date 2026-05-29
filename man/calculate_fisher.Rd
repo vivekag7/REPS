@@ -45,6 +45,6 @@ Within the data, it is not neccesary to filter the data on relevant variables or
 This is taken care of in the function.
 }
 \author{
-Farley Ishaak
+Farley Ishaak, Vivek Gajadhar
 }
 \keyword{internal}

@@ -36,6 +36,6 @@ The reference period can also be a part of a period.
 E.g. if the series contains months (2019jan, 2019feb), the reference period can be a year (2019).
 }
 \author{
-Farley Ishaak
+Farley Ishaak, Vivek Gajadhar
 }
 \keyword{internal}

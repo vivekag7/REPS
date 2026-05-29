@@ -79,7 +79,7 @@ The `calculate_hedonic_index()` function provides a unified interface for estima
 ### Example: Single Index Method - Time Dummy
 
 ```{r}
-Tbl_TD <- calculate_hedonic_index(
+Tbl_TD <- REPS::calculate_hedonic_index(
   dataset = dataset,
   method = "timedummy",
   period_variable = "period",
@@ -97,21 +97,24 @@ head(Tbl_TD)
 ### Example: Multiple Index Methods - Fisher, Paasche and Laspeyres
 
 ```{r}
-multi_result <- calculate_hedonic_index(
+multi_result <- REPS::calculate_hedonic_index(
+  method = c("fisher","hmts", "laspeyres", "paasche", "repricing", "timedummy", "rolling_timedummy"),
   dataset = dataset,
-  method = c("fisher", "paasche", "laspeyres"),
   period_variable = "period",
   dependent_variable = "price",
   numerical_variables = c("floor_area", "dist_trainstation"),
-  categorical_variables = c("dummy_large_city", "neighbourhood_code"),
-  reference_period = 2015,
-  number_of_observations = FALSE
+  categorical_variables = c("neighbourhood_code", "dummy_large_city"),
+  reference_period = "2015",
+  number_of_observations = FALSE,
+  periods_in_year = 4,
+  number_preliminary_periods = 1,
+  window_length = 4,
+  production_since = NULL,
+  resting_points = FALSE,
+  imputation = FALSE
 )
 
 head(multi_result$fisher)
-head(multi_result$paasche)
-head(multi_result$laspeyres)
-
 ```
 
 ---

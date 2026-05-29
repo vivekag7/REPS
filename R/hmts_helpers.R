@@ -35,7 +35,6 @@
 #' @param categorical_variables vector with categorical variables (also dummy)
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @param number_of_observations number of observations per period (default = TRUE)
-#' @param periods_in_year if month, then 12. If quarter, then 4, etc. (default = 4)
 #' @param production_since 1 period in the format of the period_variable. See description above (default = NULL)
 #' @param number_preliminary_periods number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3
 #' @param resting_points should analyses values be returned? (default = FALSE)
@@ -56,7 +55,6 @@ calculate_hmts_index <- function(
     numerical_variables,
     categorical_variables,
     reference_period,
-    periods_in_year,
     production_since = NULL,
     number_preliminary_periods,
     number_of_observations = NULL,
@@ -74,7 +72,6 @@ calculate_hmts_index <- function(
                                                              , dependent_variable = dependent_variable
                                                              , numerical_variables = numerical_variables
                                                              , categorical_variables = categorical_variables
-                                                             , periods_in_year = periods_in_year
                                                              , number_of_observations = number_of_observations
                                                              , production_since = production_since
                                                              , number_preliminary_periods = number_preliminary_periods)
@@ -181,7 +178,6 @@ calculate_hmts_index <- function(
 #' @param numerical_variables vector with quality-determining continues variables (numeric, no dummies)
 #' @param categorical_variables vector with categorical variables (also dummy)
 #' @param number_of_observations number of observations per period (default = TRUE)
-#' @param periods_in_year if month, then 12. If quarter, then 4, etc. (default = 4)
 #' @param production_since 1 period in the format of the period_variable. See description above (default = NULL)
 #' @param number_preliminary_periods number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3
 #' @return
@@ -199,7 +195,6 @@ calculate_hedonic_imputationmatrix <- function(dataset
                                                , dependent_variable
                                                , numerical_variables
                                                , categorical_variables
-                                               , periods_in_year
                                                , number_of_observations = TRUE
                                                , production_since = NULL
                                                , number_preliminary_periods) {
@@ -296,7 +291,7 @@ calculate_hedonic_imputationmatrix <- function(dataset
     }
     
     
-    hmts_temp <- calculate_trend_line_kfas(original_series = hms, periodicity = periods_in_year, resting_points = TRUE)
+    hmts_temp <- calculate_trend_line_kfas(original_series = hms, resting_points = TRUE)
     hmts <- hmts_temp$trend_line
     hmts_analysis <- hmts_temp$resting_points
     hmts_index <- calculate_index(periods = c(1:number_periods_production_since), values = hmts)

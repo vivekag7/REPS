@@ -34,7 +34,6 @@
 #' @param categorical_variables vector with categorical variables (also dummy)
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @param number_of_observations number of observations per period (default = TRUE)
-#' @param periods_in_year if month, then 12. If quarter, then 4, etc. (default = 4)
 #' @param production_since 1 period in the format of the period_variable. See description above (default = NULL)
 #' @param number_preliminary_periods number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3
 #' @param resting_points should analyses values be returned? (default = FALSE)
@@ -54,14 +53,12 @@ calculate_hmts <- function(
     numerical_variables,
     categorical_variables,
     reference_period,
-    periods_in_year,
     production_since = NULL,
     number_preliminary_periods,
     number_of_observations,
     resting_points) {
   
   
-  periods_in_year <- as.numeric(periods_in_year)
   number_preliminary_periods <- as.numeric(number_preliminary_periods)
   
   names(dataset)[names(dataset) == period_variable] <- "period"
@@ -76,7 +73,6 @@ calculate_hmts <- function(
     numerical_variables = numerical_variables,
     categorical_variables = categorical_variables,
     reference_period = reference_period,
-    periods_in_year = periods_in_year,
     production_since = production_since,
     number_preliminary_periods = number_preliminary_periods,
     number_of_observations = number_of_observations,

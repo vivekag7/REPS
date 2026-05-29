@@ -8,18 +8,16 @@
 #'
 #' @author Pim Ouwehand, Farley Ishaak
 #' @param original_series time series with values in chrolological order
-#' @param periodicity if month, then  12. If quarter, then 4, etc. (defaul = 4)
 #' @param resting_points should analyses values be returned? (default = FALSE)
 #' @return Trend line
 #' @keywords internal
 
 calculate_trend_line_kfas <- function(original_series
-                                      , periodicity
                                       , resting_points) {
   
   original_series <- log(original_series)
   
-  original_ts <- stats::ts(original_series, start = 1, frequency = as.numeric(periodicity), names = "origineel_ts")
+  original_ts <- stats::ts(original_series, start = 1, names = "origineel_ts")
   
   startvalues_old <- set_startvalues(log(0.1), log(0.1), log(0.1), log(0.1), log(0.1))
   
@@ -246,7 +244,6 @@ estimate_ts_parameters <- function(model, initial_values){
 
 select_state_space_model <- function(series, initial_values_all) {
   
-  periodicity <- stats::tsp(series)[3]
   SSMtrend <- KFAS::SSMtrend
   model <- KFAS::SSModel(series ~ SSMtrend(2, Q = list(0, matrix(NA))), H = matrix(NA))
   initial_values <- initial_values_all[c(3, 1)]
