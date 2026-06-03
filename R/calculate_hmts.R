@@ -44,6 +44,7 @@
 #' $Matrix_HMS table with estimated values based on the hedonic model
 #' $Matrix_HMTS_analysis table with analysis values of the time series model per base period
 #' @keywords internal
+#' @noRd
 #' @return table with periods, index (and optional confidence intervals) and number of observations. If resting_points = TRUE, then list with tables. See general description and examples.
 
 calculate_hmts <- function(

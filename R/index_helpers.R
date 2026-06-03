@@ -13,6 +13,7 @@
 #' @param log_dependent Logical, whether to log-transform the dependent variable (creates a new column with the prefix "log_").
 #' @return A cleaned, formatted data.frame.
 #' @keywords internal
+#' @noRd
 prepare_hedonic_data <- function(dataset, period_variable, dependent_variable, numerical_variables, categorical_variables, log_dependent = FALSE) {
   
   # Keep only required columns to avoid dropping rows due to NAs in unused columns
@@ -53,6 +54,7 @@ prepare_hedonic_data <- function(dataset, period_variable, dependent_variable, n
 #' @param observation_counts Integer vector of observation counts (optional).
 #' @return A standardized data.frame with output columns  period, number_of_observations and Index
 #' @keywords internal
+#' @noRd
 format_index_output <- function(periods, index_values, reference_period = NULL, observation_counts = NULL) {
   
   # Build base table
@@ -89,6 +91,7 @@ format_index_output <- function(periods, index_values, reference_period = NULL, 
 #' @author Vivek Gajadhar
 #' @importFrom stats as.formula lm
 #' @keywords internal
+#' @noRd
 fit_hedonic_model <- function(dataset, dependent_variable, independent_variables) {
   
   # Construct the model formula
@@ -117,6 +120,7 @@ fit_hedonic_model <- function(dataset, dependent_variable, independent_variables
 #' @author Vivek Gajadhar
 #' @importFrom stats predict
 #' @keywords internal
+#' @noRd
 predict_hedonic <- function(model, newdata) {
   
   # Generate predictions based on the fitted model
@@ -139,6 +143,7 @@ predict_hedonic <- function(model, newdata) {
 #' @return
 #' Table with imputation averages per period
 #' @keywords internal
+#' @noRd
 calculate_hedonic_imputation <- function(dataset_temp
                                          , period_temp
                                          , dependent_variable_temp 
@@ -262,6 +267,7 @@ calculate_hedonic_imputation <- function(dataset_temp
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @return Index series
 #' @keywords internal
+#' @noRd
 calculate_index <- function(periods, values, reference_period = NULL) {
   
   # Check length periods and values
@@ -311,6 +317,7 @@ calculate_index <- function(periods, values, reference_period = NULL) {
 #' @author Vivek Gajadhar
 #' @keywords internal
 #' @importFrom utils head
+#' @noRd
 
 calculate_growth_rate <- function(values) {
   if (!is.numeric(values)) stop("The series of values is not fully numeric.")
@@ -328,6 +335,7 @@ calculate_growth_rate <- function(values) {
 #' @param values series with numeric values
 #' @return geometric average
 #' @keywords Internal
+#' @noRd
 
 calculate_geometric_average <- function(values){
   

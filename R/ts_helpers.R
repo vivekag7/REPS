@@ -11,6 +11,7 @@
 #' @param resting_points should analyses values be returned? (default = FALSE)
 #' @return Trend line
 #' @keywords internal
+#' @noRd
 
 calculate_trend_line_kfas <- function(original_series
                                       , resting_points) {
@@ -58,6 +59,7 @@ calculate_trend_line_kfas <- function(original_series
 #' @param model state space modelnumber
 #' @return Newmodel
 #' @keywords internal
+#' @noRd
 
 custom_update_function <- function(params, model) {
   # Update function for state space models, with parameter transformation for Q and H matrices
@@ -114,6 +116,7 @@ custom_update_function <- function(params, model) {
 #' @param FUN function called: custom_update_function
 #' @return New initial startvalues
 #' @keywords internal
+#' @noRd
 
 determine_initial_parameters <- function(model, initial_values, FUN=custom_update_function) {
   
@@ -166,6 +169,7 @@ determine_initial_parameters <- function(model, initial_values, FUN=custom_updat
 #' @param initial_values $initial.values as output of the model
 #' @return Parameter for the time series model
 #' @keywords internal
+#' @noRd
 
 
 estimate_ts_parameters <- function(model, initial_values){
@@ -240,6 +244,7 @@ estimate_ts_parameters <- function(model, initial_values){
 #' @param initial_values_all start values for 5 hyperparameters: meas, level, slope, seas, scaling
 #' @return modelvalues (level, slope) of the chosen state space model and the provided time series
 #' @keywords internal
+#' @noRd
 
 
 select_state_space_model <- function(series, initial_values_all) {
@@ -257,6 +262,7 @@ select_state_space_model <- function(series, initial_values_all) {
 #'
 #' @return starting values for hyperparameters
 #' @keywords internal
+#' @noRd
 
 set_startvalues <- function(a, b, c, d, e) {
   
@@ -277,6 +283,7 @@ set_startvalues <- function(a, b, c, d, e) {
 #' @param fittedmodel model values as output of the function estimate.TS.parameters()
 #' @return A list containing multiple elements; sub-list \code{signalsubconf[, 1]} provides the estimated trend line.
 #' @keywords internal
+#' @noRd
 
 smooth_ts <- function(fittedmodel) {
   out_KFS    <- KFAS::KFS(fittedmodel, filtering='state', smoothing='state')

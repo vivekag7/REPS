@@ -4,7 +4,7 @@
 #' index mutation in one selected period by recalculating the index while
 #' excluding that observation or unit.
 #'
-#' @author Vivek Gajadhar
+#' @author Farley Ishaak, Egbert Hardeman, Vivek Gajadhar
 #' @param dataset Data frame with input data.
 #' @param index_output Data frame with the original index output.
 #' @param period_variable Name of the period column.

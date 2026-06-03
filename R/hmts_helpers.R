@@ -45,6 +45,7 @@
 #' $Matrix_HMS table with estimated values based on the hedonic model
 #' $Matrix_HMTS_analysis table with analysis values of the time series model per base period
 #' @keywords internal
+#' @noRd
 #' @return table with periods, index and number of observations. If resting_points = TRUE, then list with tables. See general description and examples.
 #' @importFrom dplyr bind_rows select all_of 
 
@@ -187,6 +188,7 @@ calculate_hmts_index <- function(
 #' $Matrix_HMS table with estimated values based on the hedonic model
 #' $Matrix_HMTS_analysis table with analysis values of the time series model per base period
 #' @keywords internal
+#' @noRd
 #' @importFrom stats lm.fit model.frame model.matrix model.response
 
 

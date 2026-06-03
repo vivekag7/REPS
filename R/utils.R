@@ -18,6 +18,7 @@
 #' @keywords internal
 #' 
 #' @importFrom stringr str_detect
+#' @noRd
 
 validate_input <- function(dataset, period_variable, dependent_variable, numerical_variables, categorical_variables, reference_period = NULL) {
   

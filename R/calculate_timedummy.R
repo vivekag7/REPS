@@ -14,6 +14,7 @@
 #' @importFrom stats lm coefficients as.formula na.omit
 #' @importFrom utils tail
 #' @keywords internal
+#' @noRd
 
 calculate_time_dummy <- function(dataset,
                                  period_variable,

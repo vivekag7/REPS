@@ -15,6 +15,7 @@
 #' @param number_of_observations logical, if TRUE, adds number of observations column
 #' @return a data.frame with columns: period, Index, (optionally number_of_observations)
 #' @keywords internal
+#' @noRd
 #' @importFrom stats lm predict as.formula aggregate
 
 calculate_repricing <- function(dataset,

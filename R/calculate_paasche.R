@@ -22,6 +22,7 @@
 #' @return
 #' table with index, imputation averages, number of observations and confidence intervals per period
 #' @keywords internal
+#' @noRd
 calculate_paasche <- function(dataset
                               , period_variable
                               , dependent_variable

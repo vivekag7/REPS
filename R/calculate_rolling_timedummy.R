@@ -15,6 +15,7 @@
 #' @importFrom stats setNames
 #' @importFrom utils tail
 #' @keywords internal
+#' @noRd
 
 calculate_rolling_timedummy <- function(dataset,
                                         period_variable,
