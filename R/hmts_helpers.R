@@ -38,6 +38,7 @@
 #' @param production_since 1 period in the format of the period_variable. See description above (default = NULL)
 #' @param number_preliminary_periods number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3
 #' @param resting_points should analyses values be returned? (default = FALSE)
+#' @param parallel Logical; whether independent base-period calculations are parallelized.
 #' @return
 #' $Matrix_HMTS_index table with index series based on estimations with time series re-estimations
 #' $Matrix_HMTS table with estimated values based on time series re-estimations
@@ -59,7 +60,8 @@ calculate_hmts_index <- function(
     production_since = NULL,
     number_preliminary_periods,
     number_of_observations = NULL,
-    resting_points) {
+    resting_points,
+    parallel = FALSE) {
   
   period_list <- sort(unique(dataset$period))
   number_of_periods <- length(period_list)
@@ -75,7 +77,8 @@ calculate_hmts_index <- function(
                                                              , categorical_variables = categorical_variables
                                                              , number_of_observations = number_of_observations
                                                              , production_since = production_since
-                                                             , number_preliminary_periods = number_preliminary_periods)
+                                                             , number_preliminary_periods = number_preliminary_periods
+                                                             , parallel = parallel)
   
   matrix_hmts <- as.data.frame(imputations_complete$matrix_hmts)
   matrix_hmts_index <- as.data.frame(imputations_complete$matrix_hmts_index)
@@ -177,6 +180,7 @@ calculate_hmts_index <- function(
 #' @param number_of_observations number of observations per period (default = TRUE)
 #' @param production_since 1 period in the format of the period_variable. See description above (default = NULL)
 #' @param number_preliminary_periods number of periods that the index is preliminary. Only works if production_since <> NULL. default = 3
+#' @param parallel Logical; whether independent base-period calculations are parallelized.
 #' @return
 #' $Matrix_HMTS_index table with index series based on estimations with time series re-estimations
 #' $Matrix_HMTS table with estimated values based on time series re-estimations
@@ -195,7 +199,8 @@ calculate_hedonic_imputationmatrix <- function(dataset
                                                , categorical_variables
                                                , number_of_observations = TRUE
                                                , production_since = NULL
-                                               , number_preliminary_periods) {
+                                               , number_preliminary_periods
+                                               , parallel = FALSE) {
   
   # Merge all hedonic variables
   independent_variables <- c(numerical_variables, categorical_variables)
@@ -267,53 +272,64 @@ calculate_hedonic_imputationmatrix <- function(dataset
     coefficients_by_period[[reporting_period]] <- fitcoef
   }
   
-  # Loop through all possible base periods
-  for (current_period in seq_len(number_periods)) {
-    
-    # Determine the difference between the number of periods and number of periods from the moment of production
+  calculate_hmts_base_period <- function(current_period) {
     number_periods_production_since <- if (current_period <= production_since_index - number_preliminary_periods) {
       production_since_index
     } else {
       current_period + number_preliminary_periods
     }
     number_periods_production_since <- min(number_periods_production_since, number_periods)
-    
-    # Filter (and index) row numbers per base period
+
     rows_base <- rows_by_period[[ period_list[current_period] ]]
-    X_base <- X_all[rows_base, , drop = FALSE] # hedonic variables (for 1 period)
+    X_base <- X_all[rows_base, , drop = FALSE]
     X_base_means <- colMeans(X_base)
-    
-    # Count all rows for indicator 'number of transactions'
-    if (number_of_observations == TRUE) {
-      number_observations_total[current_period] <- nrow(X_base)
-    }
-    
-    # Define vector for all matrix calculations
+
     hms <- numeric(number_periods_production_since)
 
-    # Loop through all possible reporting periods (within the same base period)
     for (reporting_period in seq_len(number_periods_production_since)) {
       fitcoef <- coefficients_by_period[[reporting_period]]
-      hms[reporting_period] <- exp(sum(X_base_means * fitcoef)) # Transform log values back
-      
+      hms[reporting_period] <- exp(sum(X_base_means * fitcoef))
     }
-    
-    
+
     hmts_temp <- calculate_trend_line_kfas(original_series = hms, resting_points = TRUE)
     hmts <- hmts_temp$trend_line
     hmts_analysis <- hmts_temp$resting_points
     hmts_index <- calculate_index(periods = c(1:number_periods_production_since), values = hmts)
-    
-    calculated_rows <- seq_len(number_periods_production_since)
-    matrix_hmts_values[calculated_rows, current_period] <- hmts
-    matrix_hmts_index_values[calculated_rows, current_period] <- hmts_index
-    
-    if (current_period == 1) {
-      matrix_hmts_analysis <- data.frame(reeks = hmts_analysis$reeks) 
-    }
-    matrix_hmts_analysis[paste0("Base_", period_list[current_period])] <- hmts_analysis$value
+
+    list(
+      current_period = current_period,
+      calculated_rows = seq_len(number_periods_production_since),
+      hmts = hmts,
+      hmts_index = hmts_index,
+      hmts_analysis = hmts_analysis,
+      number_of_observations = nrow(X_base)
+    )
   }
-  
+
+  base_period_results <- run_parallel_tasks(
+    tasks = seq_len(number_periods),
+    task_function = calculate_hmts_base_period,
+    parallel = parallel,
+    fallback_message = "Parallel HMTS calculation failed; falling back to sequential calculation."
+  )
+
+  matrix_hmts_analysis <- data.frame(reeks = base_period_results[[1]]$hmts_analysis$reeks)
+
+  for (base_period_result in base_period_results) {
+    current_period <- base_period_result$current_period
+    calculated_rows <- base_period_result$calculated_rows
+
+    matrix_hmts_values[calculated_rows, current_period] <- base_period_result$hmts
+    matrix_hmts_index_values[calculated_rows, current_period] <- base_period_result$hmts_index
+
+    if (number_of_observations == TRUE) {
+      number_observations_total[current_period] <- base_period_result$number_of_observations
+    }
+
+    matrix_hmts_analysis[paste0("Base_", period_list[current_period])] <-
+      base_period_result$hmts_analysis$value
+  }
+
   matrix_hmts <- data.frame(period = period_list, matrix_hmts_values, check.names = FALSE)
   matrix_hmts_index <- data.frame(period = period_list, matrix_hmts_index_values, check.names = FALSE)
 

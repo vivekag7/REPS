@@ -4,13 +4,14 @@
 #' index mutation in one selected period by recalculating the index while
 #' excluding that observation or unit.
 #'
-#' @author Farley Ishaak, Egbert Hardeman, Vivek Gajadhar
+#' @author Vivek Gajadhar
 #' @param dataset Data frame with input data.
 #' @param index_output Data frame with the original index output.
 #' @param period_variable Name of the period column.
 #' @param calculate_index_function Function that recalculates the index for a target dataset.
 #' @param unit_variable Optional column name identifying units to exclude as groups. If `NULL`, each row in the target period is treated as one unit.
 #' @param index_mutation_period Optional period to analyze. If `NULL`, the latest available period is used.
+#' @param parallel Logical; whether to parallelize leave-one-unit-out recalculations.
 #' @return Data frame with contribution-to-index-mutation results.
 #' @keywords internal
 #' @noRd
@@ -19,7 +20,8 @@ calculate_contribution_indexmutation <- function(dataset,
                                                  period_variable,
                                                  calculate_index_function,
                                                  unit_variable = NULL,
-                                                 index_mutation_period = NULL) {
+                                                 index_mutation_period = NULL,
+                                                 parallel = FALSE) {
   validate_indexmutation_inputs(
     dataset = dataset,
     index_output = index_output,
@@ -55,41 +57,19 @@ calculate_contribution_indexmutation <- function(dataset,
   target_data$.indexmutation_unit_id <- unit_ids
   units <- unique(unit_ids)
 
-  contribution <- data.frame(
-    .indexmutation_unit_id = units,
-    Index_excl_observation = NA_real_,
-    Index_original = index_original,
-    Index_difference = NA_real_,
-    PoP_excl_observation = NA_real_,
-    PoP_original = period_growth_original,
-    PoP_difference = NA_real_,
-    stringsAsFactors = FALSE
-  )
-
   original_names <- names(dataset)
 
-  for (i in seq_along(units)) {
-    unit_id <- units[i]
-    target_without_unit <- target_data[target_data$.indexmutation_unit_id != unit_id, original_names, drop = FALSE]
-    dataset_without_unit <- rbind(other_data[, original_names, drop = FALSE], target_without_unit)
-
-    index_without_unit <- calculate_index_function(dataset_without_unit)
-    index_without_unit <- add_period_growth_to_index(index_without_unit)
-    excluded_row <- index_without_unit[as.character(index_without_unit$period) == index_mutation_period, , drop = FALSE]
-
-    if (nrow(excluded_row) == 1) {
-      index_excl <- excluded_row$Index[1]
-      period_growth_excl <- excluded_row$period_growth[1]
-    } else {
-      index_excl <- NA_real_
-      period_growth_excl <- NA_real_
-    }
-
-    contribution$Index_excl_observation[i] <- index_excl
-    contribution$Index_difference[i] <- index_original - index_excl
-    contribution$PoP_excl_observation[i] <- period_growth_excl
-    contribution$PoP_difference[i] <- period_growth_excl - period_growth_original
-  }
+  contribution <- run_indexmutation_unit_calculations(
+    units = units,
+    target_data = target_data,
+    other_data = other_data,
+    original_names = original_names,
+    index_mutation_period = index_mutation_period,
+    calculate_index_function = calculate_index_function,
+    index_original = index_original,
+    period_growth_original = period_growth_original,
+    parallel = parallel
+  )
 
   format_indexmutation_output(
     target_data = target_data,
@@ -204,4 +184,107 @@ format_indexmutation_output <- function(target_data,
   names(output)[names(output) == ".indexmutation_unit_id"] <- unit_variable
   row.names(output) <- NULL
   output[, c(unit_variable, "period", setdiff(names(output), c(unit_variable, "period"))), drop = FALSE]
+}
+
+#' Run Index Mutation Unit Calculations
+#'
+#' Calculates contribution rows sequentially or in parallel.
+#'
+#' @author Vivek Gajadhar
+#' @param units Unit identifiers to exclude one at a time.
+#' @param target_data Data for the analyzed period.
+#' @param other_data Data for periods outside the analyzed period.
+#' @param original_names Original dataset column names.
+#' @param index_mutation_period Period analyzed for contribution.
+#' @param calculate_index_function Function that recalculates the index for a target dataset.
+#' @param index_original Original index value in the analyzed period.
+#' @param period_growth_original Original period-over-period growth in the analyzed period.
+#' @param parallel Logical; whether parallel execution is requested.
+#' @return Data frame with one contribution row per unit.
+#' @keywords internal
+#' @noRd
+run_indexmutation_unit_calculations <- function(units,
+                                                target_data,
+                                                other_data,
+                                                original_names,
+                                                index_mutation_period,
+                                                calculate_index_function,
+                                                index_original,
+                                                period_growth_original,
+                                                parallel = FALSE) {
+  task_function <- function(unit_id) {
+    calculate_indexmutation_unit_contribution(
+      unit_id = unit_id,
+      target_data = target_data,
+      other_data = other_data,
+      original_names = original_names,
+      index_mutation_period = index_mutation_period,
+      calculate_index_function = calculate_index_function,
+      index_original = index_original,
+      period_growth_original = period_growth_original
+    )
+  }
+
+  results <- run_parallel_tasks(
+    tasks = units,
+    task_function = task_function,
+    parallel = parallel,
+    fallback_message = "Parallel index mutation failed; falling back to sequential calculation."
+  )
+
+  do.call(rbind, results)
+}
+
+#' Calculate One Index Mutation Contribution Row
+#'
+#' Recalculates the index with one unit excluded and returns its contribution
+#' values.
+#'
+#' @author Vivek Gajadhar
+#' @param unit_id Unit identifier to exclude.
+#' @inheritParams run_indexmutation_unit_calculations
+#' @return One-row data frame with contribution values for the excluded unit.
+#' @keywords internal
+#' @noRd
+calculate_indexmutation_unit_contribution <- function(unit_id,
+                                                      target_data,
+                                                      other_data,
+                                                      original_names,
+                                                      index_mutation_period,
+                                                      calculate_index_function,
+                                                      index_original,
+                                                      period_growth_original) {
+  target_without_unit <- target_data[
+    target_data$.indexmutation_unit_id != unit_id,
+    original_names,
+    drop = FALSE
+  ]
+  dataset_without_unit <- rbind(other_data[, original_names, drop = FALSE], target_without_unit)
+
+  index_without_unit <- calculate_index_function(dataset_without_unit)
+  index_without_unit <- add_period_growth_to_index(index_without_unit)
+  excluded_row <- index_without_unit[
+    as.character(index_without_unit$period) == index_mutation_period,
+    ,
+    drop = FALSE
+  ]
+
+  if (nrow(excluded_row) == 1) {
+    index_excl <- excluded_row$Index[1]
+    period_growth_excl <- excluded_row$period_growth[1]
+  } else {
+    index_excl <- NA_real_
+    period_growth_excl <- NA_real_
+  }
+
+  data.frame(
+    .indexmutation_unit_id = unit_id,
+    Index_excl_observation = index_excl,
+    Index_original = index_original,
+    Index_difference = index_original - index_excl,
+    PoP_excl_observation = period_growth_excl,
+    PoP_original = period_growth_original,
+    PoP_difference = period_growth_excl - period_growth_original,
+    stringsAsFactors = FALSE
+  )
 }

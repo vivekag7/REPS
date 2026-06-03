@@ -18,6 +18,7 @@
 #' @param categorical_variables vector with quality determining categorical variables (also dummies)
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @param number_of_observations number of observations per period (default = TRUE)
+#' @param parallel Logical; whether independent Laspeyres and Paasche calculations are parallelized.
 #' @return
 #' table with index, imputation averages, number of observations and confidence intervals per period
 #' @keywords internal
@@ -28,27 +29,42 @@ calculate_fisher <- function(dataset
                              , numerical_variables
                              , categorical_variables
                              , reference_period = NULL
-                             , number_of_observations = FALSE) {
+                             , number_of_observations = FALSE
+                             , parallel = FALSE) {
 
-  # Calculate Laspeyres with 1th period = 100
-  laspeyres <- calculate_laspeyres(dataset = dataset
-                                   , period_variable = period_variable
-                                   , dependent_variable = dependent_variable
-                                   , numerical_variables = numerical_variables
-                                   , categorical_variables = categorical_variables
-                                   , reference_period = NULL
-                                   , number_of_observations = number_of_observations
-                                   , imputation = FALSE)
+  calculate_fisher_component <- function(component) {
+    if (component == "laspeyres") {
+      return(calculate_laspeyres(dataset = dataset
+                                 , period_variable = period_variable
+                                 , dependent_variable = dependent_variable
+                                 , numerical_variables = numerical_variables
+                                 , categorical_variables = categorical_variables
+                                 , reference_period = NULL
+                                 , number_of_observations = number_of_observations
+                                 , imputation = FALSE))
+    }
 
-  # Calculate Paasche with 1th period = 100
-  paasche <- calculate_paasche(dataset = dataset
-                               , period_variable = period_variable
-                               , dependent_variable = dependent_variable
-                               , numerical_variables = numerical_variables
-                               , categorical_variables = categorical_variables
-                               , reference_period = NULL
-                               , number_of_observations = number_of_observations
-                               , imputation = FALSE)
+    calculate_paasche(dataset = dataset
+                      , period_variable = period_variable
+                      , dependent_variable = dependent_variable
+                      , numerical_variables = numerical_variables
+                      , categorical_variables = categorical_variables
+                      , reference_period = NULL
+                      , number_of_observations = number_of_observations
+                      , imputation = FALSE
+                      , parallel = FALSE)
+  }
+
+  component_results <- run_parallel_tasks(
+    tasks = c("laspeyres", "paasche"),
+    task_function = calculate_fisher_component,
+    parallel = parallel,
+    fallback_message = "Parallel Fisher calculation failed; falling back to sequential calculation."
+  )
+  names(component_results) <- c("laspeyres", "paasche")
+
+  laspeyres <- component_results$laspeyres
+  paasche <- component_results$paasche
 
   # Calculate Fisher (= geometric average)
   Index <- sqrt(laspeyres$Index * paasche$Index)

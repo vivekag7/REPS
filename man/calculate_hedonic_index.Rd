@@ -15,6 +15,7 @@ calculate_hedonic_index(
   number_of_observations = TRUE,
   chained = FALSE,
   index_mutation = FALSE,
+  parallel = FALSE,
   ...
 )
 }
@@ -38,6 +39,8 @@ calculate_hedonic_index(
 \item{chained}{Logical. If TRUE, calculates a chained index using the Annual Overlap Method. Default is FALSE.}
 
 \item{index_mutation}{Logical. If TRUE, calculates a contribution-to-index-mutation table for one method. Default is FALSE.}
+
+\item{parallel}{Logical. If TRUE, independent calculations are parallelized where useful. Default is FALSE.}
 
 \item{...}{Additional method-specific arguments passed to the underlying functions:
 \itemize{

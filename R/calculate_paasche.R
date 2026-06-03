@@ -19,6 +19,7 @@
 #' @param reference_period period or group of periods that will be set to 100 (numeric/string)
 #' @param number_of_observations number of observations per period (default = TRUE)
 #' @param imputation display the underlying average imputation values? (default = FALSE)
+#' @param parallel Logical; whether independent period-level calculations are parallelized.
 #' @return
 #' table with index, imputation averages, number of observations and confidence intervals per period
 #' @keywords internal
@@ -30,7 +31,8 @@ calculate_paasche <- function(dataset
                               , categorical_variables
                               , reference_period = NULL
                               , number_of_observations = FALSE
-                              , imputation = FALSE) {
+                              , imputation = FALSE
+                              , parallel = FALSE) {
 
   # 1. PREPARE DATA
   clean_data <- prepare_hedonic_data(
@@ -62,13 +64,11 @@ calculate_paasche <- function(dataset
     NULL
   }
 
-  for (imputation_period in 1:number_of_periods) {
-
-    # Select the last and first period
-    period_list_paasche <- c(period_list[number_of_periods_temp], period_list[1])
+  calculate_paasche_period <- function(imputation_period) {
+    period_index <- number_of_periods - imputation_period + 1
+    period_list_paasche <- c(period_list[period_index], period_list[1])
     dataset_temp <- clean_data[period_values %in% period_list_paasche, , drop = FALSE]
 
-    # Calculate Paasche imputations and numbers
     tbl_average_imputation <-
       calculate_hedonic_imputation(dataset_temp = dataset_temp
                                    , period_temp = period_variable
@@ -76,31 +76,51 @@ calculate_paasche <- function(dataset
                                    , independent_variables_temp = independent_variables
                                    , number_of_observations_temp = number_of_observations
                                    , period_list_temp = period_list_paasche)
+
+    list(
+      imputation_period = imputation_period,
+      period_index = period_index,
+      average_imputation = tbl_average_imputation,
+      index = tbl_average_imputation$average_imputation[1] /
+        tbl_average_imputation$average_imputation[2] * 100,
+      number = if (number_of_observations) {
+        tbl_average_imputation$number_of_observations[1]
+      } else {
+        NA_integer_
+      }
+    )
+  }
+
+  period_results <- run_parallel_tasks(
+    tasks = seq_len(number_of_periods),
+    task_function = calculate_paasche_period,
+    parallel = parallel,
+    fallback_message = "Parallel Paasche calculation failed; falling back to sequential calculation."
+  )
+
+  for (period_result in period_results) {
+    imputation_period <- period_result$imputation_period
+    period_index <- period_result$period_index
+    tbl_average_imputation <- period_result$average_imputation
+
     if (imputation == TRUE) {
       imputation_matrix[
         match(tbl_average_imputation$period, period_list),
-        number_of_periods_temp
+        period_index
       ] <- tbl_average_imputation$average_imputation
     }
-    
 
     if (number_of_observations == TRUE) {
-      # Insert imputations into table
-      number[imputation_period] <- tbl_average_imputation$number_of_observations[1]
+      number[imputation_period] <- period_result$number
     }
 
-    # Insert last index figure into vector
-    Index[imputation_period] <- tbl_average_imputation$average_imputation[1] / tbl_average_imputation$average_imputation[2] * 100
-
-    # Stepwise delete last period
-    number_of_periods_temp <- number_of_periods_temp - 1
-
+    Index[imputation_period] <- period_result$index
   }
 
   # Reverse the index series (last period was calculated first)
-  Index <- Index[imputation_period:1]
+  Index <- Index[number_of_periods:1]
   if (number_of_observations == TRUE) {
-    number <- number[imputation_period:1]
+    number <- number[number_of_periods:1]
   }
 
   # 2. FORMAT OUTPUT

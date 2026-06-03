@@ -232,6 +232,33 @@ test_that("index_mutation output is only available for single-method calculation
 })
 
 
+test_that("parallel hedonic index output matches sequential output", {
+  sequential_result <- calculate_hedonic_index(
+    method = c("fisher", "paasche"),
+    dataset = data_constraxion,
+    period_variable = "period",
+    dependent_variable = "price",
+    numerical_variables = "floor_area",
+    categorical_variables = "neighbourhood_code",
+    reference_period = 2015,
+    parallel = FALSE
+  )
+
+  parallel_result <- calculate_hedonic_index(
+    method = c("fisher", "paasche"),
+    dataset = data_constraxion,
+    period_variable = "period",
+    dependent_variable = "price",
+    numerical_variables = "floor_area",
+    categorical_variables = "neighbourhood_code",
+    reference_period = 2015,
+    parallel = TRUE
+  )
+
+  expect_equal(parallel_result, sequential_result, tolerance = 1e-8)
+})
+
+
 test_that("index_mutation returns index and contribution tables", {
   tiny_data <- data.frame(
     period = rep(c("2020Q1", "2020Q2", "2020Q3"), each = 4),

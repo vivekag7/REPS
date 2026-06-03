@@ -9,7 +9,8 @@ calculate_regression_diagnostics(
   period_variable,
   dependent_variable,
   numerical_variables = NULL,
-  categorical_variables = NULL
+  categorical_variables = NULL,
+  parallel = FALSE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ calculate_regression_diagnostics(
 \item{numerical_variables}{Vector of numerical independent variables (default = NULL)}
 
 \item{categorical_variables}{Vector of categorical independent variables (default = NULL)}
+
+\item{parallel}{Logical; whether independent period-level diagnostics are parallelized.}
 }
 \value{
 A data.frame with diagnostics by period

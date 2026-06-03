@@ -12,6 +12,7 @@
 #' @param dependent_variable Name of the dependent variable (string)
 #' @param numerical_variables Vector of numerical independent variables (default = NULL)
 #' @param categorical_variables Vector of categorical independent variables (default = NULL)
+#' @param parallel Logical; whether independent period-level diagnostics are parallelized.
 #' @return A data.frame with diagnostics by period
 #' @importFrom stats lm shapiro.test
 #' @importFrom lmtest dwtest bptest
@@ -30,7 +31,8 @@ calculate_regression_diagnostics <- function(dataset,
                                   period_variable,
                                   dependent_variable,
                                   numerical_variables = NULL,
-                                  categorical_variables = NULL) {
+                                  categorical_variables = NULL,
+                                  parallel = FALSE) {
   
   validate_input(
     dataset = dataset,
@@ -60,13 +62,10 @@ calculate_regression_diagnostics <- function(dataset,
   # Loop over periods
   periods <- sort(unique(dataset[[period_variable]]))
   rows_by_period <- split(seq_len(nrow(dataset)), dataset[[period_variable]])
-  diagnostics_list <- vector("list", length(periods))
-
-  for (i in seq_along(periods)) {
-    p <- periods[i]
+  calculate_period_diagnostics <- function(p) {
     df <- dataset[rows_by_period[[p]], , drop = FALSE]
     if (nrow(df) < 3) {
-      next
+      return(NULL)
     }
     
     # Use centralized helper for fitting
@@ -77,7 +76,7 @@ calculate_regression_diagnostics <- function(dataset,
     ), silent = TRUE)
     
     if (inherits(mod, "try-error")) {
-      next
+      return(NULL)
     }
     
     # 1. Shapiro-Wilk test
@@ -104,7 +103,7 @@ calculate_regression_diagnostics <- function(dataset,
     }
     
     # Return row
-    diagnostics_list[[i]] <- data.frame(
+    data.frame(
       period = p,
       norm_pvalue = norm_pvalue,
       r_adjust = r_adjust,
@@ -114,6 +113,13 @@ calculate_regression_diagnostics <- function(dataset,
       stringsAsFactors = FALSE
     )
   }
+
+  diagnostics_list <- run_parallel_tasks(
+    tasks = periods,
+    task_function = calculate_period_diagnostics,
+    parallel = parallel,
+    fallback_message = "Parallel regression diagnostics failed; falling back to sequential calculation."
+  )
   
   diagnostics <- do.call(rbind, diagnostics_list)
   rownames(diagnostics) <- NULL

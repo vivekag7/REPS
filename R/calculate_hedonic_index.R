@@ -13,6 +13,7 @@
 #' @param number_of_observations Logical, whether to show number of observations (default = TRUE)
 #' @param chained Logical. If TRUE, calculates a chained index using the Annual Overlap Method. Default is FALSE.
 #' @param index_mutation Logical. If TRUE, calculates a contribution-to-index-mutation table for one method. Default is FALSE.
+#' @param parallel Logical. If TRUE, independent calculations are parallelized where useful. Default is FALSE.
 #' @param ... Additional method-specific arguments passed to the underlying functions:
 #' \itemize{
 #'   \item \code{periods_in_year}: (Required for Repricing) Number of periods per year (e.g. 12 for months, 4 for quarters)
@@ -59,9 +60,11 @@ calculate_hedonic_index <- function(dataset,
                                     number_of_observations = TRUE,
                                     chained = FALSE,
                                     index_mutation = FALSE,
+                                    parallel = FALSE,
                                     ...) {
   method <- validate_hedonic_index_methods(method)
   extra_args <- list(...)
+  extra_args$parallel <- parallel
 
   validate_hedonic_index_options(
     method = method,
@@ -78,33 +81,66 @@ calculate_hedonic_index <- function(dataset,
     categorical_variables
   )
 
-  run_method <- function(method_name, target_dataset, target_reference_period) {
-    run_hedonic_index_method(
-      method = method_name,
-      dataset = target_dataset,
-      period_variable = period_variable,
-      dependent_variable = dependent_variable,
-      numerical_variables = numerical_variables,
-      categorical_variables = categorical_variables,
-      reference_period = target_reference_period,
-      number_of_observations = number_of_observations,
-      extra_args = extra_args
-    )
+  make_run_method <- function(method_extra_args) {
+    function(method_name, target_dataset, target_reference_period) {
+      run_hedonic_index_method(
+        method = method_name,
+        dataset = target_dataset,
+        period_variable = period_variable,
+        dependent_variable = dependent_variable,
+        numerical_variables = numerical_variables,
+        categorical_variables = categorical_variables,
+        reference_period = target_reference_period,
+        number_of_observations = number_of_observations,
+        extra_args = method_extra_args
+      )
+    }
   }
 
-  result <- lapply(method, function(method_name) {
+  run_method <- make_run_method(extra_args)
+  method_calculation_args <- extra_args
+  if (isTRUE(parallel) && length(method) > 1) {
+    method_calculation_args$parallel <- FALSE
+  }
+  run_method_for_method_calculation <- make_run_method(method_calculation_args)
+
+  calculate_method_result <- function(method_name) {
     calculate_single_hedonic_index_method(
       method = method_name,
       dataset = dataset,
       period_variable = period_variable,
       reference_period = reference_period,
       chained = chained,
-      run_method = run_method
+      run_method = run_method_for_method_calculation
     )
-  })
+  }
+
+  result <- run_parallel_tasks(
+    tasks = method,
+    task_function = calculate_method_result,
+    parallel = isTRUE(parallel) && length(method) > 1,
+    fallback_message = "Parallel method calculation failed; falling back to sequential calculation."
+  )
 
   if (length(method) == 1) {
     if (isTRUE(index_mutation)) {
+      index_mutation_extra_args <- extra_args
+      index_mutation_extra_args$parallel <- FALSE
+
+      run_index_mutation_method <- function(method_name, target_dataset, target_reference_period) {
+        run_hedonic_index_method(
+          method = method_name,
+          dataset = target_dataset,
+          period_variable = period_variable,
+          dependent_variable = dependent_variable,
+          numerical_variables = numerical_variables,
+          categorical_variables = categorical_variables,
+          reference_period = target_reference_period,
+          number_of_observations = number_of_observations,
+          extra_args = index_mutation_extra_args
+        )
+      }
+
       mutation_result <- calculate_contribution_indexmutation(
         dataset = dataset,
         index_output = result[[1]],
@@ -116,11 +152,12 @@ calculate_hedonic_index <- function(dataset,
             period_variable = period_variable,
             reference_period = reference_period,
             chained = chained,
-            run_method = run_method
+            run_method = run_index_mutation_method
           )
         },
         unit_variable = extra_args$unit_variable,
-        index_mutation_period = extra_args$index_mutation_period
+        index_mutation_period = extra_args$index_mutation_period,
+        parallel = parallel
       )
 
       return(list(

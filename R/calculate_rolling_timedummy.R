@@ -11,6 +11,7 @@
 #' @param reference_period period to be normalized to index = 100 (e.g., "2015")
 #' @param window_length length of each rolling window (integer)
 #' @param number_of_observations logical, whether to return number of observations per period (default = FALSE)
+#' @param parallel Logical; whether independent rolling-window models are parallelized.
 #' @return data frame with period, Index, and optionally number_of_observations
 #' @importFrom stats setNames
 #' @importFrom utils tail
@@ -24,50 +25,46 @@ calculate_rolling_timedummy <- function(dataset,
                                         categorical_variables,
                                         reference_period,
                                         window_length,
-                                        number_of_observations = FALSE) {
+                                        number_of_observations = FALSE,
+                                        parallel = FALSE) {
   # Get all periods sorted chronologically
   period_values <- as.character(dataset[[period_variable]])
   periods_all <- sort(unique(period_values))
   
-  # First rolling window
-  initial_window_periods <- periods_all[1:window_length]
-  window_data <- dataset[period_values %in% initial_window_periods, , drop = FALSE]
-  
-  # Run time dummy index for initial window
-  initial_index <- calculate_time_dummy(
-    dataset = window_data,
-    period_variable = period_variable,
-    dependent_variable = dependent_variable,
-    numerical_variables = numerical_variables,
-    categorical_variables = categorical_variables
-  )
-  
-  # Convert index to growth rates
   growth_rates <- numeric(length(periods_all))
   names(growth_rates) <- periods_all
-  initial_growth_rates <- calculate_growth_rate(stats::setNames(initial_index$Index, initial_index$period))
-  growth_rates[initial_index$period] <- initial_growth_rates
-  
-  # Loop through remaining rolling windows
   last_window_start <- length(periods_all) - window_length + 1
-  if (last_window_start >= 2) {
-    for (start in 2:last_window_start) {
-      window_periods <- periods_all[start:(start + window_length - 1)]
-      window_data <- dataset[period_values %in% window_periods, , drop = FALSE]
 
-      # Calculate index for new window
-      new_index <- calculate_time_dummy(
+  calculate_window_index <- function(start) {
+    window_periods <- periods_all[start:(start + window_length - 1)]
+    window_data <- dataset[period_values %in% window_periods, , drop = FALSE]
+
+    calculate_time_dummy(
         dataset = window_data,
         period_variable = period_variable,
         dependent_variable = dependent_variable,
         numerical_variables = numerical_variables,
         categorical_variables = categorical_variables
-      )
+    )
+  }
 
-      # Append last growth rate from new window
-      new_growth_rates <- calculate_growth_rate(stats::setNames(new_index$Index, new_index$period))
-      last_period <- utils::tail(new_index$period, 1)
-      growth_rates[last_period] <- utils::tail(new_growth_rates, 1)
+  window_starts <- seq_len(last_window_start)
+  window_results <- run_parallel_tasks(
+    tasks = window_starts,
+    task_function = calculate_window_index,
+    parallel = parallel,
+    fallback_message = "Parallel rolling time dummy calculation failed; falling back to sequential calculation."
+  )
+
+  for (i in seq_along(window_results)) {
+    window_index <- window_results[[i]]
+    window_growth_rates <- calculate_growth_rate(stats::setNames(window_index$Index, window_index$period))
+
+    if (i == 1) {
+      growth_rates[window_index$period] <- window_growth_rates
+    } else {
+      last_period <- utils::tail(window_index$period, 1)
+      growth_rates[last_period] <- utils::tail(window_growth_rates, 1)
     }
   }
   

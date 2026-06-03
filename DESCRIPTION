@@ -35,7 +35,8 @@ Imports:
     stats,
     KFAS,
     stringr,
-    lmtest
+    lmtest,
+    parallel
 Suggests:
     knitr,
     rmarkdown,
