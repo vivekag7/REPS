@@ -30,17 +30,19 @@ validate_input <- function(dataset, period_variable, dependent_variable, numeric
   
   # Dataset must contain all required columns
   required_cols <- c(period_variable, dependent_variable, numerical_variables, categorical_variables)
-  missing_cols <- required_cols[!required_cols %in% names(dataset)]
+  dataset_names <- names(dataset)
+  missing_cols <- required_cols[!required_cols %in% dataset_names]
   if (length(missing_cols) > 0) {
     stop("Dataset is missing the following required column(s): ", paste(missing_cols, collapse = ", "))
   }
   
   # Dependent and numerical variables must be numeric
   numeric_cols <- c(dependent_variable, numerical_variables)
-  for (col in numeric_cols) {
-    if (!is.numeric(dataset[[col]])) {
-      stop(paste("Column", col, "is not numeric."))
-    }
+  numeric_checks <- vapply(numeric_cols, function(col) {
+    is.numeric(dataset[[col]])
+  }, logical(1))
+  if (!all(numeric_checks)) {
+    stop(paste("Column", numeric_cols[!numeric_checks][1], "is not numeric."))
   }
   
   # Dependent variable must contain strictly positive values for log transformation
@@ -50,7 +52,8 @@ validate_input <- function(dataset, period_variable, dependent_variable, numeric
   
   # Period variable should match standard formats for correct ordering and grouping
   regex_period <- "^([0-9]{4}([Mm](0?[1-9]|1[0-2])|[Qq](0?[1-4]))|[0-9]{6}|[0-9]{4})$"
-  invalid_periods <- dataset[[period_variable]][!stringr::str_detect(dataset[[period_variable]], regex_period)]
+  period_values <- dataset[[period_variable]]
+  invalid_periods <- period_values[!stringr::str_detect(period_values, regex_period)]
   if (length(invalid_periods) > 0) {
     warning("The period variable contains values that do not match a recognized format.\nRecommended formats include: 2020Q1, 2020q1, 2020M1, 2020M01, 2020m01, 202001, or 2020.\nInvalid examples found: ", paste(unique(invalid_periods), collapse = ", "),
             "\nBe aware that sorting within the model may not be handled correctly for your period variables.")
@@ -58,7 +61,7 @@ validate_input <- function(dataset, period_variable, dependent_variable, numeric
   
   # Handle reference_period
   if (!is.null(reference_period)) {
-    actual_periods <- as.character(dataset[[period_variable]])
+    actual_periods <- as.character(period_values)
     reference_period <- as.character(reference_period)
     
     # Create shortened periods

@@ -48,9 +48,11 @@ calculate_time_dummy <- function(dataset,
   log_time_dummies <- stats::setNames(rep(0, length(period_levels)), period_levels)
   time_dummy_names <- grep(paste0("^", period_variable), names(coefs), value = TRUE)
   
-  for (name in time_dummy_names) {
-    level <- sub(paste0("^", period_variable), "", name)
-    if(level %in% names(log_time_dummies)) log_time_dummies[level] <- coefs[name]
+  if (length(time_dummy_names) > 0) {
+    dummy_levels <- sub(paste0("^", period_variable), "", time_dummy_names)
+    dummy_positions <- match(dummy_levels, names(log_time_dummies))
+    valid_positions <- !is.na(dummy_positions)
+    log_time_dummies[dummy_positions[valid_positions]] <- coefs[time_dummy_names[valid_positions]]
   }
   
   # Base index values 

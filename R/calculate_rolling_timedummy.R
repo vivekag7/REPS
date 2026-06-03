@@ -26,11 +26,12 @@ calculate_rolling_timedummy <- function(dataset,
                                         window_length,
                                         number_of_observations = FALSE) {
   # Get all periods sorted chronologically
-  periods_all <- sort(unique(as.character(dataset[[period_variable]])))
+  period_values <- as.character(dataset[[period_variable]])
+  periods_all <- sort(unique(period_values))
   
   # First rolling window
   initial_window_periods <- periods_all[1:window_length]
-  window_data <- dataset[dataset[[period_variable]] %in% initial_window_periods, ]
+  window_data <- dataset[period_values %in% initial_window_periods, , drop = FALSE]
   
   # Run time dummy index for initial window
   initial_index <- calculate_time_dummy(
@@ -42,43 +43,48 @@ calculate_rolling_timedummy <- function(dataset,
   )
   
   # Convert index to growth rates
-  growth_rates <- calculate_growth_rate(setNames(initial_index$Index, initial_index$period))
+  growth_rates <- numeric(length(periods_all))
+  names(growth_rates) <- periods_all
+  initial_growth_rates <- calculate_growth_rate(stats::setNames(initial_index$Index, initial_index$period))
+  growth_rates[initial_index$period] <- initial_growth_rates
   
   # Loop through remaining rolling windows
-  window_starts <- 2:(length(periods_all) - window_length + 1)
-  for (start in window_starts) {
-    window_periods <- periods_all[start:(start + window_length - 1)]
-    window_data <- dataset[dataset[[period_variable]] %in% window_periods, ]
-    
-    # Calculate index for new window
-    new_index <- calculate_time_dummy(
-      dataset = window_data,
-      period_variable = period_variable,
-      dependent_variable = dependent_variable,
-      numerical_variables = numerical_variables,
-      categorical_variables = categorical_variables
-    )
-    
-    # Append last growth rate from new window
-    last_growth <- tail(calculate_growth_rate(setNames(new_index$Index, new_index$period)), 1)
-    growth_rates <- c(growth_rates, setNames(last_growth, tail(new_index$period, 1)))
+  last_window_start <- length(periods_all) - window_length + 1
+  if (last_window_start >= 2) {
+    for (start in 2:last_window_start) {
+      window_periods <- periods_all[start:(start + window_length - 1)]
+      window_data <- dataset[period_values %in% window_periods, , drop = FALSE]
+
+      # Calculate index for new window
+      new_index <- calculate_time_dummy(
+        dataset = window_data,
+        period_variable = period_variable,
+        dependent_variable = dependent_variable,
+        numerical_variables = numerical_variables,
+        categorical_variables = categorical_variables
+      )
+
+      # Append last growth rate from new window
+      new_growth_rates <- calculate_growth_rate(stats::setNames(new_index$Index, new_index$period))
+      last_period <- utils::tail(new_index$period, 1)
+      growth_rates[last_period] <- utils::tail(new_growth_rates, 1)
+    }
   }
   
   # Build final index series based on chained growth rates
-  df_result <- data.frame(period = periods_all)
-  df_result$Index <- calculate_index(df_result$period, cumprod(growth_rates) * 100, reference_period)
+  index_values <- calculate_index(periods_all, cumprod(growth_rates) * 100, reference_period)
   
   # Optionally add number of observations
+  obs_counts <- NULL
   if (number_of_observations) {
-    counts <- table(dataset[dataset[[period_variable]] %in% periods_all, period_variable])
-    obs_df <- data.frame(period = names(counts), number_of_observations = as.integer(counts))
-    df_result <- merge(df_result, obs_df, by = "period", all.x = TRUE)
-    
-    # Reorder columns
-    df_result <- df_result[, c("period", "number_of_observations", "Index")]
-    
-    }
+    counts <- table(period_values)
+    obs_counts <- as.integer(counts[periods_all])
+  }
   
-    
-  return(df_result)
+  format_index_output(
+    periods = periods_all,
+    index_values = index_values,
+    reference_period = NULL,
+    observation_counts = obs_counts
+  )
 }

@@ -249,13 +249,17 @@ validate_hedonic_index_options <- function(method, chained, index_mutation, extr
 #' @keywords internal
 #' @noRd
 get_hedonic_index_method_function <- function(method) {
-  target_function_name <- hedonic_index_method_functions()[[method]]
-
-  if (is.null(target_function_name)) {
+  switch(
+    method,
+    fisher = calculate_fisher,
+    laspeyres = calculate_laspeyres,
+    paasche = calculate_paasche,
+    hmts = calculate_hmts,
+    timedummy = calculate_time_dummy,
+    rolling_timedummy = calculate_rolling_timedummy,
+    repricing = calculate_repricing,
     stop("Invalid method: ", method)
-  }
-
-  get(target_function_name, mode = "function")
+  )
 }
 
 #' Resolve Method-Specific Extra Arguments

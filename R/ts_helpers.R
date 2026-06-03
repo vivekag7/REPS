@@ -327,14 +327,14 @@ smooth_ts <- function(fittedmodel) {
   analyse_ts[11, ] <- c('Slope std.error (last period)', round(state.est.n[2,2], 4))
   analyse_ts[12, ] <- c('Slope t-value (last period)', round(state.est.n[2,3], 4))
   
-  conf_series1 <- stats::predict(fittedmodel, interval = "confidence", level = 0.95)
-  LB <- signal - stats::qnorm(0.975) * sqrt(signalvar)
-  UB <- signal + stats::qnorm(0.975) * sqrt(signalvar)
+  z_975 <- stats::qnorm(0.975)
+  LB <- signal - z_975 * sqrt(signalvar)
+  UB <- signal + z_975 * sqrt(signalvar)
   signalconf <- cbind(signal, LB, UB)
   # signalconf - conf_series1
   
-  LBtrend <- signalsub - stats::qnorm(0.975) * sqrt(signalsubvar)
-  UBtrend <- signalsub + stats::qnorm(0.975) * sqrt(signalsubvar)
+  LBtrend <- signalsub - z_975 * sqrt(signalsubvar)
+  UBtrend <- signalsub + z_975 * sqrt(signalsubvar)
   signalsubconf <- cbind(trend=signalsub, LB=LBtrend, UB=UBtrend)
   
   return(list(out_KFS=out_KFS, signal=signal, signalvar=signalvar, signalconf=signalconf,

@@ -46,19 +46,27 @@ calculate_paasche <- function(dataset
   # Create list of periods
   period_list <- sort(unique(clean_data[[period_variable]]), decreasing = FALSE)
   number_of_periods <- number_of_periods_temp <- length(period_list)
-
-  # Prepare table for imputations
-  tbl_imputations <- data.frame(period = period_list)
+  period_values <- clean_data[[period_variable]]
 
   # Prepare vector for index and numbers
-  Index <- c(0)
-  number <- c(0)
+  Index <- numeric(number_of_periods)
+  number <- if (number_of_observations) integer(number_of_periods) else NULL
+  imputation_matrix <- if (imputation) {
+    matrix(
+      NA_real_,
+      nrow = number_of_periods,
+      ncol = number_of_periods,
+      dimnames = list(period_list, paste0("Base_", period_list))
+    )
+  } else {
+    NULL
+  }
 
   for (imputation_period in 1:number_of_periods) {
 
     # Select the last and first period
     period_list_paasche <- c(period_list[number_of_periods_temp], period_list[1])
-    dataset_temp <- clean_data[clean_data[[period_variable]] %in% period_list_paasche, ]
+    dataset_temp <- clean_data[period_values %in% period_list_paasche, , drop = FALSE]
 
     # Calculate Paasche imputations and numbers
     tbl_average_imputation <-
@@ -69,14 +77,10 @@ calculate_paasche <- function(dataset
                                    , number_of_observations_temp = number_of_observations
                                    , period_list_temp = period_list_paasche)
     if (imputation == TRUE) {
-      # Retain columns that are necessary for imputations
-      tbl_merge <- tbl_average_imputation[, c("period", "average_imputation")]
-      
-      # Insert imputations into table
-      tbl_imputations <- merge(tbl_imputations, tbl_merge, by = "period", all.x = TRUE)
-      
-      # Rename variable to base year
-      names(tbl_imputations)[ncol(tbl_imputations)] <- paste0("Base_", period_list[number_of_periods_temp])
+      imputation_matrix[
+        match(tbl_average_imputation$period, period_list),
+        number_of_periods_temp
+      ] <- tbl_average_imputation$average_imputation
     }
     
 
@@ -95,7 +99,9 @@ calculate_paasche <- function(dataset
 
   # Reverse the index series (last period was calculated first)
   Index <- Index[imputation_period:1]
-  number <- number[imputation_period:1]
+  if (number_of_observations == TRUE) {
+    number <- number[imputation_period:1]
+  }
 
   # 2. FORMAT OUTPUT
   obs_counts <- if (number_of_observations) number else NULL
@@ -109,12 +115,11 @@ calculate_paasche <- function(dataset
 
   # Safely handle the imputation matrix attachment
   if (imputation == TRUE) {
-    number_of_periods_plus_1 <- number_of_periods + 1
-    column_start <- if (number_of_observations) 2 else 1
-    tbl_imputations <- tbl_imputations[, c(1, number_of_periods_plus_1:column_start)] # Reverse the table
-    tbl_imputations <- unique.data.frame(tbl_imputations)
-    tbl_imputations <- data.frame(period = period_list, Imputation = diag(as.matrix(tbl_imputations[, 2:ncol(tbl_imputations)])))
-    paasche <- merge(paasche, tbl_imputations, by = "period")
+    imputation_source <- as.data.frame(imputation_matrix, check.names = FALSE)
+    if (!number_of_observations) {
+      imputation_source$period <- period_list
+    }
+    paasche$Imputation <- diag(as.matrix(imputation_source))
   }
 
   return(paasche)

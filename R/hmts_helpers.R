@@ -85,12 +85,13 @@ calculate_hmts_index <- function(
   start_window <- 2
   
   if (number_preliminary_periods != number_of_periods) {
+    window_rows <- vector("list", number_of_periods)
     
     for (current_period in 1:number_of_periods) {
       
       if (current_period == 1) {
-        window <- imputations[current_period, c(current_period:(number_preliminary_periods + start_window))]
-        window$period <- NULL
+        window_row <- imputations[current_period, c(current_period:(number_preliminary_periods + start_window))]
+        window_row$period <- NULL
         end_window <- start_window
         start_window_update <- start_window + 1
       }
@@ -98,39 +99,34 @@ calculate_hmts_index <- function(
       if (current_period > 1 && current_period <= number_preliminary_periods + 1) {
         # end_window <- end_window + 1
         end_window <- number_preliminary_periods + start_window
-        window <- dplyr::bind_rows(window, as.data.frame(imputations[current_period, c(start_window:end_window)]))
+        window_row <- as.data.frame(imputations[current_period, c(start_window:end_window)])
       }
       
       if (current_period > number_preliminary_periods + 1) {
         end_window <- end_window + 1
         if (number_preliminary_periods == 0) {
-          window_plus_1 <- as.data.frame(imputations[current_period, c((start_window_update - 1):end_window)])
-          window_plus_1[, 1] <- NA
-          window <- dplyr::bind_rows(window, window_plus_1)
+          window_row <- as.data.frame(imputations[current_period, c((start_window_update - 1):end_window)])
+          window_row[, 1] <- NA
         } else {
-          window <- dplyr::bind_rows(window, as.data.frame(imputations[current_period, c(start_window_update:end_window)]))
+          window_row <- as.data.frame(imputations[current_period, c(start_window_update:end_window)])
         }
         start_window_update <- start_window_update + 1
       }
       
+      window_rows[[current_period]] <- window_row
     }
     
+    window <- dplyr::bind_rows(window_rows)
   }
   
   if (number_preliminary_periods == number_of_periods) {
     window <- imputations[, -1]
   }
   
-  window_transposed <- as.data.frame(t(window))
-  geometric_averages <- c()
-  
-  for (current_period in 1:number_of_periods) {
-    
-    geometric_average <- calculate_geometric_average(na.omit(window_transposed[, current_period]))
-    
-    geometric_averages[current_period] <- geometric_average
-    
-  }
+  window_transposed <- t(window)
+  geometric_averages <- vapply(seq_len(number_of_periods), function(current_period) {
+    calculate_geometric_average(stats::na.omit(window_transposed[, current_period]))
+  }, numeric(1))
   
   window$period <- period_list
   window <- window[, c(number_of_periods + 1, 1:number_of_periods)]
@@ -219,8 +215,13 @@ calculate_hedonic_imputationmatrix <- function(dataset
   
   dataset_temp <- dataset[, (names(dataset) %in% c("period", dependent_variable, independent_variables))]
   
-  dataset_temp[dataset_temp == ""] <- NA
-  dataset_temp <- stats::na.omit(dataset_temp)
+  text_columns <- vapply(dataset_temp, function(column) {
+    is.character(column) || is.factor(column)
+  }, logical(1))
+  for (column_name in names(dataset_temp)[text_columns]) {
+    dataset_temp[[column_name]][dataset_temp[[column_name]] == ""] <- NA
+  }
+  dataset_temp <- dataset_temp[stats::complete.cases(dataset_temp), , drop = FALSE]
   
   dataset_temp <- droplevels(dataset_temp)
   
@@ -230,9 +231,15 @@ calculate_hedonic_imputationmatrix <- function(dataset
   # Determine linear regression model
   model <- paste(dependent_variable, "~", paste(independent_variables, collapse=" + "))
 
-  number_observations_total <- c()
-  
-  matrix_hmts <- matrix_hmts_index <- data.frame(period=period_list)
+  number_observations_total <- if (number_of_observations == TRUE) integer(number_periods) else NULL
+  base_column_names <- paste0("Base_", period_list)
+  matrix_hmts_values <- matrix(
+    NA_real_,
+    nrow = number_periods,
+    ncol = number_periods,
+    dimnames = list(NULL, base_column_names)
+  )
+  matrix_hmts_index_values <- matrix_hmts_values
   
   # Determine all levels for all factor variables on the complete data set
   for (cat_var in categorical_variables) {
@@ -248,6 +255,17 @@ calculate_hedonic_imputationmatrix <- function(dataset
   
   # Determine per period the corresponding row
   rows_by_period <- split(seq_len(nrow(dataset_temp)), dataset_temp[[period_variable]])
+  coefficients_by_period <- vector("list", number_periods)
+
+  for (reporting_period in seq_len(number_periods)) {
+    rows_dynamic <- rows_by_period[[period_list[reporting_period]]]
+    X_dyn <- X_all[rows_dynamic, , drop = FALSE]
+    y_dyn <- y_all[rows_dynamic]
+
+    fitcoef <- lm.fit(X_dyn, y_dyn)$coefficients
+    fitcoef[is.na(fitcoef)] <- 0
+    coefficients_by_period[[reporting_period]] <- fitcoef
+  }
   
   # Loop through all possible base periods
   for (current_period in seq_len(number_periods)) {
@@ -260,12 +278,10 @@ calculate_hedonic_imputationmatrix <- function(dataset
     }
     number_periods_production_since <- min(number_periods_production_since, number_periods)
     
-    difference_length_series <- number_periods - number_periods_production_since
-    
     # Filter (and index) row numbers per base period
     rows_base <- rows_by_period[[ period_list[current_period] ]]
     X_base <- X_all[rows_base, , drop = FALSE] # hedonic variables (for 1 period)
-    y_base <- y_all[rows_base] # prices (for 1 period)
+    X_base_means <- colMeans(X_base)
     
     # Count all rows for indicator 'number of transactions'
     if (number_of_observations == TRUE) {
@@ -277,18 +293,8 @@ calculate_hedonic_imputationmatrix <- function(dataset
 
     # Loop through all possible reporting periods (within the same base period)
     for (reporting_period in seq_len(number_periods_production_since)) {
-      rows_dynamic <- rows_by_period[[ period_list[reporting_period] ]]
-      
-      # Filter (and index) row numbers per reporting period
-      X_dyn <- X_all[rows_dynamic, , drop = FALSE]
-      y_dyn <- y_all[rows_dynamic]
-      
-      # Fit linear regression model
-      fitmdl <- lm.fit(X_dyn, y_dyn)
-      fitcoef <- fitmdl$coefficients
-      fitcoef[is.na(fitcoef)] <- 0
-      preds <- X_base %*% fitcoef # Impute values according to model
-      hms[reporting_period] <- exp(mean(preds)) # Transform log values back
+      fitcoef <- coefficients_by_period[[reporting_period]]
+      hms[reporting_period] <- exp(sum(X_base_means * fitcoef)) # Transform log values back
       
     }
     
@@ -298,12 +304,9 @@ calculate_hedonic_imputationmatrix <- function(dataset
     hmts_analysis <- hmts_temp$resting_points
     hmts_index <- calculate_index(periods = c(1:number_periods_production_since), values = hmts)
     
-    
-    hmts <- c(hmts, rep(NA, difference_length_series))
-    hmts_index <- c(hmts_index, rep(NA, difference_length_series))
-    
-    matrix_hmts[paste0("Base_", period_list[current_period])] <- hmts
-    matrix_hmts_index[paste0("Base_", period_list[current_period])] <- hmts_index
+    calculated_rows <- seq_len(number_periods_production_since)
+    matrix_hmts_values[calculated_rows, current_period] <- hmts
+    matrix_hmts_index_values[calculated_rows, current_period] <- hmts_index
     
     if (current_period == 1) {
       matrix_hmts_analysis <- data.frame(reeks = hmts_analysis$reeks) 
@@ -311,6 +314,9 @@ calculate_hedonic_imputationmatrix <- function(dataset
     matrix_hmts_analysis[paste0("Base_", period_list[current_period])] <- hmts_analysis$value
   }
   
+  matrix_hmts <- data.frame(period = period_list, matrix_hmts_values, check.names = FALSE)
+  matrix_hmts_index <- data.frame(period = period_list, matrix_hmts_index_values, check.names = FALSE)
+
   # Add numbers to calculation
   if (number_of_observations == TRUE) {
     matrix_hmts["number_of_observations"] <- matrix_hmts_index["number_of_observations"] <- number_observations_total

@@ -21,8 +21,13 @@ prepare_hedonic_data <- function(dataset, period_variable, dependent_variable, n
   dataset <- dataset[, colnames(dataset) %in% vars_to_keep, drop = FALSE]
   
   # Standard NA and empty string removal
-  dataset[dataset == ""] <- NA
-  dataset <- stats::na.omit(dataset)
+  text_columns <- vapply(dataset, function(column) {
+    is.character(column) || is.factor(column)
+  }, logical(1))
+  for (column_name in names(dataset)[text_columns]) {
+    dataset[[column_name]][dataset[[column_name]] == ""] <- NA
+  }
+  dataset <- dataset[stats::complete.cases(dataset), , drop = FALSE]
   dataset <- droplevels(dataset)
   
   # Standardize variable types
@@ -95,14 +100,10 @@ format_index_output <- function(periods, index_values, reference_period = NULL, 
 fit_hedonic_model <- function(dataset, dependent_variable, independent_variables) {
   
   # Construct the model formula
-  if (length(independent_variables) == 0) {
-    formula_str <- paste(dependent_variable, "~ 1")
-  } else {
-    rhs <- paste(independent_variables, collapse = " + ")
-    formula_str <- paste(dependent_variable, "~", rhs)
-  }
-  
-  model_formula <- stats::as.formula(formula_str)
+  model_formula <- stats::reformulate(
+    termlabels = if (length(independent_variables) == 0) "1" else independent_variables,
+    response = dependent_variable
+  )
   
   # Fit the linear model
   model <- stats::lm(model_formula, data = dataset)
@@ -158,24 +159,31 @@ calculate_hedonic_imputation <- function(dataset_temp
   dataset_temp <- dataset_temp[, c(period_temp, dependent_variable_temp, independent_variables_temp), drop = FALSE]
   
   # Remove lines without values
-  dataset_temp[dataset_temp == ''] <- NA
-  dataset_temp <- stats::na.omit(dataset_temp)
+  text_columns <- vapply(dataset_temp, function(column) {
+    is.character(column) || is.factor(column)
+  }, logical(1))
+  for (column_name in names(dataset_temp)[text_columns]) {
+    dataset_temp[[column_name]][dataset_temp[[column_name]] == ""] <- NA
+  }
+  dataset_temp <- dataset_temp[stats::complete.cases(dataset_temp), , drop = FALSE]
   
   # Remove unused levels. R remembers the original state of the levels, but if a level is not present in a certain period, this may result in an error in the bootstrap.
   dataset_temp <- droplevels(dataset_temp)
   
   # Prepare the dependent variable explicitly as a logged variable string for the helper
   dependent_variable_temp <- paste0("log(", dependent_variable_temp, ")")
-  
+
+  rows_by_period <- split(seq_len(nrow(dataset_temp)), dataset_temp[[period_temp]])
+
   # Empty vector for the values and numbers
-  average_imputations <- c()
-  number_observations_total <- c()
+  average_imputations <- numeric(number_of_periods)
+  number_observations_total <- if (number_of_observations_temp) integer(number_of_periods) else NULL
   
   for (current_period in 1:number_of_periods) {
     
     # Estimate coefficients of the 1st period
     if (current_period == 1) {
-      rekenbestand <- dataset_temp[dataset_temp[[period_temp]] == period_list_temp[1], , drop = FALSE]
+      rekenbestand <- dataset_temp[rows_by_period[[period_list_temp[1]]], , drop = FALSE]
       
       # Use centralized helper for fitting
       fitmdl <- fit_hedonic_model(
@@ -184,16 +192,12 @@ calculate_hedonic_imputation <- function(dataset_temp
         independent_variables = independent_variables_temp
       )
       
-      # Use centralized helper for prediction
-      predictmdl_0 <- mean(predict_hedonic(model = fitmdl, newdata = rekenbestand))
-      predictmdl_0 <- exp(predictmdl_0)
-      
       if (number_of_observations_temp == TRUE) {
         number <- nrow(rekenbestand)
       }
     } else {
       # Estimate coefficients of all periods after
-      rekenbestand_t <- dataset_temp[dataset_temp[[period_temp]] == period_list_temp[current_period], , drop = FALSE]
+      rekenbestand_t <- dataset_temp[rows_by_period[[period_list_temp[current_period]]], , drop = FALSE]
       
       # Use centralized helper for fitting
       fitmdl <- fit_hedonic_model(

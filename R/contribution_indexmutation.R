@@ -11,8 +11,6 @@
 #' @param calculate_index_function Function that recalculates the index for a target dataset.
 #' @param unit_variable Optional column name identifying units to exclude as groups. If `NULL`, each row in the target period is treated as one unit.
 #' @param index_mutation_period Optional period to analyze. If `NULL`, the latest available period is used.
-#' @param digits_index Number of digits used for index and period-growth values.
-#' @param digits_difference Number of digits used for difference columns.
 #' @return Data frame with contribution-to-index-mutation results.
 #' @keywords internal
 #' @noRd
@@ -21,9 +19,7 @@ calculate_contribution_indexmutation <- function(dataset,
                                                  period_variable,
                                                  calculate_index_function,
                                                  unit_variable = NULL,
-                                                 index_mutation_period = NULL,
-                                                 digits_index = 4,
-                                                 digits_difference = 2) {
+                                                 index_mutation_period = NULL) {
   validate_indexmutation_inputs(
     dataset = dataset,
     index_output = index_output,
@@ -45,8 +41,8 @@ calculate_contribution_indexmutation <- function(dataset,
     stop("'index_mutation_period' must match exactly one period in the index output.")
   }
 
-  index_original <- round(original_row$Index[1], digits_index)
-  period_growth_original <- round(original_row$period_growth[1], digits_index)
+  index_original <- original_row$Index[1]
+  period_growth_original <- original_row$period_growth[1]
 
   target_data <- dataset[period_values == index_mutation_period, , drop = FALSE]
   other_data <- dataset[period_values != index_mutation_period, , drop = FALSE]
@@ -75,24 +71,24 @@ calculate_contribution_indexmutation <- function(dataset,
   for (i in seq_along(units)) {
     unit_id <- units[i]
     target_without_unit <- target_data[target_data$.indexmutation_unit_id != unit_id, original_names, drop = FALSE]
-    dataset_without_unit <- dplyr::bind_rows(other_data, target_without_unit)
+    dataset_without_unit <- rbind(other_data[, original_names, drop = FALSE], target_without_unit)
 
     index_without_unit <- calculate_index_function(dataset_without_unit)
     index_without_unit <- add_period_growth_to_index(index_without_unit)
     excluded_row <- index_without_unit[as.character(index_without_unit$period) == index_mutation_period, , drop = FALSE]
 
     if (nrow(excluded_row) == 1) {
-      index_excl <- round(excluded_row$Index[1], digits_index)
-      period_growth_excl <- round(excluded_row$period_growth[1], digits_index)
+      index_excl <- excluded_row$Index[1]
+      period_growth_excl <- excluded_row$period_growth[1]
     } else {
       index_excl <- NA_real_
       period_growth_excl <- NA_real_
     }
 
     contribution$Index_excl_observation[i] <- index_excl
-    contribution$Index_difference[i] <- round(index_original - index_excl, digits_difference)
+    contribution$Index_difference[i] <- index_original - index_excl
     contribution$PoP_excl_observation[i] <- period_growth_excl
-    contribution$PoP_difference[i] <- round(period_growth_excl - period_growth_original, digits_difference)
+    contribution$PoP_difference[i] <- period_growth_excl - period_growth_original
   }
 
   format_indexmutation_output(

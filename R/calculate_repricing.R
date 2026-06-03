@@ -41,10 +41,11 @@ calculate_repricing <- function(dataset,
   
   # Sort unique periods
   period_list <- sort(unique(clean_data[[period_variable]]), decreasing = FALSE)
+  period_values <- clean_data[[period_variable]]
 
   # Subset base year
   base_year <- period_list[c(1:periods_in_year)]
-  subset_data_base <- clean_data[clean_data[[period_variable]] %in% base_year, , drop = FALSE]
+  subset_data_base <- clean_data[period_values %in% base_year, , drop = FALSE]
   
   # Fit model period base year using the centralized helper
   model_base <- fit_hedonic_model(
@@ -54,33 +55,28 @@ calculate_repricing <- function(dataset,
   )
  
   # Predict mean price for observations in all periods using the centralized helper
-  clean_data$predicted_price <- exp(predict_hedonic(model = model_base, newdata = clean_data))
+  predicted_log_price <- predict_hedonic(model = model_base, newdata = clean_data)
   
-  # Calculate mean, sum and numbers per period
-  average_data <- stats::aggregate(clean_data[[dependent_variable]], 
-                            by = list(clean_data[[period_variable]]), 
-                            FUN = function(x) exp(mean(log(x), na.rm = TRUE)))
-  names(average_data) <- c(period_variable, "observed_gmean")
-  
-  predicted_means <- tapply(log(clean_data[["predicted_price"]]), 
-                            clean_data[[period_variable]], 
-                            mean, na.rm = TRUE)
-  average_data$predicted_price <- exp(predicted_means[average_data[[period_variable]]])
+  # Calculate geometric means per period
+  observed_gmean <- exp(tapply(log(clean_data[[dependent_variable]]), period_values, mean, na.rm = TRUE))
+  predicted_price <- exp(tapply(predicted_log_price, period_values, mean, na.rm = TRUE))
+  observed_gmean <- observed_gmean[period_list]
+  predicted_price <- predicted_price[period_list]
   
   # Calculate index
-  average_data$index <- (average_data$observed_gmean / average_data$observed_gmean[1]) /
-                        (average_data$predicted_price / average_data$predicted_price[1]) * 100
+  index <- (observed_gmean / observed_gmean[1]) /
+           (predicted_price / predicted_price[1]) * 100
   
   # 2. FORMAT OUTPUT
   obs_counts <- NULL
   if (number_of_observations) {
-    counts <- table(clean_data[[period_variable]])
-    obs_counts <- as.integer(counts[average_data[[period_variable]]])
+    counts <- table(period_values)
+    obs_counts <- as.integer(counts[period_list])
   }
   
   results <- format_index_output(
-    periods = average_data[[period_variable]],
-    index_values = average_data$index,
+    periods = period_list,
+    index_values = index,
     reference_period = reference_period,
     observation_counts = obs_counts
   )

@@ -44,18 +44,30 @@ calculate_regression_diagnostics <- function(dataset,
   
   # Subset and clean data
   dataset <- dataset[, c(period_variable, dependent_variable, independent_variables), drop = FALSE]
-  dataset[dataset == ""] <- NA
-  dataset <- na.omit(dataset)
+  text_columns <- vapply(dataset, function(column) {
+    is.character(column) || is.factor(column)
+  }, logical(1))
+  for (column_name in names(dataset)[text_columns]) {
+    dataset[[column_name]][dataset[[column_name]] == ""] <- NA
+  }
+  dataset <- dataset[stats::complete.cases(dataset), , drop = FALSE]
   dataset[] <- lapply(dataset, function(x) if (is.factor(x)) droplevels(x) else x)
   
-  # Prepare the logged dependent variable string for the helper
-  dependent_log <- paste0("log(", dependent_variable, ")")
+  # Prepare the logged dependent variable once for all period-level models.
+  dependent_log <- paste0("log_", dependent_variable)
+  dataset[[dependent_log]] <- log(dataset[[dependent_variable]])
   
   # Loop over periods
   periods <- sort(unique(dataset[[period_variable]]))
-  diagnostics_list <- lapply(periods, function(p) {
-    df <- subset(dataset, dataset[[period_variable]] == p)
-    if (nrow(df) < 3) return(NULL)
+  rows_by_period <- split(seq_len(nrow(dataset)), dataset[[period_variable]])
+  diagnostics_list <- vector("list", length(periods))
+
+  for (i in seq_along(periods)) {
+    p <- periods[i]
+    df <- dataset[rows_by_period[[p]], , drop = FALSE]
+    if (nrow(df) < 3) {
+      next
+    }
     
     # Use centralized helper for fitting
     mod <- try(fit_hedonic_model(
@@ -64,10 +76,12 @@ calculate_regression_diagnostics <- function(dataset,
       independent_variables = independent_variables
     ), silent = TRUE)
     
-    if (inherits(mod, "try-error")) return(NULL)
+    if (inherits(mod, "try-error")) {
+      next
+    }
     
     # 1. Shapiro-Wilk test
-    df_log_price <- if (nrow(df) <= 5000) log(df[[dependent_variable]]) else sample(log(df[[dependent_variable]]), 5000)
+    df_log_price <- if (nrow(df) <= 5000) df[[dependent_log]] else sample(df[[dependent_log]], 5000)
     norm_pvalue <- tryCatch(shapiro.test(df_log_price)$p.value, error = function(e) NA)
     
     # 2. Adjusted R-squared
@@ -90,7 +104,7 @@ calculate_regression_diagnostics <- function(dataset,
     }
     
     # Return row
-    data.frame(
+    diagnostics_list[[i]] <- data.frame(
       period = p,
       norm_pvalue = norm_pvalue,
       r_adjust = r_adjust,
@@ -99,7 +113,7 @@ calculate_regression_diagnostics <- function(dataset,
       autoc_dw = autoc_dw,
       stringsAsFactors = FALSE
     )
-  })
+  }
   
   diagnostics <- do.call(rbind, diagnostics_list)
   rownames(diagnostics) <- NULL

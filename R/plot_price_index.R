@@ -63,9 +63,9 @@ plot_price_index <- function(index_output, title = NULL) {
       cex = 0.8
     )
   } else if (is.list(index_output)) {
-    is_valid_multi <- all(sapply(index_output, function(x) {
+    is_valid_multi <- all(vapply(index_output, function(x) {
       is.data.frame(x) && "period" %in% names(x) && "Index" %in% names(x)
-    }))
+    }, logical(1)))
 
     if (!is_valid_multi) {
       stop(paste(
@@ -101,6 +101,7 @@ plot_price_index <- function(index_output, title = NULL) {
     grid(col = "grey90", lty = "dotted")
 
     methods <- unique(combined$method)
+    method_colors <- cb_palette[(seq_along(methods) - 1) %% length(cb_palette) + 1]
     for (i in seq_along(methods)) {
       method_name <- methods[i]
       df <- combined[combined$method == method_name, ]
@@ -110,7 +111,7 @@ plot_price_index <- function(index_output, title = NULL) {
         df$Index,
         type = "b",
         pch = 19,
-        col = cb_palette[(i - 1) %% length(cb_palette) + 1]
+        col = method_colors[i]
       )
     }
 
@@ -128,7 +129,7 @@ plot_price_index <- function(index_output, title = NULL) {
     legend(
       "bottomright",
       legend = methods,
-      col = cb_palette[seq_along(methods)],
+      col = method_colors,
       pch = 19,
       lty = 1,
       bty = "n",
