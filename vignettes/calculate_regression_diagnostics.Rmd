@@ -140,3 +140,4 @@ The `calculate_regression_diagnostics()` and `plot_regression_diagnostics()` fun
 They support **robust, high-quality** hedonic price index modeling by systematically checking regression assumptions.
 
 
+## References
