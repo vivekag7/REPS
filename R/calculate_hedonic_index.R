@@ -29,12 +29,12 @@
 #' @return A data.frame (or list for HMTS with resting_points = TRUE; named list if multiple methods are used; or list with Index and Index_mutation when index_mutation = TRUE)
 #' @examples
 #' \dontrun{
-#' data("data_constraxion")
+#' data("hedonic_data")
 #'
 #' Tbl_indices <- REPS::calculate_hedonic_index(
 #'   method = c("fisher", "hmts", "laspeyres", "paasche",
 #'  "repricing", "timedummy", "rolling_timedummy"),
-#'   dataset = data_constraxion,
+#'   dataset = hedonic_data,
 #'   period_variable = "period",
 #'   dependent_variable = "price",
 #'   numerical_variables = c("floor_area", "dist_trainstation"),
@@ -612,3 +612,4 @@ calculate_chained_hedonic_index <- function(dataset,
 
   result_table
 }
+

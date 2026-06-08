@@ -27,7 +27,7 @@ Creates a static 3x2 grid of base R plots showing regression diagnostics:
 \examples{
 plot_regression_diagnostics(
   calculate_regression_diagnostics(
-    dataset = data_constraxion,
+    dataset = hedonic_data,
     period_variable = "period",
     dependent_variable = "price",
     numerical_variables = c("floor_area", "dist_trainstation"),

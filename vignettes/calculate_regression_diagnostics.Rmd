@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 
 ```{r setup, include=FALSE}
 library(REPS)
-data("data_constraxion")
+data("hedonic_data")
 ```
 
 ## Introduction
@@ -49,10 +49,10 @@ Your dataset should include:
 
 ```{r}
 # Example dataset (you should already have this loaded)
-head(data_constraxion)
+head(hedonic_data)
 
 # We log transform the floor_area again (see vignette on calculating price index as why)
-dataset <- data_constraxion
+dataset <- hedonic_data
 dataset$floor_area <- log(dataset$floor_area)
 ```
 
@@ -116,12 +116,12 @@ Each subplot corresponds to a specific model assumption:
 - **Durbin-Watson statistic (left plot)**  
   - Tests for autocorrelation in residuals.  
   - Ideal value is around 2.  
-  - Values outside the 1.75–2.25 range (dashed lines) suggest potential autocorrelation.
+  - Values outside the 1.75-2.25 range (dashed lines) suggest potential autocorrelation.
 
 - **Durbin-Watson p-value (right plot)**  
   - Indicates whether autocorrelation is statistically significant.  
   - p > 0.05: no significant evidence of autocorrelation.  
-  - p ≤ 0.05: residuals may not be independent.
+  - p <= 0.05: residuals may not be independent.
 
 ### Row 3: Homoscedasticity
 

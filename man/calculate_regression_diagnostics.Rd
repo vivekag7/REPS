@@ -40,7 +40,7 @@ For each period in the data, fits a log-linear model and computes diagnostics:
 }
 \examples{
 diagnostics <- calculate_regression_diagnostics(
-  dataset = data_constraxion,
+  dataset = hedonic_data,
   period_variable = "period",
   dependent_variable = "price",
   numerical_variables = c("floor_area", "dist_trainstation"),

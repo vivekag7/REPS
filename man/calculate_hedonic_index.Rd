@@ -62,12 +62,12 @@ Central hub function to calculate index figures using different methods. Can als
 }
 \examples{
 \dontrun{
-data("data_constraxion")
+data("hedonic_data")
 
 Tbl_indices <- REPS::calculate_hedonic_index(
   method = c("fisher", "hmts", "laspeyres", "paasche",
  "repricing", "timedummy", "rolling_timedummy"),
-  dataset = data_constraxion,
+  dataset = hedonic_data,
   period_variable = "period",
   dependent_variable = "price",
   numerical_variables = c("floor_area", "dist_trainstation"),

@@ -3,7 +3,7 @@ test_that("Test HMTS", {
   ref_file <- test_path("test_data", "hmts_output.rds")
   
   tbl_hmts <- calculate_hmts(
-    dataset = data_constraxion,
+    dataset = hedonic_data,
     period_variable = c("period"),
     dependent_variable = c("price"),
     numerical_variables = c("floor_area"),
@@ -24,3 +24,4 @@ test_that("Test HMTS", {
     expect_equal(tbl_hmts$Index, ref_tbl$Index, tolerance = 1e-3)
   }
 })
+

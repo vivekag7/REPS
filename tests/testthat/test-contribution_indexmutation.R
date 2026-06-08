@@ -41,6 +41,17 @@ test_that("calculate_contribution_indexmutation validates regular index output",
   )
 })
 
+test_that("index mutation PoP values are percentage changes, not index levels", {
+  result <- add_period_growth_to_index(
+    data.frame(
+      period = c("2020Q1", "2020Q2", "2020Q3"),
+      Index = c(100, 120, 114)
+    )
+  )
+
+  expect_equal(result$period_growth, c(0, 20, -5))
+})
+
 test_that("parallel core resolution is capped and validated", {
   expect_equal(resolve_parallel_cores(FALSE, n_tasks = 10, n_cores = 4), 1L)
   expect_equal(resolve_parallel_cores(TRUE, n_tasks = 2, n_cores = 4), 2L)
@@ -90,4 +101,17 @@ test_that("parallel index mutation path can be requested with one worker", {
   )
 
   expect_equal(parallel_requested_result, sequential_result)
+})
+
+test_that("index mutation progress reports completed runs", {
+  progress_output <- capture.output(
+    update_indexmutation_progress(
+      current_run = 2,
+      total_runs = 2,
+      progress_enabled = TRUE
+    ),
+    type = "message"
+  )
+
+  expect_true(any(grepl("2/2 runs completed", progress_output, fixed = TRUE)))
 })

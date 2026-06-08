@@ -3,7 +3,7 @@ test_that("Test Laspeyres", {
   ref_file <- test_path("test_data", "laspeyres_output.rds")
   
   tbl_laspeyres <- calculate_laspeyres(
-    dataset = data_constraxion,
+    dataset = hedonic_data,
     period_variable = c("period"),
     dependent_variable = c("price"),
     numerical_variables = c("floor_area"),
@@ -22,3 +22,4 @@ test_that("Test Laspeyres", {
     expect_equal(tbl_laspeyres, ref_tbl, tolerance = 1e-8)
   }
 })
+

@@ -3,7 +3,7 @@ test_that("Test Regression Diagnostics", {
   ref_file <- test_path("test_data", "diagnostics_output.rds")
   
   diagnostics_tbl <- calculate_regression_diagnostics(
-    dataset = data_constraxion,
+    dataset = hedonic_data,
     period_variable = "period",
     dependent_variable = "price",
     numerical_variables = c("floor_area", "dist_trainstation"),
@@ -22,7 +22,7 @@ test_that("Test Regression Diagnostics", {
 
 test_that("Test Diagnostics Plot", {
   diagnostics_result <- calculate_regression_diagnostics(
-    dataset = data_constraxion,
+    dataset = hedonic_data,
     period_variable = "period",
     dependent_variable = "price",
     numerical_variables = c("floor_area", "dist_trainstation"),
@@ -44,4 +44,5 @@ test_that("Test Diagnostics Plot", {
   # Remove the temporary file
   unlink(tmpfile)
 })
+
 

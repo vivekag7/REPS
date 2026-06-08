@@ -3,7 +3,7 @@ test_that("Test Paasche", {
   ref_file <- test_path("test_data", "paasche_output.rds")
   
   tbl_paasche <- calculate_paasche(
-    dataset = data_constraxion,
+    dataset = hedonic_data,
     period_variable = c("period"),
     dependent_variable = c("price"),
     numerical_variables = c("floor_area"),
@@ -22,3 +22,4 @@ test_that("Test Paasche", {
     expect_equal(tbl_paasche, ref_tbl, tolerance = 1e-8)
   }
 })
+

@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 
 ```{r setup, include=FALSE}
 library(REPS)
-data("data_constraxion")
+data("hedonic_data")
 
 ```
 
@@ -27,13 +27,13 @@ data("data_constraxion")
 
 The `calculate_hedonic_index()` function is the central entry point in `REPS` for computing price indices using various **hedonic-based methods**. It supports six commonly used approaches:
 
-* **Laspeyres** – hedonic double imputation base-weighted index
-* **Paasche** – hedonic double imputation current-weighted index
-* **Fisher** – geometric average of Laspeyres and Paasche (both hedonic double imputation)
-* **HMTS** – Hedonic Multilateral Time Series re-estimation Splicing
-* **Time Dummy** – single-regression hedonic index using time dummies
-* **Rolling Time Dummy** – chained index based on overlapping time-dummy regressions
-* **Repricing** – quasi-repeat-sales method comparing observed vs predicted price changes
+* **Laspeyres** - hedonic double imputation base-weighted index
+* **Paasche** - hedonic double imputation current-weighted index
+* **Fisher** - geometric average of Laspeyres and Paasche (both hedonic double imputation)
+* **HMTS** - Hedonic Multilateral Time Series re-estimation Splicing
+* **Time Dummy** - single-regression hedonic index using time dummies
+* **Rolling Time Dummy** - chained index based on overlapping time-dummy regressions
+* **Repricing** - quasi-repeat-sales method comparing observed vs predicted price changes
 
 This vignette demonstrates how to apply each method using a consistent interface, making it easy to compare results across approaches.
 
@@ -49,7 +49,7 @@ Before running any calculations, ensure that your dataset is available and conta
 
 ```{r}
 # Example dataset (you should already have this loaded)
-head(data_constraxion)
+head(hedonic_data)
 
 ```
 
@@ -65,7 +65,7 @@ Typically, for some numerical variables you may want to apply a log transformati
 Example of log-transforming `floor_area`:
 
 ```{r}
-dataset <- data_constraxion
+dataset <- hedonic_data
 dataset$floor_area <- log(dataset$floor_area)
 
 ```
@@ -74,7 +74,7 @@ dataset$floor_area <- log(dataset$floor_area)
 
 ## Using `calculate_hedonic_index()`
 
-The `calculate_hedonic_index()` function provides a unified interface for estimating hedonic price indices. You only need to specify the method via the `method` argument — the function handles the rest.
+The `calculate_hedonic_index()` function provides a unified interface for estimating hedonic price indices. You only need to specify the method via the `method` argument - the function handles the rest.
 
 ### Example: Single Index Method - Time Dummy
 
@@ -169,4 +169,5 @@ knitr::include_graphics("multi_index.png")
 The `calculate_hedonic_index()` function streamlines access to multiple hedonic index methods via a consistent interface, including robust support for chained indices. This allows analysts to easily compare outputs and select the most appropriate method for their context without switching between different wrapper functions.
 
 ## References
+
 

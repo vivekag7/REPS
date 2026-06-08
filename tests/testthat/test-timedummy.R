@@ -3,7 +3,7 @@ test_that("Test Time Dummy", {
   ref_file <- test_path("test_data", "timedummy_output.rds")
   
   tbl_timedummy <- calculate_time_dummy(
-    dataset = data_constraxion,
+    dataset = hedonic_data,
     period_variable = "period",
     dependent_variable = "price",
     numerical_variables = "floor_area",
@@ -21,3 +21,4 @@ test_that("Test Time Dummy", {
     expect_equal(tbl_timedummy, ref_tbl, tolerance = 1e-8)
   }
 })
+

@@ -15,6 +15,7 @@
 #' @source A fictitious dataset for illustration purposes
 #'
 #' @examples
-#' data(data_constraxion)
-#' head(data_constraxion)
-"data_constraxion"
+#' data(hedonic_data)
+#' head(hedonic_data)
+"hedonic_data"
+

@@ -3,7 +3,7 @@ test_that("Test Repricing", {
   ref_file <- test_path("test_data", "repricing_output.rds")
   
   tbl_repricing <- calculate_repricing(
-    dataset = data_constraxion,
+    dataset = hedonic_data,
     period_variable = "period",
     dependent_variable = "price",
     numerical_variables = c("floor_area"),
@@ -21,3 +21,4 @@ test_that("Test Repricing", {
     expect_equal(tbl_repricing, ref_tbl, tolerance = 1e-8)
   }
 })
+

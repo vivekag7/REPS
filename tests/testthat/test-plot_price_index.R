@@ -3,7 +3,7 @@ test_that("Test plot_price_index", {
   # 1. Normal plotting should work silently
   result_normal <- calculate_hedonic_index(
     method = c("fisher", "paasche"),
-    dataset = data_constraxion,
+    dataset = hedonic_data,
     period_variable = "period",
     dependent_variable = "price",
     numerical_variables = "floor_area",
@@ -19,7 +19,7 @@ test_that("Test plot_price_index", {
   # 2. Plotting HMTS resting_points list should trigger custom error
   result_resting <- calculate_hedonic_index(
     method = "hmts",
-    dataset = data_constraxion,
+    dataset = hedonic_data,
     period_variable = "period",
     dependent_variable = "price",
     numerical_variables = "floor_area",

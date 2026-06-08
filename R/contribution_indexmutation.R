@@ -129,7 +129,7 @@ add_period_growth_to_index <- function(index_output) {
   )
 
   index_output <- index_output[order(index_output$period), , drop = FALSE]
-  index_output$period_growth <- calculate_growth_rate(index_output$Index) * 100
+  index_output$period_growth <- (calculate_growth_rate(index_output$Index) - 1) * 100
   index_output
 }
 
@@ -225,6 +225,18 @@ run_indexmutation_unit_calculations <- function(units,
     )
   }
 
+  if (!isTRUE(parallel)) {
+    results <- vector("list", length(units))
+    progress_enabled <- length(units) > 0
+
+    for (i in seq_along(units)) {
+      results[[i]] <- task_function(units[[i]])
+      update_indexmutation_progress(i, length(units), progress_enabled)
+    }
+
+    return(do.call(rbind, results))
+  }
+
   results <- run_parallel_tasks(
     tasks = units,
     task_function = task_function,
@@ -233,6 +245,49 @@ run_indexmutation_unit_calculations <- function(units,
   )
 
   do.call(rbind, results)
+}
+
+#' Update Index Mutation Progress
+#'
+#' Writes a single-line progress bar with completed and total recalculation
+#' counts.
+#'
+#' @param current_run Completed recalculations.
+#' @param total_runs Total recalculations.
+#' @param progress_enabled Logical; whether output should be written.
+#' @return Invisibly returns `NULL`.
+#' @keywords internal
+#' @noRd
+update_indexmutation_progress <- function(current_run, total_runs, progress_enabled) {
+  if (!isTRUE(progress_enabled)) {
+    return(invisible(NULL))
+  }
+
+  bar_width <- 30L
+  completed_width <- floor(bar_width * current_run / total_runs)
+  remaining_width <- bar_width - completed_width
+  bar <- paste0(
+    "[",
+    strrep("=", completed_width),
+    strrep(" ", remaining_width),
+    "]"
+  )
+
+  cat(
+    sprintf(
+      "\rIndex mutation: %s %d/%d runs completed",
+      bar,
+      current_run,
+      total_runs
+    ),
+    file = stderr()
+  )
+
+  if (current_run == total_runs) {
+    cat("\n", file = stderr())
+  }
+
+  invisible(NULL)
 }
 
 #' Calculate One Index Mutation Contribution Row

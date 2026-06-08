@@ -19,24 +19,25 @@ devtools::install_github("vivekag7/REPS")
 
 REPS offers a **single entry point** `calculate_hedonic_index()` to compute price indices using different methodologies. By changing the `method` argument, you can generate indices with any of the supported approaches, all from the same dataset and function call. Supported index calculation methods include:
 
-- **Laspeyres** – Base-period weighted hedonic double imputation index.
-- **Paasche** – Current-period weighted hedonic double imputation index.
-- **Fisher** – The geometric mean of Laspeyres and Paasche indices.
-- **Time Dummy** – A single regression with time dummy variables (log-linear hedonic model).
-- **Rolling Time Dummy** – A rolling window (chained) time-dummy hedonic index.
-- **Repricing** – A quasi-repeat-sales method comparing observed vs. predicted price changes between consecutive periods.
-- **HMTS** – *Hedonic Multilateral Time Series re-estimation with Splicing*. An advanced multilateral index method that leverages hedonic models across all period pairs and uses Kalman filtering to improve stability.
+- **Laspeyres** - Base-period weighted hedonic double imputation index.
+- **Paasche** - Current-period weighted hedonic double imputation index.
+- **Fisher** - The geometric mean of Laspeyres and Paasche indices.
+- **Time Dummy** - A single regression with time dummy variables (log-linear hedonic model).
+- **Rolling Time Dummy** - A rolling window (chained) time-dummy hedonic index.
+- **Repricing** - A quasi-repeat-sales method comparing observed vs. predicted price changes between consecutive periods.
+- **HMTS** - *Hedonic Multilateral Time Series re-estimation with Splicing*. An advanced multilateral index method that leverages hedonic models across all period pairs and uses Kalman filtering to improve stability.
 
 All methods are accessed via `calculate_hedonic_index()` with a consistent interface. The function returns either a single index or, for multiple methods, a list of results. A reference period can be specified to normalize index values (default sets the first period to 100).
 
 ## Diagnostics and Visualization Tools
 
-- **Regression Diagnostics:** `calculate_regression_diagnostics()` fits a separate log-linear model per period and checks normality, R², autocorrelation, and heteroscedasticity of residuals. `plot_regression_diagnostics()` visualizes these over time in a 3×2 grid.
+- **Regression Diagnostics:** `calculate_regression_diagnostics()` fits a separate log-linear model per period and checks normality, R^2, autocorrelation, and heteroscedasticity of residuals. `plot_regression_diagnostics()` visualizes these over time in a 3x2 grid.
 - **Index Visualization:** `plot_price_index()` plots one or more index series as a time-series chart for comparison and exploration.
 
 ## Getting Started and Documentation
 
-- **Example Dataset:** `data_constraxion` is included (7,800 × 6), simulating real estate transactions. Use `data("data_constraxion")` to load it.
+- **Example Dataset:** `hedonic_data` is included (7,800 x 6), simulating real estate transactions. Use `data("hedonic_data")` to load it.
 - **Vignettes:** Use `vignette("calculate_hedonic_index", package="REPS")` and `vignette("calculate_regression_diagnostics", package="REPS")` for step-by-step guides using the example dataset.
 
 REPS provides a comprehensive and extensible framework to compute and evaluate real estate price indices. Its flexible architecture enables comparison across methods and statistical validation of underlying models, suitable for both official statistics and research applications.
+

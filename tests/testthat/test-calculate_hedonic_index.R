@@ -7,7 +7,7 @@ test_that("Test calculate_hedonic_index", {
   tbl_chained <- calculate_hedonic_index(
     method = "fisher",
     chained = TRUE,
-    dataset = data_constraxion,
+    dataset = hedonic_data,
     period_variable = "period",
     dependent_variable = "price",
     numerical_variables = "floor_area",
@@ -28,7 +28,7 @@ test_that("Test calculate_hedonic_index", {
   expect_error(
     calculate_hedonic_index(
       method = "invalid",
-      dataset = data_constraxion,
+      dataset = hedonic_data,
       period_variable = "period",
       dependent_variable = "price",
       numerical_variables = "floor_area",
@@ -41,7 +41,7 @@ test_that("Test calculate_hedonic_index", {
   expect_silent(
     calculate_hedonic_index(
       method = "fisher",
-      dataset = data_constraxion,
+      dataset = hedonic_data,
       period_variable = "period",
       dependent_variable = "price",
       numerical_variables = "floor_area",
@@ -53,7 +53,7 @@ test_that("Test calculate_hedonic_index", {
   # 4. Multiple methods without HMTS should work
   result <- calculate_hedonic_index(
     method = c("fisher", "paasche", "timedummy"),
-    dataset = data_constraxion,
+    dataset = hedonic_data,
     period_variable = "period",
     dependent_variable = "price",
     numerical_variables = "floor_area",
@@ -68,7 +68,7 @@ test_that("Test calculate_hedonic_index", {
   expect_error(
     calculate_hedonic_index(
       method = c("fisher", "hmts"),
-      dataset = data_constraxion,
+      dataset = hedonic_data,
       period_variable = "period",
       dependent_variable = "price",
       numerical_variables = "floor_area",
@@ -86,7 +86,7 @@ test_that("Test calculate_hedonic_index", {
     calculate_hedonic_index(
       method = "hmts",
       chained = TRUE,
-      dataset = data_constraxion,
+      dataset = hedonic_data,
       period_variable = "period",
       dependent_variable = "price",
       numerical_variables = "floor_area",
@@ -103,7 +103,7 @@ test_that("Test calculate_hedonic_index", {
   expect_message(
     calculate_hedonic_index(
       method = "rolling_timedummy",
-      dataset = data_constraxion,
+      dataset = hedonic_data,
       period_variable = "period",
       dependent_variable = "price",
       numerical_variables = "floor_area",
@@ -118,7 +118,7 @@ test_that("Test calculate_hedonic_index", {
   withCallingHandlers(
     calculate_hedonic_index(
       method = "hmts",
-      dataset = data_constraxion,
+      dataset = hedonic_data,
       period_variable = "period",
       dependent_variable = "price",
       numerical_variables = "floor_area",
@@ -138,7 +138,7 @@ test_that("Test calculate_hedonic_index", {
   expect_error(
     calculate_hedonic_index(
       method = "repricing",
-      dataset = data_constraxion,
+      dataset = hedonic_data,
       period_variable = "period",
       dependent_variable = "price",
       numerical_variables = "floor_area",
@@ -219,7 +219,7 @@ test_that("index_mutation output is only available for single-method calculation
   expect_error(
     calculate_hedonic_index(
       method = c("fisher", "paasche"),
-      dataset = data_constraxion,
+      dataset = hedonic_data,
       period_variable = "period",
       dependent_variable = "price",
       numerical_variables = "floor_area",
@@ -235,7 +235,7 @@ test_that("index_mutation output is only available for single-method calculation
 test_that("parallel hedonic index output matches sequential output", {
   sequential_result <- calculate_hedonic_index(
     method = c("fisher", "paasche"),
-    dataset = data_constraxion,
+    dataset = hedonic_data,
     period_variable = "period",
     dependent_variable = "price",
     numerical_variables = "floor_area",
@@ -246,7 +246,7 @@ test_that("parallel hedonic index output matches sequential output", {
 
   parallel_result <- calculate_hedonic_index(
     method = c("fisher", "paasche"),
-    dataset = data_constraxion,
+    dataset = hedonic_data,
     period_variable = "period",
     dependent_variable = "price",
     numerical_variables = "floor_area",
@@ -452,3 +452,4 @@ test_that("chained index helpers validate period and method result shape", {
     "columns 'period' and 'Index'"
   )
 })
+

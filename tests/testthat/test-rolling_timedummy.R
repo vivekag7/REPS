@@ -3,7 +3,7 @@ test_that("Test Rolling Time Dummy", {
   ref_file <- test_path("test_data", "rolling_timedummy_output.rds")
   
   tbl_rolling <- calculate_rolling_timedummy(
-    dataset = data_constraxion,
+    dataset = hedonic_data,
     period_variable = "period",
     dependent_variable = "price",
     numerical_variables = "floor_area",
@@ -22,3 +22,4 @@ test_that("Test Rolling Time Dummy", {
     expect_equal(tbl_rolling, ref_tbl, tolerance = 1e-8)
   }
 })
+

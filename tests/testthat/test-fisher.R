@@ -3,7 +3,7 @@ test_that("Test Fisher", {
   ref_file <- test_path("test_data", "fisher_output.rds")
   
   tbl_fisher <- calculate_fisher(
-    dataset = data_constraxion,
+    dataset = hedonic_data,
     period_variable = "period",
     dependent_variable = "price",
     numerical_variables = "floor_area",
@@ -21,3 +21,4 @@ test_that("Test Fisher", {
     expect_equal(tbl_fisher, ref_tbl, tolerance = 1e-8)
   }
 })
+

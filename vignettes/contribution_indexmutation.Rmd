@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 
 ```{r setup, include=FALSE}
 library(REPS)
-data("data_constraxion")
+data("hedonic_data")
 ```
 
 ## Introduction
@@ -60,10 +60,10 @@ The difference between the original index and the recalculated index indicates t
 
 The input data are the same as for a regular call to `calculate_hedonic_index()`.
 
-For this vignette, we use a small sample of `data_constraxion` to keep rendering fast. The index mutation calculation recalculates the index many times, so using the full dataset would make the vignette slower than necessary.
+For this vignette, we use a small sample of `hedonic_data` to keep rendering fast. The index mutation calculation recalculates the index many times, so using the full dataset would make the vignette slower than necessary.
 
 ```{r}
-dataset <- data_constraxion
+dataset <- hedonic_data
 dataset$floor_area <- log(dataset$floor_area)
 
 set.seed(123)

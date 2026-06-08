@@ -20,7 +20,7 @@
 #'
 #' @examples
 #' diagnostics <- calculate_regression_diagnostics(
-#'   dataset = data_constraxion,
+#'   dataset = hedonic_data,
 #'   period_variable = "period",
 #'   dependent_variable = "price",
 #'   numerical_variables = c("floor_area", "dist_trainstation"),
@@ -146,7 +146,7 @@ calculate_regression_diagnostics <- function(dataset,
 #' @examples
 #' plot_regression_diagnostics(
 #'   calculate_regression_diagnostics(
-#'     dataset = data_constraxion,
+#'     dataset = hedonic_data,
 #'     period_variable = "period",
 #'     dependent_variable = "price",
 #'     numerical_variables = c("floor_area", "dist_trainstation"),
@@ -251,6 +251,7 @@ plot_regression_diagnostics <- function(diagnostics, title = "Regression Diagnos
   mtext(title, outer = TRUE, cex = 1.5, line = 1)
   
 }
+
 
 
 
