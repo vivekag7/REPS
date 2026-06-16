@@ -224,27 +224,61 @@ run_indexmutation_unit_calculations <- function(units,
       period_growth_original = period_growth_original
     )
   }
-
-  if (!isTRUE(parallel)) {
-    results <- vector("list", length(units))
-    progress_enabled <- length(units) > 0
-
-    for (i in seq_along(units)) {
-      results[[i]] <- task_function(units[[i]])
-      update_indexmutation_progress(i, length(units), progress_enabled)
-    }
-
-    return(do.call(rbind, results))
+  
+  total_runs <- length(units)
+  progress_enabled <- total_runs > 0L
+  
+  if (total_runs == 0L) {
+    return(data.frame())
   }
-
-  results <- run_parallel_tasks(
-    tasks = units,
-    task_function = task_function,
-    parallel = parallel,
-    fallback_message = "Parallel index mutation failed; falling back to sequential calculation."
+  
+  chunk_size <- get_indexmutation_chunk_size(total_runs)
+  chunks <- unname(split(units, ceiling(seq_along(units) / chunk_size)))
+  
+  results <- vector("list", length(chunks))
+  completed <- 0L
+  
+  update_indexmutation_progress(
+    current_run = completed,
+    total_runs = total_runs,
+    progress_enabled = progress_enabled
   )
+  
+  for (i in seq_along(chunks)) {
+    if (isTRUE(parallel)) {
+      results[[i]] <- run_parallel_tasks(
+        tasks = chunks[[i]],
+        task_function = task_function,
+        parallel = parallel,
+        fallback_message = "Parallel index mutation failed; falling back to sequential calculation."
+      )
+    } else {
+      results[[i]] <- lapply(chunks[[i]], task_function)
+    }
+    
+    completed <- completed + length(chunks[[i]])
+    
+    update_indexmutation_progress(
+      current_run = completed,
+      total_runs = total_runs,
+      progress_enabled = progress_enabled
+    )
+  }
+  
+  do.call(rbind, unlist(results, recursive = FALSE))
+}
 
-  do.call(rbind, results)
+#' Get Index Mutation Chunk Size
+#'
+#' Determines the number of units per chunk for progress updates.
+#'
+#' @param total_runs Total number of recalculations.
+#' @param max_updates Maximum number of progress updates.
+#' @return Integer chunk size.
+#' @keywords internal
+#' @noRd
+get_indexmutation_chunk_size <- function(total_runs, max_updates = 100L) {
+  max(1L, ceiling(total_runs / max_updates))
 }
 
 #' Update Index Mutation Progress
@@ -259,20 +293,23 @@ run_indexmutation_unit_calculations <- function(units,
 #' @keywords internal
 #' @noRd
 update_indexmutation_progress <- function(current_run, total_runs, progress_enabled) {
-  if (!isTRUE(progress_enabled)) {
+  if (!isTRUE(progress_enabled) || total_runs == 0L) {
     return(invisible(NULL))
   }
-
+  
+  current_run <- min(current_run, total_runs)
+  
   bar_width <- 30L
   completed_width <- floor(bar_width * current_run / total_runs)
   remaining_width <- bar_width - completed_width
+  
   bar <- paste0(
     "[",
     strrep("=", completed_width),
     strrep(" ", remaining_width),
     "]"
   )
-
+  
   cat(
     sprintf(
       "\rIndex mutation: %s %d/%d runs completed",
@@ -282,11 +319,11 @@ update_indexmutation_progress <- function(current_run, total_runs, progress_enab
     ),
     file = stderr()
   )
-
+  
   if (current_run == total_runs) {
     cat("\n", file = stderr())
   }
-
+  
   invisible(NULL)
 }
 
