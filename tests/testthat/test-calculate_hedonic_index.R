@@ -168,7 +168,7 @@ test_that("hedonic index option validation prevents unsupported combinations", {
     validate_hedonic_index_options(
       method = c("fisher", "hmts"),
       chained = FALSE,
-      index_mutation = FALSE,
+      index_contribution = FALSE,
       extra_args = list(resting_points = TRUE)
     ),
     "resting_points = TRUE"
@@ -178,7 +178,7 @@ test_that("hedonic index option validation prevents unsupported combinations", {
     validate_hedonic_index_options(
       method = "hmts",
       chained = TRUE,
-      index_mutation = FALSE,
+      index_contribution = FALSE,
       extra_args = list(resting_points = TRUE)
     ),
     "chained = TRUE"
@@ -188,17 +188,17 @@ test_that("hedonic index option validation prevents unsupported combinations", {
     validate_hedonic_index_options(
       method = c("fisher", "paasche"),
       chained = FALSE,
-      index_mutation = TRUE,
+      index_contribution = TRUE,
       extra_args = list()
     ),
-    "index_mutation = TRUE"
+    "index_contribution = TRUE"
   )
 
   expect_error(
     validate_hedonic_index_options(
       method = "hmts",
       chained = FALSE,
-      index_mutation = TRUE,
+      index_contribution = TRUE,
       extra_args = list(resting_points = TRUE)
     ),
     "regular index data.frame"
@@ -208,14 +208,14 @@ test_that("hedonic index option validation prevents unsupported combinations", {
     validate_hedonic_index_options(
       method = "hmts",
       chained = FALSE,
-      index_mutation = FALSE,
+      index_contribution = FALSE,
       extra_args = list(resting_points = TRUE)
     )
   )
 })
 
 
-test_that("index_mutation output is only available for single-method calculations", {
+test_that("index_contribution output is only available for single-method calculations", {
   expect_error(
     calculate_hedonic_index(
       method = c("fisher", "paasche"),
@@ -225,9 +225,9 @@ test_that("index_mutation output is only available for single-method calculation
       numerical_variables = "floor_area",
       categorical_variables = "neighbourhood_code",
       reference_period = 2015,
-      index_mutation = TRUE
+      index_contribution = TRUE
     ),
-    "index_mutation = TRUE"
+    "index_contribution = TRUE"
   )
 })
 
@@ -259,7 +259,7 @@ test_that("parallel hedonic index output matches sequential output", {
 })
 
 
-test_that("index_mutation returns index and contribution tables", {
+test_that("index_contribution returns index and contribution tables", {
   tiny_data <- data.frame(
     period = rep(c("2020Q1", "2020Q2", "2020Q3"), each = 4),
     price = c(100, 110, 105, 115, 120, 132, 126, 138, 140, 154, 147, 161),
@@ -278,16 +278,16 @@ test_that("index_mutation returns index and contribution tables", {
     categorical_variables = "type",
     reference_period = "2020Q1",
     number_of_observations = FALSE,
-    index_mutation = TRUE,
+    index_contribution = TRUE,
     unit_variable = "unit_id",
-    index_mutation_period = "2020Q3"
+    index_contribution_period = "2020Q3"
   )
 
   expect_type(result, "list")
-  expect_named(result, c("Index", "Index_mutation"))
+  expect_named(result, c("Index", "Index_contribution"))
   expect_equal(names(result$Index), c("period", "Index"))
-  expect_equal(nrow(result$Index_mutation), 4)
-  expect_true(all(result$Index_mutation$period == "2020Q3"))
+  expect_equal(nrow(result$Index_contribution), 4)
+  expect_true(all(result$Index_contribution$period == "2020Q3"))
   expect_true(all(c(
     "unit_id",
     "period",
@@ -297,7 +297,7 @@ test_that("index_mutation returns index and contribution tables", {
     "PoP_excl_observation",
     "PoP_original",
     "PoP_difference"
-  ) %in% names(result$Index_mutation)))
+  ) %in% names(result$Index_contribution)))
 })
 
 

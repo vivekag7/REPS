@@ -14,7 +14,7 @@ calculate_hedonic_index(
   reference_period = NULL,
   number_of_observations = TRUE,
   chained = FALSE,
-  index_mutation = FALSE,
+  index_contribution = FALSE,
   parallel = FALSE,
   ...
 )
@@ -38,7 +38,7 @@ calculate_hedonic_index(
 
 \item{chained}{Logical. If TRUE, calculates a chained index using the Annual Overlap Method. Default is FALSE.}
 
-\item{index_mutation}{Logical. If TRUE, calculates a contribution-to-index-mutation table for one method. Default is FALSE.}
+\item{index_contribution}{Logical. If TRUE, calculates an index-contribution table for one method. Default is FALSE.}
 
 \item{parallel}{Logical. If TRUE, independent calculations are parallelized where useful. Default is FALSE.}
 
@@ -50,12 +50,12 @@ calculate_hedonic_index(
 \item \code{resting_points}: (Optional for HMTS) Whether to return detailed outputs. Default = FALSE
 \item \code{imputation}: (Optional for Laspeyres/Paasche) Include imputation values? Default = FALSE
 \item \code{window_length}: (Optional for Rolling Time Dummy) Window size in number of periods. Default = 5
-\item \code{unit_variable}: (Optional for index mutation) Unit column to exclude as groups. Default = NULL
-\item \code{index_mutation_period}: (Optional for index mutation) Period to analyze. Default = latest period
+\item \code{unit_variable}: (Optional for index contribution) Unit column to exclude as groups. Default = NULL
+\item \code{index_contribution_period}: (Optional for index contribution) Period to analyze. Default = latest period
 }}
 }
 \value{
-A data.frame (or list for HMTS with resting_points = TRUE; named list if multiple methods are used; or list with Index and Index_mutation when index_mutation = TRUE)
+A data.frame (or list for HMTS with resting_points = TRUE; named list if multiple methods are used; or list with Index and Index_contribution when index_contribution = TRUE)
 }
 \description{
 Central hub function to calculate index figures using different methods. Can also calculate chained indices using the Annual Overlap Method.

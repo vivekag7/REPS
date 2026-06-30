@@ -12,7 +12,7 @@
 #' @param reference_period Period or group of periods that will be set to 100
 #' @param number_of_observations Logical, whether to show number of observations (default = TRUE)
 #' @param chained Logical. If TRUE, calculates a chained index using the Annual Overlap Method. Default is FALSE.
-#' @param index_mutation Logical. If TRUE, calculates a contribution-to-index-mutation table for one method. Default is FALSE.
+#' @param index_contribution Logical. If TRUE, calculates an index-contribution table for one method. Default is FALSE.
 #' @param parallel Logical. If TRUE, independent calculations are parallelized where useful. Default is FALSE.
 #' @param ... Additional method-specific arguments passed to the underlying functions:
 #' \itemize{
@@ -22,11 +22,11 @@
 #'   \item \code{resting_points}: (Optional for HMTS) Whether to return detailed outputs. Default = FALSE
 #'   \item \code{imputation}: (Optional for Laspeyres/Paasche) Include imputation values? Default = FALSE
 #'   \item \code{window_length}: (Optional for Rolling Time Dummy) Window size in number of periods. Default = 5
-#'   \item \code{unit_variable}: (Optional for index mutation) Unit column to exclude as groups. Default = NULL
-#'   \item \code{index_mutation_period}: (Optional for index mutation) Period to analyze. Default = latest period
+#'   \item \code{unit_variable}: (Optional for index contribution) Unit column to exclude as groups. Default = NULL
+#'   \item \code{index_contribution_period}: (Optional for index contribution) Period to analyze. Default = latest period
 #' }
 #'
-#' @return A data.frame (or list for HMTS with resting_points = TRUE; named list if multiple methods are used; or list with Index and Index_mutation when index_mutation = TRUE)
+#' @return A data.frame (or list for HMTS with resting_points = TRUE; named list if multiple methods are used; or list with Index and Index_contribution when index_contribution = TRUE)
 #' @examples
 #' \dontrun{
 #' data("hedonic_data")
@@ -59,7 +59,7 @@ calculate_hedonic_index <- function(dataset,
                                     reference_period = NULL,
                                     number_of_observations = TRUE,
                                     chained = FALSE,
-                                    index_mutation = FALSE,
+                                    index_contribution = FALSE,
                                     parallel = FALSE,
                                     ...) {
   method <- validate_hedonic_index_methods(method)
@@ -69,7 +69,7 @@ calculate_hedonic_index <- function(dataset,
   validate_hedonic_index_options(
     method = method,
     chained = chained,
-    index_mutation = index_mutation,
+    index_contribution = index_contribution,
     extra_args = extra_args
   )
 
@@ -123,11 +123,11 @@ calculate_hedonic_index <- function(dataset,
   )
 
   if (length(method) == 1) {
-    if (isTRUE(index_mutation)) {
-      index_mutation_extra_args <- extra_args
-      index_mutation_extra_args$parallel <- FALSE
+    if (isTRUE(index_contribution)) {
+      index_contribution_extra_args <- extra_args
+      index_contribution_extra_args$parallel <- FALSE
 
-      run_index_mutation_method <- function(method_name, target_dataset, target_reference_period) {
+      run_index_contribution_method <- function(method_name, target_dataset, target_reference_period) {
         run_hedonic_index_method(
           method = method_name,
           dataset = target_dataset,
@@ -137,11 +137,11 @@ calculate_hedonic_index <- function(dataset,
           categorical_variables = categorical_variables,
           reference_period = target_reference_period,
           number_of_observations = number_of_observations,
-          extra_args = index_mutation_extra_args
+          extra_args = index_contribution_extra_args
         )
       }
 
-      mutation_result <- calculate_contribution_indexmutation(
+      contribution_result <- calculate_index_contribution(
         dataset = dataset,
         index_output = result[[1]],
         period_variable = period_variable,
@@ -152,17 +152,17 @@ calculate_hedonic_index <- function(dataset,
             period_variable = period_variable,
             reference_period = reference_period,
             chained = chained,
-            run_method = run_index_mutation_method
+            run_method = run_index_contribution_method
           )
         },
         unit_variable = extra_args$unit_variable,
-        index_mutation_period = extra_args$index_mutation_period,
+        index_contribution_period = extra_args$index_contribution_period,
         parallel = parallel
       )
 
       return(list(
         Index = result[[1]],
-        Index_mutation = mutation_result
+        Index_contribution = contribution_result
       ))
     }
 
@@ -249,27 +249,27 @@ validate_hedonic_index_methods <- function(method) {
 #'
 #' @param method Character vector of normalized method names.
 #' @param chained Logical; whether annual-overlap chaining is requested.
-#' @param index_mutation Logical; whether contribution-to-index-mutation output is requested.
+#' @param index_contribution Logical; whether index-contribution output is requested.
 #' @param extra_args List of method-specific arguments supplied through `...`.
 #' @return Invisibly returns `TRUE` when the option combination is valid.
 #' @author Vivek Gajadhar
 #' @keywords internal
 #' @noRd
-validate_hedonic_index_options <- function(method, chained, index_mutation, extra_args) {
+validate_hedonic_index_options <- function(method, chained, index_contribution, extra_args) {
   if (length(method) > 1 && isTRUE(extra_args$resting_points)) {
     stop("Using 'resting_points = TRUE' is only allowed with a single method ('hmts').")
   }
 
-  if (length(method) > 1 && isTRUE(index_mutation)) {
-    stop("Using 'index_mutation = TRUE' is only allowed with a single method.")
+  if (length(method) > 1 && isTRUE(index_contribution)) {
+    stop("Using 'index_contribution = TRUE' is only allowed with a single method.")
   }
 
   if (isTRUE(chained) && isTRUE(extra_args$resting_points)) {
     stop("Using 'chained = TRUE' together with 'resting_points = TRUE' is not supported, because chained calculations require a regular index data.frame.")
   }
 
-  if (isTRUE(index_mutation) && isTRUE(extra_args$resting_points)) {
-    stop("Using 'index_mutation = TRUE' together with 'resting_points = TRUE' is not supported, because index mutation requires a regular index data.frame.")
+  if (isTRUE(index_contribution) && isTRUE(extra_args$resting_points)) {
+    stop("Using 'index_contribution = TRUE' together with 'resting_points = TRUE' is not supported, because index contribution requires a regular index data.frame.")
   }
 
   invisible(TRUE)
