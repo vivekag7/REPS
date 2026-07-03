@@ -1,4 +1,4 @@
-test_that("calculate_contribution_indexmutation returns row-level output by default", {
+test_that("calculate_index_contribution returns row-level output by default", {
   dataset <- data.frame(
     period = c("2020Q1", "2020Q1", "2020Q2", "2020Q2"),
     price = c(100, 110, 120, 130),
@@ -11,7 +11,7 @@ test_that("calculate_contribution_indexmutation returns row-level output by defa
     Index = c(100, 120)
   )
 
-  result <- calculate_contribution_indexmutation(
+  result <- calculate_index_contribution(
     dataset = dataset,
     index_output = original_index,
     period_variable = "period",
@@ -21,17 +21,17 @@ test_that("calculate_contribution_indexmutation returns row-level output by defa
         Index = c(100, 115 + nrow(target_dataset[target_dataset$period == "2020Q2", ]))
       )
     },
-    index_mutation_period = "2020Q2"
+    index_contribution_period = "2020Q2"
   )
 
   expect_equal(nrow(result), 2)
   expect_true(all(c("price", "area", "Index_original", "PoP_original") %in% names(result)))
-  expect_false(".indexmutation_unit_id" %in% names(result))
+  expect_false(".index_contribution_unit_id" %in% names(result))
 })
 
-test_that("calculate_contribution_indexmutation validates regular index output", {
+test_that("calculate_index_contribution validates regular index output", {
   expect_error(
-    calculate_contribution_indexmutation(
+    calculate_index_contribution(
       dataset = data.frame(period = "2020Q1", price = 100),
       index_output = list(Index = data.frame(period = "2020Q1", Index = 100)),
       period_variable = "period",
@@ -41,7 +41,7 @@ test_that("calculate_contribution_indexmutation validates regular index output",
   )
 })
 
-test_that("index mutation PoP values are percentage changes, not index levels", {
+test_that("index contribution PoP values are percentage changes, not index levels", {
   result <- add_period_growth_to_index(
     data.frame(
       period = c("2020Q1", "2020Q2", "2020Q3"),
@@ -63,7 +63,7 @@ test_that("parallel core resolution is capped and validated", {
   )
 })
 
-test_that("parallel index mutation path can be requested with one worker", {
+test_that("parallel index contribution path can be requested with one worker", {
   dataset <- data.frame(
     period = c("2020Q1", "2020Q1", "2020Q2", "2020Q2"),
     price = c(100, 110, 120, 130),
@@ -83,29 +83,29 @@ test_that("parallel index mutation path can be requested with one worker", {
     )
   }
 
-  sequential_result <- calculate_contribution_indexmutation(
+  sequential_result <- calculate_index_contribution(
     dataset = dataset,
     index_output = original_index,
     period_variable = "period",
     calculate_index_function = calculate_index,
-    index_mutation_period = "2020Q2"
+    index_contribution_period = "2020Q2"
   )
 
-  parallel_requested_result <- calculate_contribution_indexmutation(
+  parallel_requested_result <- calculate_index_contribution(
     dataset = dataset,
     index_output = original_index,
     period_variable = "period",
     calculate_index_function = calculate_index,
-    index_mutation_period = "2020Q2",
+    index_contribution_period = "2020Q2",
     parallel = TRUE
   )
 
   expect_equal(parallel_requested_result, sequential_result)
 })
 
-test_that("index mutation progress reports completed runs", {
+test_that("index contribution progress reports completed runs", {
   progress_output <- capture.output(
-    update_indexmutation_progress(
+    update_index_contribution_progress(
       current_run = 2,
       total_runs = 2,
       progress_enabled = TRUE

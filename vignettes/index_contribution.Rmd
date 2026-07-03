@@ -1,9 +1,9 @@
 ---
-title: "Contribution Analysis using Index Mutation in REPS"
+title: "Index Contribution Analysis in REPS"
 author: ""
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Contribution Analysis using Index Mutation in REPS}
+  %\VignetteIndexEntry{Index Contribution Analysis in REPS}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 bibliography: ./REFERENCES.bib
@@ -23,26 +23,26 @@ data("hedonic_data")
 
 ## Introduction
 
-The `index_mutation` option in `calculate_hedonic_index()` provides a deeper analysis of a price index movement. It shows how much observations or groups of observations contribute to the index mutation in one selected period.
+The `index_contribution` option in `calculate_hedonic_index()` provides a deeper analysis of a price index movement. It shows how much observations or groups of observations contribute to the index change in one selected period.
 
-An index mutation is the period-over-period change in the index. The contribution analysis helps identify which observations or units have the largest influence on that change.
+Index-contribution analysis helps identify which observations or units have the largest influence on the period-over-period change in the index.
 
 The analysis is activated by setting:
 
 ```r
-index_mutation = TRUE
+index_contribution = TRUE
 ```
 
 When this option is used, `calculate_hedonic_index()` returns a list with two elements:
 
 - `Index`: the regular price index;
-- `Index_mutation`: the contribution-to-index-mutation table.
+- `Index_contribution`: the index-contribution table.
 
 ---
 
 ## How the Method Works
 
-The contribution-to-index-mutation calculation uses a leave-one-out approach.
+The index-contribution calculation uses a leave-one-out approach.
 
 For a selected period, REPS:
 
@@ -60,7 +60,7 @@ The difference between the original index and the recalculated index indicates t
 
 The input data are the same as for a regular call to `calculate_hedonic_index()`.
 
-For this vignette, we use a small sample of `hedonic_data` to keep rendering fast. The index mutation calculation recalculates the index many times, so using the full dataset would make the vignette slower than necessary.
+For this vignette, we use a small sample of `hedonic_data` to keep rendering fast. The index contribution calculation recalculates the index many times, so using the full dataset would make the vignette slower than necessary.
 
 ```{r}
 dataset <- hedonic_data
@@ -80,12 +80,12 @@ head(dataset)
 
 ## Basic Use
 
-The example below calculates a Fisher index and adds contribution-to-index-mutation analysis.
+The example below calculates a Fisher index and adds index-contribution analysis.
 
 The important arguments are:
 
-- `index_mutation = TRUE`, which activates the analysis;
-- `index_mutation_period`, which selects the period to analyse;
+- `index_contribution = TRUE`, which activates the analysis;
+- `index_contribution_period`, which selects the period to analyse;
 - `unit_variable`, which defines whether observations are excluded individually or by group.
 
 ```{r}
@@ -98,32 +98,32 @@ result <- calculate_hedonic_index(
   categorical_variables = c("neighbourhood_code", "dummy_large_city"),
   reference_period = "2015",
   number_of_observations = FALSE,
-  index_mutation = TRUE,
-  index_mutation_period = "2019Q1",
+  index_contribution = TRUE,
+  index_contribution_period = "2019Q1",
   unit_variable = "neighbourhood_code"
 )
 
 head(result$Index)
-head(result$Index_mutation)
+head(result$Index_contribution)
 ```
 
 ---
 
-## Selecting the Period: `index_mutation_period`
+## Selecting the Period: `index_contribution_period`
 
-The `index_mutation_period` parameter selects the period for which the contribution analysis is performed.
+The `index_contribution_period` parameter selects the period for which the contribution analysis is performed.
 
-This matters because index mutation analysis is calculated for **one period at a time**. The function removes observations or groups only from the selected period. Observations in other periods remain in the dataset during each recalculation.
+This matters because index contribution analysis is calculated for **one period at a time**. The function removes observations or groups only from the selected period. Observations in other periods remain in the dataset during each recalculation.
 
 In the example above, this is done with:
 
 ```r
-index_mutation_period = "2019Q1"
+index_contribution_period = "2019Q1"
 ```
 
-If `index_mutation_period = NULL`, REPS automatically selects the latest available period.
+If `index_contribution_period = NULL`, REPS automatically selects the latest available period.
 
-Use `index_mutation_period` when a specific period needs closer inspection, for example when the index movement is unusually large or when the latest published period needs to be explained.
+Use `index_contribution_period` when a specific period needs closer inspection, for example when the index movement is unusually large or when the latest published period needs to be explained.
 
 ---
 
@@ -143,13 +143,13 @@ If `unit_variable` is supplied, REPS removes all observations belonging to one g
 unit_variable = "neighbourhood_code"
 ```
 
-Grouped output is often easier to interpret than observation-level output, because it shows which units, such as neighbourhoods, contributed most to the index mutation.
+Grouped output is often easier to interpret than observation-level output, because it shows which units, such as neighbourhoods, contributed most to the index change.
 
 ---
 
 ## Interpreting the Output
 
-The `Index_mutation` table contains the following main columns:
+The `Index_contribution` table contains the following main columns:
 
 - `Index_excl_observation`: index value after excluding the observation or group;
 - `Index_original`: original index value;
@@ -166,13 +166,13 @@ Index_difference = Index_original - Index_excl_observation
 
 A positive `Index_difference` means the excluded observation or group increased the original index. A negative `Index_difference` means it lowered the original index.
 
-For analysing the period-over-period mutation, inspect `PoP_difference`.
+For analysing the period-over-period change, inspect `PoP_difference`.
 
 ```{r}
-mutation_table <- result$Index_mutation
+contribution_table <- result$Index_contribution
 
-head(mutation_table[order(-mutation_table$Index_difference), ])
-head(mutation_table[order(mutation_table$Index_difference), ])
+head(contribution_table[order(-contribution_table$Index_difference), ])
+head(contribution_table[order(contribution_table$Index_difference), ])
 ```
 
 The results should be read as a sensitivity analysis: they show what happens to the selected-period index movement when a specific observation or group is removed.
