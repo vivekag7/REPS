@@ -61,12 +61,10 @@ A data.frame (or list for HMTS with resting_points = TRUE; named list if multipl
 Central hub function to calculate index figures using different methods. Can also calculate chained indices using the Annual Overlap Method.
 }
 \examples{
-\dontrun{
 data("hedonic_data")
 
 Tbl_indices <- REPS::calculate_hedonic_index(
-  method = c("fisher", "hmts", "laspeyres", "paasche",
- "repricing", "timedummy", "rolling_timedummy"),
+  method = c("fisher"),
   dataset = hedonic_data,
   period_variable = "period",
   dependent_variable = "price",
@@ -81,7 +79,6 @@ Tbl_indices <- REPS::calculate_hedonic_index(
   resting_points = FALSE,
   imputation = FALSE
 )
-}
 }
 \author{
 Vivek Gajadhar

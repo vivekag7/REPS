@@ -453,3 +453,131 @@ test_that("chained index helpers validate period and method result shape", {
   )
 })
 
+test_that("contribution matches manual leave-one-unit recalculation", {
+  data("hedonic_data", package = "REPS")
+  
+  unit_variable <- ".test_contribution_unit"
+  
+  add_test_contribution_units <- function(dataset, period_variable,
+                                          contribution_period,
+                                          number_of_units = 4L) {
+    dataset[[unit_variable]] <- "outside_target_period"
+    
+    target_rows <- which(
+      as.character(dataset[[period_variable]]) == as.character(contribution_period)
+    )
+    
+    dataset[[unit_variable]][target_rows] <- paste0(
+      "test_unit_",
+      ((seq_along(target_rows) - 1L) %% number_of_units) + 1L
+    )
+    
+    dataset
+  }
+  
+  suppress_index_contribution_progress <- function(expr) {
+    result <- NULL
+    invisible(capture.output(result <- force(expr), type = "message"))
+    result
+  }
+  
+  periods <- sort(unique(as.character(hedonic_data$period)))
+  contribution_period <- tail(periods, 1L)
+  
+  test_data <- add_test_contribution_units(
+    dataset = hedonic_data,
+    period_variable = "period",
+    contribution_period = contribution_period,
+    number_of_units = 4L
+  )
+  
+  selected_unit <- "test_unit_1"
+  
+  contribution_output <- suppress_index_contribution_progress(
+    calculate_hedonic_index(
+      method = "fisher",
+      dataset = test_data,
+      period_variable = "period",
+      dependent_variable = "price",
+      numerical_variables = c("floor_area", "dist_trainstation"),
+      categorical_variables = c("neighbourhood_code", "dummy_large_city"),
+      reference_period = "2015",
+      number_of_observations = FALSE,
+      index_contribution = TRUE,
+      index_contribution_period = contribution_period,
+      unit_variable = unit_variable,
+      parallel = FALSE
+    )
+  )
+  
+  original_index_table <- contribution_output$Index
+  contribution_table <- contribution_output$Index_contribution
+  
+  original_index_manual <- original_index_table[
+    as.character(original_index_table$period) == contribution_period,
+    "Index"
+  ]
+  
+  contribution_row <- contribution_table[
+    contribution_table[[unit_variable]] == selected_unit,
+    ,
+    drop = FALSE
+  ]
+  
+  # Check 1:
+  # The contribution table should contain exactly one row for the selected
+  # contribution unit.
+  expect_equal(
+    nrow(contribution_row),
+    1L,
+    info = "Contribution row should be unique for fisher"
+  )
+  
+  # Check 2:
+  # The original index in the contribution table should equal the original
+  # index from the regular index output.
+  expect_equal(
+    contribution_row$Index_original,
+    original_index_manual,
+    tolerance = 1e-8,
+    info = "Original index mismatch for fisher"
+  )
+  
+  manual_dataset_without_unit <- test_data[
+    !(
+      as.character(test_data$period) == contribution_period &
+        test_data[[unit_variable]] == selected_unit
+    ),
+    ,
+    drop = FALSE
+  ]
+  
+  manual_index_without_unit <- calculate_hedonic_index(
+    method = "fisher",
+    dataset = manual_dataset_without_unit,
+    period_variable = "period",
+    dependent_variable = "price",
+    numerical_variables = c("floor_area", "dist_trainstation"),
+    categorical_variables = c("neighbourhood_code", "dummy_large_city"),
+    reference_period = "2015",
+    number_of_observations = FALSE,
+    index_contribution = FALSE,
+    unit_variable = unit_variable,
+    parallel = FALSE
+  )
+  
+  index_without_unit_manual <- manual_index_without_unit[
+    as.character(manual_index_without_unit$period) == contribution_period,
+    "Index"
+  ]
+  
+  # Check 3:
+  # The index excluding one contribution unit should equal the manually
+  # recalculated index excluding the same unit.
+  expect_equal(
+    contribution_row$Index_excl_observation,
+    index_without_unit_manual,
+    tolerance = 1e-8,
+    info = "Excluded-unit index mismatch for fisher"
+  )
+})

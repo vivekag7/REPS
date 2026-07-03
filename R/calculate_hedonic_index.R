@@ -28,12 +28,10 @@
 #'
 #' @return A data.frame (or list for HMTS with resting_points = TRUE; named list if multiple methods are used; or list with Index and Index_contribution when index_contribution = TRUE)
 #' @examples
-#' \dontrun{
 #' data("hedonic_data")
 #'
 #' Tbl_indices <- REPS::calculate_hedonic_index(
-#'   method = c("fisher", "hmts", "laspeyres", "paasche",
-#'  "repricing", "timedummy", "rolling_timedummy"),
+#'   method = c("fisher"),
 #'   dataset = hedonic_data,
 #'   period_variable = "period",
 #'   dependent_variable = "price",
@@ -48,7 +46,6 @@
 #'   resting_points = FALSE,
 #'   imputation = FALSE
 #' )
-#' }
 #' @export
 calculate_hedonic_index <- function(dataset,
                                     method,
