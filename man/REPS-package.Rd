@@ -6,6 +6,8 @@
 \alias{REPS-package}
 \title{REPS: Hedonic and Multilateral Index Methods for Real Estate Price Statistics}
 \description{
+\if{html}{\figure{logo.svg}{options: style='float: right' alt='logo' width='120'}}
+
 Compute price indices using various Hedonic and multilateral methods, including Laspeyres, Paasche, Fisher, and HMTS (Hedonic Multilateral Time series re-estimation with splicing). The central function calculate_hedonic_index() offers a unified interface for running these methods on structured datasets. This package is designed to support index construction workflows across a wide range of domains — including but not limited to real estate — where quality-adjusted price comparisons over time are essential. The development of this package was funded by Eurostat and Statistics Netherlands (CBS), and carried out by Statistics Netherlands. The HMTS method implemented here is described in Ishaak, Ouwehand and Remøy (2024) \doi{10.1177/0282423X241246617}. For broader methodological context, see Eurostat (2013, ISBN:978-92-79-25984-5, \doi{10.2785/34007}).
 }
 \seealso{
@@ -21,6 +23,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Vivek Gajadhar \email{v.gajadhar@cbs.nl}
   \item Farley Ishaak
   \item Pim Ouwehand
   \item David Pietersz

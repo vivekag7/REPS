@@ -1,16 +1,16 @@
-test_that("calculate_index_contribution returns row-level output by default", {
+test_that("calculate_index_contribution returns compact row-level output by default", {
   dataset <- data.frame(
     period = c("2020Q1", "2020Q1", "2020Q2", "2020Q2"),
     price = c(100, 110, 120, 130),
     area = c(50, 60, 50, 60),
     stringsAsFactors = FALSE
   )
-
+  
   original_index <- data.frame(
     period = c("2020Q1", "2020Q2"),
     Index = c(100, 120)
   )
-
+  
   result <- calculate_index_contribution(
     dataset = dataset,
     index_output = original_index,
@@ -23,9 +23,28 @@ test_that("calculate_index_contribution returns row-level output by default", {
     },
     index_contribution_period = "2020Q2"
   )
-
+  
   expect_equal(nrow(result), 2)
-  expect_true(all(c("price", "area", "Index_original", "PoP_original") %in% names(result)))
+  
+  expect_named(
+    result,
+    c(
+      "row_id",
+      "period",
+      "Index_excl_observation",
+      "Index_original",
+      "Index_difference",
+      "PoP_excl_observation",
+      "PoP_original",
+      "PoP_difference"
+    )
+  )
+  
+  expect_equal(result$period, c("2020Q2", "2020Q2"))
+  expect_true(all(result$row_id %in% c("3", "4")))
+  
+  expect_false("price" %in% names(result))
+  expect_false("area" %in% names(result))
   expect_false(".index_contribution_unit_id" %in% names(result))
 })
 

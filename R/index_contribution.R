@@ -154,43 +154,54 @@ get_index_contribution_unit_ids <- function(target_data, unit_variable = NULL) {
 
 #' Format Index Contribution Output
 #'
-#' Formats row-level or grouped contribution results to match the behavior of
-#' the original contribution calculation.
+#' Formats contribution results in a consistent compact format:
+#' analyzed period, excluded unit identifier, and contribution variables.
 #'
 #' @author Vivek Gajadhar
 #' @param target_data Data frame for the analyzed period with internal unit IDs.
 #' @param contribution Data frame with contribution metrics by unit ID.
 #' @param unit_variable Optional column name identifying unit groups.
 #' @param index_contribution_period Period analyzed for contribution.
-#' @param original_names Original dataset column names.
-#' @return Data frame sorted by index difference.
+#' @param original_names Original dataset column names. Kept for compatibility.
+#' @return Data frame with period, unit identifier, and contribution results.
 #' @keywords internal
 #' @noRd
 format_index_contribution_output <- function(target_data,
-                                        contribution,
-                                        unit_variable,
-                                        index_contribution_period,
-                                        original_names) {
-  if (is.null(unit_variable)) {
-    output <- merge(target_data, contribution, by = ".index_contribution_unit_id")
-    output <- output[order(output$Index_difference), ]
-    output$.index_contribution_unit_id <- NULL
-    row.names(output) <- NULL
-    return(output[, c(original_names, setdiff(names(output), original_names)), drop = FALSE])
-  }
-
-  output <- contribution[order(contribution$Index_difference), ]
+                                             contribution,
+                                             unit_variable,
+                                             index_contribution_period,
+                                             original_names) {
+  output <- contribution[order(contribution$Index_difference), , drop = FALSE]
+  
   output$period <- index_contribution_period
-  names(output)[names(output) == ".index_contribution_unit_id"] <- unit_variable
+  
+  if (is.null(unit_variable)) {
+    names(output)[names(output) == ".index_contribution_unit_id"] <- "row_id"
+    unit_output_variable <- "row_id"
+  } else {
+    names(output)[names(output) == ".index_contribution_unit_id"] <- unit_variable
+    unit_output_variable <- unit_variable
+  }
+  
   row.names(output) <- NULL
-  output[, c(unit_variable, "period", setdiff(names(output), c(unit_variable, "period"))), drop = FALSE]
+  
+  output[, c(
+    unit_output_variable,
+    "period",
+    "Index_excl_observation",
+    "Index_original",
+    "Index_difference",
+    "PoP_excl_observation",
+    "PoP_original",
+    "PoP_difference"
+  ), drop = FALSE]
 }
 
 #' Run Index Mutation Unit Calculations
 #'
 #' Calculates contribution rows sequentially or in parallel.
 #'
-#' @author Vivek Gajadhar
+#' @author Farley Ishaak, Vivek Gajadhar
 #' @param units Unit identifiers to exclude one at a time.
 #' @param target_data Data for the analyzed period.
 #' @param other_data Data for periods outside the analyzed period.
@@ -271,7 +282,7 @@ run_index_contribution_unit_calculations <- function(units,
 #' Get Index Contribution Chunk Size
 #'
 #' Determines the number of units per chunk for progress updates.
-#'
+#' @author Vivek Gajadhar
 #' @param total_runs Total number of recalculations.
 #' @param max_updates Maximum number of progress updates.
 #' @return Integer chunk size.
@@ -285,7 +296,7 @@ get_index_contribution_chunk_size <- function(total_runs, max_updates = 100L) {
 #'
 #' Writes a single-line progress bar with completed and total recalculation
 #' counts.
-#'
+#' @author Vivek Gajadhar
 #' @param current_run Completed recalculations.
 #' @param total_runs Total recalculations.
 #' @param progress_enabled Logical; whether output should be written.
@@ -332,7 +343,7 @@ update_index_contribution_progress <- function(current_run, total_runs, progress
 #' Recalculates the index with one unit excluded and returns its contribution
 #' values.
 #'
-#' @author Vivek Gajadhar
+#' @author Farley Ishaak, Vivek Gajadhar
 #' @param unit_id Unit identifier to exclude.
 #' @inheritParams run_index_contribution_unit_calculations
 #' @return One-row data frame with contribution values for the excluded unit.
