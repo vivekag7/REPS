@@ -34,4 +34,39 @@ test_that("Test plot_price_index", {
     plot_price_index(result_resting),
     "valid multi-method output"
   )
+
+  # 3. Chained SPAR multi-method output can be plotted after selecting one
+  # property-type series.
+  data("aritmethic_data", package = "REPS")
+  spar_data <- aritmethic_data[
+    aritmethic_data[["Property Type"]] == "A",
+  ]
+  spar_result <- calculate_spar(
+    dataset = spar_data,
+    method = c("arithmetic", "geometric", "unweighted"),
+    period_variable = "Period",
+    dependent_variable = "Price",
+    appraisal_variable = "Appraisal Value",
+    grouping_variables = c("Appraisal Year", "Property Type"),
+    index_type_variable = "Property Type",
+    chained = TRUE
+  )
+
+  expect_silent(
+    plot_price_index(spar_result, title = "SPAR Method Comparison")
+  )
+
+  expect_error(
+    plot_price_index(calculate_spar(
+      dataset = aritmethic_data,
+      method = "arithmetic",
+      period_variable = "Period",
+      dependent_variable = "Price",
+      appraisal_variable = "Appraisal Value",
+      grouping_variables = c("Appraisal Year", "Property Type"),
+      index_type_variable = "Property Type",
+      chained = TRUE
+    )),
+    "multiple rows for the same period"
+  )
 })

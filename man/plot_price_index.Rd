@@ -2,12 +2,13 @@
 % Please edit documentation in R/plot_price_index.R
 \name{plot_price_index}
 \alias{plot_price_index}
-\title{Plot index output from calculate_hedonic_index}
+\title{Plot price index output}
 \usage{
 plot_price_index(index_output, title = NULL)
 }
 \arguments{
-\item{index_output}{A data.frame or named list of data.frames (from calculate_hedonic_index())}
+\item{index_output}{A data frame or named list of data frames containing
+\code{period} and \code{Index} columns.}
 
 \item{title}{Optional plot title}
 }
@@ -18,7 +19,10 @@ None. Draws plots in the active graphics device.
 Static price index plot using base R graphics with grid lines and external legend.
 }
 \details{
-Supports both single index data.frame and named list of multiple methods.
+Supports output from \code{calculate_hedonic_index()} and plot-ready output from
+\code{calculate_spar()}, as either a single data frame or named list of methods.
+Each data frame must contain \code{period} and \code{Index}, with one row per period.
+Grouped SPAR output should be filtered to one series before plotting.
 X-axis shows only first period of each year with rotated labels to avoid clutter.
 }
 \author{
