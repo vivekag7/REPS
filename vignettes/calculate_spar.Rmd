@@ -1,0 +1,342 @@
+---
+title: "Calculating SPAR Indices with REPS"
+author: ""
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Calculating SPAR Indices with REPS}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, include = FALSE}
+library(REPS)
+data("aritmethic_data")
+```
+
+## Introduction
+
+The `calculate_spar()` function is the central entry point in `REPS` for
+calculating a **sales price appraisal ratio (SPAR) index**. SPAR methods compare
+transaction prices with appraisal values for the same properties. This provides
+a price index without fitting a hedonic regression model.
+
+`calculate_spar()` supports three variants:
+
+* **Arithmetic:** divides the arithmetic mean transaction price by the
+  arithmetic mean appraisal value.
+* **Geometric:** divides the geometric mean transaction price by the geometric
+  mean appraisal value.
+* **Unweighted:** calculates the transaction-price-to-appraisal ratio for every
+  observation and then takes the arithmetic mean of those ratios.
+
+The valid `method` values are therefore:
+
+```r
+c("arithmetic", "geometric", "unweighted")
+```
+
+One method returns a data frame. A vector of methods returns a named list with
+one data frame per method, following the same pattern as
+`calculate_hedonic_index()`.
+
+For every method, the ratio in a period is divided by the ratio in the
+reference period of its group. A short-term `growth_rate` of 1 therefore means
+that the period is at the same level as its reference period.
+
+## Example Data
+
+The package includes `aritmethic_data`, a compact subset of the SPAR development
+data. The spelling of the dataset name is intentionally `aritmethic_data`.
+
+```{r example-data}
+head(aritmethic_data)
+str(aritmethic_data)
+```
+
+The columns used in this vignette are:
+
+* `Period`: monthly period in numeric `YYYYMM` format;
+* `Appraisal Year`: appraisal reference year;
+* `Price`: transaction price;
+* `Property Type`: property-type code;
+* `Appraisal Value`: appraisal value.
+
+## Input Parameters
+
+The full function call is:
+
+```r
+calculate_spar(
+  dataset,
+  method,
+  period_variable,
+  dependent_variable,
+  appraisal_variable,
+  grouping_variables,
+  index_type_variable = NULL,
+  reference_period_pattern = "01$",
+  chained = FALSE,
+  base_value = 100,
+  month_modulo = 100,
+  parallel = FALSE
+)
+```
+
+The parameters have the following roles:
+
+| Parameter | Required | Meaning |
+|:--|:--:|:--|
+| `dataset` | Yes | A data frame containing periods, prices, appraisal values, and grouping variables. |
+| `method` | Yes | One or more of `"arithmetic"`, `"geometric"`, and `"unweighted"`. |
+| `period_variable` | Yes | A single string naming the period column. |
+| `dependent_variable` | Yes | A single string naming the transaction price column. |
+| `appraisal_variable` | Yes | A single string naming the appraisal value column. |
+| `grouping_variables` | Yes | Columns identifying each short-term series. These normally include the appraisal reference year and property type. |
+| `index_type_variable` | For chaining | Columns identifying the independent series to be chained. Every such column must also occur in `grouping_variables`. |
+| `reference_period_pattern` | No | Regular expression identifying the reference period in each group. The default `"01$"` matches January in `YYYYMM` periods. |
+| `chained` | No | Set to `TRUE` to link short-term series. Default: `FALSE`. |
+| `base_value` | No | Starting value of each chained index. Default: 100. |
+| `month_modulo` | No | Identifies new segments in numeric periods. With `YYYYMM`, the default 100 identifies January because `YYYY01 %% 100 == 1`. |
+| `parallel` | No | Allows independent methods to run in parallel when multiple methods are requested. Default: `FALSE`. |
+
+Column arguments must be supplied as **column names in strings**, not as bare R
+column objects. For example, use `period_variable = "Period"`.
+
+## Calculating One SPAR Method
+
+The following call calculates the arithmetic SPAR index separately for every
+combination of appraisal year and property type:
+
+```{r arithmetic}
+spar_arithmetic <- calculate_spar(
+  dataset = aritmethic_data,
+  method = "arithmetic",
+  period_variable = "Period",
+  dependent_variable = "Price",
+  appraisal_variable = "Appraisal Value",
+  grouping_variables = c("Appraisal Year", "Property Type")
+)
+
+head(spar_arithmetic)
+```
+
+For the arithmetic and geometric methods, the output includes:
+
+* `numerator_numerator`: the aggregated transaction price;
+* `numerator_denominator`: the aggregated appraisal value;
+* `ratio_numerator`: their ratio in the current period;
+* `ratio_denominator`: the ratio in the reference period;
+* `growth_rate`: `ratio_numerator / ratio_denominator`.
+
+The unweighted method returns the two ratio columns and `growth_rate`, but not
+the separate price and appraisal aggregates.
+
+## Choosing the Grouping Variables
+
+`grouping_variables` defines the short-term series and is therefore a
+methodological choice. In the example data, each appraisal year has its own
+reference period. Property types should also be calculated separately. The
+appropriate grouping is consequently:
+
+```r
+grouping_variables = c("Appraisal Year", "Property Type")
+```
+
+Do not include a variable merely because it is present in the input data. Add a
+variable only when separate SPAR results are required for each of its values.
+Every additional grouping variable must have its own matching reference period.
+
+## Reference Periods
+
+The default pattern `"01$"` identifies periods ending in `01`. For numeric or
+character periods such as `202101`, this selects January:
+
+```r
+reference_period_pattern = "01$"
+```
+
+The pattern must match **at most one period in every group**. If it matches more
+than one period in a group, `calculate_spar()` stops because the denominator is
+ambiguous. A group without a matching reference period is reported in a warning
+and omitted from the result.
+
+For quarterly labels such as `"2021Q1"`, a suitable pattern would be:
+
+```r
+reference_period_pattern = "Q1$"
+```
+
+Quarterly character labels can be used for an unchained calculation. The
+current chaining interface requires numeric or numeric-like periods because it
+uses `month_modulo` to detect new segments.
+
+## Calculating Multiple Methods
+
+Supply multiple method names as a character vector to compare SPAR variants.
+As with `calculate_hedonic_index()`, a multi-method call returns a named list
+containing one data frame per method.
+
+```{r multiple-methods}
+spar_methods <- calculate_spar(
+  dataset = aritmethic_data,
+  method = c("arithmetic", "geometric", "unweighted"),
+  period_variable = "Period",
+  dependent_variable = "Price",
+  appraisal_variable = "Appraisal Value",
+  grouping_variables = c("Appraisal Year", "Property Type")
+)
+
+names(spar_methods)
+head(spar_methods$arithmetic)
+head(spar_methods$geometric)
+head(spar_methods$unweighted)
+```
+
+For a large dataset, independent methods may be calculated in parallel:
+
+```r
+spar_methods <- calculate_spar(
+  dataset = my_data,
+  method = c("arithmetic", "geometric", "unweighted"),
+  period_variable = "Period",
+  dependent_variable = "Price",
+  appraisal_variable = "Appraisal Value",
+  grouping_variables = c("Appraisal Year", "Property Type"),
+  parallel = TRUE
+)
+```
+
+## Chaining Short-Term SPAR Indices
+
+Set `chained = TRUE` to link the short-term appraisal-year series. The
+`index_type_variable` identifies which series must be chained independently. In
+this example, each property type receives its own chained index:
+
+```{r chaining}
+spar_chained <- calculate_spar(
+  dataset = aritmethic_data,
+  method = "arithmetic",
+  period_variable = "Period",
+  dependent_variable = "Price",
+  appraisal_variable = "Appraisal Value",
+  grouping_variables = c("Appraisal Year", "Property Type"),
+  index_type_variable = "Property Type",
+  chained = TRUE,
+  base_value = 100,
+  month_modulo = 100
+)
+
+head(
+  spar_chained[
+    spar_chained[["Property Type"]] == "A",
+    c(
+      "period",
+      "Appraisal Year",
+      "Property Type",
+      "growth_rate",
+      "growth_factor",
+      "Index"
+    )
+  ]
+)
+```
+
+The additional output columns are:
+
+* `chaining_true_false`: whether the row starts a new short-term segment;
+* `growth_factor`: factor applied to the preceding chained index value;
+* `Index`: chained index beginning at `base_value`.
+
+At the first observation of a new segment, the short-term index should equal 1
+because that observation is its reference period. Within a segment, the growth
+factor is the current short-term index divided by the preceding short-term
+index.
+
+If more than one row exists for the same period and index-type series, the
+function stops rather than joining unrelated rows. In that situation, add the
+necessary series identifier to `index_type_variable`. For example:
+
+```r
+index_type_variable = c("Property Type", "Region")
+```
+
+Both variables must also be present in `grouping_variables`.
+
+## Plotting All Three SPAR Methods
+
+`calculate_spar()` returns standardized `period` and `Index` columns, so its
+single- and multi-method results are compatible with `plot_price_index()`.
+Because the example data contain several property types for each period, first
+select one property-type series. Plotting several grouped rows as one line would
+not represent a single price index.
+
+```{r plot-all-spar-methods, fig.width=7, fig.height=5}
+spar_plot_data <- aritmethic_data[
+  aritmethic_data[["Property Type"]] == "A",
+]
+
+spar_plot_results <- calculate_spar(
+  dataset = spar_plot_data,
+  method = c("arithmetic", "geometric", "unweighted"),
+  period_variable = "Period",
+  dependent_variable = "Price",
+  appraisal_variable = "Appraisal Value",
+  grouping_variables = c("Appraisal Year", "Property Type"),
+  index_type_variable = "Property Type",
+  chained = TRUE
+)
+
+plot_price_index(
+  spar_plot_results,
+  title = "SPAR Method Comparison - Property Type A"
+)
+```
+
+## Input Validation and Common Problems
+
+Before calculation, `calculate_spar()` checks the following conditions:
+
+* all named columns exist;
+* transaction price and appraisal value are numeric;
+* observed prices and appraisal values are finite and strictly positive;
+* the reference-period regular expression is valid;
+* a reference pattern does not select multiple periods in one group;
+* chaining options are valid and chain observations are unique.
+
+Missing transaction prices or appraisal values are handled as pairs. If either
+value is missing, that observation is excluded from both sides of the relevant
+aggregate. This prevents prices and appraisals from being calculated from
+different samples.
+
+For reliable results, users should check the input before calculation:
+
+```r
+stopifnot(
+  is.numeric(my_data$price),
+  is.numeric(my_data$appraisal),
+  all(my_data$price > 0, na.rm = TRUE),
+  all(my_data$appraisal > 0, na.rm = TRUE)
+)
+```
+
+## Summary
+
+Use `calculate_spar()` when transaction prices and corresponding appraisal
+values are available. The essential workflow is:
+
+1. identify the price, appraisal, and period columns;
+2. choose grouping variables that define each short-term series;
+3. choose a regular expression that selects one reference period per group;
+4. select one or more SPAR methods;
+5. when chaining, specify the variables that identify independent long-term
+   series and use a numeric period format compatible with `month_modulo`.
+
+The `aritmethic_data` example is structured so that all three SPAR methods and
+the chaining workflow can be run directly.
