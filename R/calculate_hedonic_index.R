@@ -1,4 +1,5 @@
-#' Calculate index based on specified method (Fisher, Laspeyres, Paasche, HMTS, Time Dummy, Rolling Time Dummy)
+#' Calculate index based on specified method (Fisher, Laspeyres, Paasche, HMTS,
+#' Time Dummy, Rolling Time Dummy, Repricing)
 #'
 #' Central hub function to calculate index figures using different methods. Can also calculate chained indices using the Annual Overlap Method.
 #'
@@ -7,10 +8,14 @@
 #' @param dataset Data frame with input data
 #' @param period_variable A string with the name of the column containing time periods.
 #' @param dependent_variable Usually the price
-#' @param numerical_variables Vector with numeric quality-determining variables
-#' @param categorical_variables Vector with categorical variables (also dummies)
-#' @param reference_period Period or group of periods that will be set to 100
-#' @param number_of_observations Logical, whether to show number of observations (default = TRUE)
+#' @param numerical_variables Vector with numeric quality-determining variables.
+#'   Default is NULL.
+#' @param categorical_variables Vector with categorical variables (also dummies).
+#'   Default is NULL.
+#' @param reference_period Period or group of periods that will be set to 100.
+#'   Default is NULL.
+#' @param number_of_observations Logical, whether to show number of observations.
+#'   Default is TRUE.
 #' @param chained Logical. If TRUE, calculates a chained index using the Annual Overlap Method. Default is FALSE.
 #' @param index_contribution Logical. If TRUE, calculates an index-contribution table for one method. Default is FALSE.
 #' @param parallel Logical. If TRUE, independent calculations are parallelized where useful. Default is FALSE.
@@ -41,10 +46,10 @@
 #'   number_of_observations = FALSE,
 #'   periods_in_year = 4,
 #'   number_preliminary_periods = 1,
-#'   window_length = 4,
 #'   production_since = NULL,
 #'   resting_points = FALSE,
-#'   imputation = FALSE
+#'   imputation = FALSE,
+#'   window_length = 4
 #' )
 #' @export
 calculate_hedonic_index <- function(dataset,
@@ -94,7 +99,6 @@ calculate_hedonic_index <- function(dataset,
     }
   }
 
-  run_method <- make_run_method(extra_args)
   method_calculation_args <- extra_args
   if (isTRUE(parallel) && length(method) > 1) {
     method_calculation_args$parallel <- FALSE
@@ -190,27 +194,6 @@ supported_hedonic_index_methods <- function() {
   )
 }
 
-#' Hedonic Index Method Function Map
-#'
-#' Maps each public method name to the internal function that performs the
-#' actual calculation.
-#'
-#' @return Named character vector of method names and function names.
-#' @author Vivek Gajadhar
-#' @keywords internal
-#' @noRd
-hedonic_index_method_functions <- function() {
-  c(
-    fisher = "calculate_fisher",
-    laspeyres = "calculate_laspeyres",
-    paasche = "calculate_paasche",
-    hmts = "calculate_hmts",
-    timedummy = "calculate_time_dummy",
-    rolling_timedummy = "calculate_rolling_timedummy",
-    repricing = "calculate_repricing"
-  )
-}
-
 #' Validate Hedonic Index Methods
 #'
 #' Normalizes method names to lower case and stops when one or more requested
@@ -254,11 +237,17 @@ validate_hedonic_index_methods <- function(method) {
 #' @noRd
 validate_hedonic_index_options <- function(method, chained, index_contribution, extra_args) {
   if (length(method) > 1 && isTRUE(extra_args$resting_points)) {
-    stop("Using 'resting_points = TRUE' is only allowed with a single method ('hmts').")
+    stop(paste0(
+      "Using 'resting_points = TRUE' is only allowed with the single ",
+      "method 'hmts'."
+    ))
   }
 
   if (length(method) > 1 && isTRUE(index_contribution)) {
-    stop("Using 'index_contribution = TRUE' is only allowed with a single method.")
+    stop(paste0(
+      "Using 'index_contribution = TRUE' is only allowed when a single ",
+      "method is selected."
+    ))
   }
 
   if (isTRUE(chained) && isTRUE(extra_args$resting_points)) {
@@ -312,12 +301,13 @@ resolve_hedonic_method_extra_args <- function(method, target_function, extra_arg
   accepted_args <- names(formals(target_function))
   valid_extra_args <- extra_args[names(extra_args) %in% accepted_args]
 
-  if (method == "rolling_timedummy" && !("window_length" %in% names(valid_extra_args))) {
+  if (
+    method == "rolling_timedummy" &&
+      !("window_length" %in% names(valid_extra_args))
+  ) {
     valid_extra_args$window_length <- 5
     message("Note: 'window_length' was not specified. A default value of 5 has been applied.")
-  }
-
-  if (method == "hmts") {
+  } else if (method == "hmts") {
     if (!("number_preliminary_periods" %in% names(valid_extra_args))) {
       valid_extra_args$number_preliminary_periods <- 3
       message("Note: 'number_preliminary_periods' was not specified. A default value of 3 has been applied.")
@@ -331,13 +321,15 @@ resolve_hedonic_method_extra_args <- function(method, target_function, extra_arg
     if (!("resting_points" %in% names(valid_extra_args))) {
       valid_extra_args$resting_points <- FALSE
     }
-  }
-
-  if (method == "repricing" && !("periods_in_year" %in% names(valid_extra_args))) {
+  } else if (
+    method == "repricing" &&
+      !("periods_in_year" %in% names(valid_extra_args))
+  ) {
     stop("Validation Error: You must specify 'periods_in_year' for the 'repricing' method.")
-  }
-
-  if (method %in% c("laspeyres", "paasche") && !("imputation" %in% names(valid_extra_args))) {
+  } else if (
+    method %in% c("laspeyres", "paasche") &&
+      !("imputation" %in% names(valid_extra_args))
+  ) {
     valid_extra_args$imputation <- FALSE
   }
 
