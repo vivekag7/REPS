@@ -12,6 +12,8 @@
 #' @param numerical_variables A character vector with names of numeric quality-determining variables.
 #' @param categorical_variables A character vector with names of categorical variables (including dummies).
 #' @param reference_period Optional string for the base period to normalize index values (e.g., "2015", "2020Q1").
+#' @param require_explanatory_variables Logical; whether at least one numerical
+#'   or categorical explanatory variable is required. Default is TRUE.
 #'
 #'
 #' @author David Pietersz, Vivek Gajadhar
@@ -20,10 +22,18 @@
 #' @importFrom stringr str_detect
 #' @noRd
 
-validate_input <- function(dataset, period_variable, dependent_variable, numerical_variables, categorical_variables, reference_period = NULL) {
+validate_input <- function(dataset,
+                           period_variable,
+                           dependent_variable,
+                           numerical_variables = NULL,
+                           categorical_variables = NULL,
+                           reference_period = NULL,
+                           require_explanatory_variables = TRUE) {
   
-  # Stop if both numerical and categorical variables are missing or empty
-  if ((is.null(numerical_variables) || length(numerical_variables) == 0) &&
+  # Hedonic methods require explanatory variables. Simpler comparison methods
+  # can reuse the remaining validation without that requirement.
+  if (isTRUE(require_explanatory_variables) &&
+      (is.null(numerical_variables) || length(numerical_variables) == 0) &&
       (is.null(categorical_variables) || length(categorical_variables) == 0)) {
     stop("Both numerical_variables and categorical_variables are missing or empty. The model requires at least one type of explanatory variable to function.")
   }
