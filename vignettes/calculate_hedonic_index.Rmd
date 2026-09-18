@@ -25,7 +25,7 @@ data("hedonic_data")
 
 ## Introduction
 
-The `calculate_hedonic_index()` function is the central entry point in `REPS` for computing price indices using various **hedonic-based methods**. It supports six commonly used approaches:
+The `calculate_hedonic_index()` function is the central entry point in `REPS` for computing and comparing price indices. It supports seven hedonic approaches plus an unadjusted median-price benchmark:
 
 * **Laspeyres** - hedonic double imputation base-weighted index
 * **Paasche** - hedonic double imputation current-weighted index
@@ -34,6 +34,7 @@ The `calculate_hedonic_index()` function is the central entry point in `REPS` fo
 * **Time Dummy** - single-regression hedonic index using time dummies
 * **Rolling Time Dummy** - chained index based on overlapping time-dummy regressions
 * **Repricing** - quasi-repeat-sales method comparing observed vs predicted price changes
+* **Median** - unadjusted median transaction-price index for comparison with the hedonic methods
 
 This vignette demonstrates how to apply each method using a consistent interface, making it easy to compare results across approaches.
 
@@ -98,7 +99,7 @@ head(Tbl_TD)
 
 ```{r}
 multi_result <- REPS::calculate_hedonic_index(
-  method = c("fisher","hmts", "laspeyres", "paasche", "repricing", "timedummy", "rolling_timedummy"),
+  method = c("fisher", "paasche", "median", "hmts", "laspeyres", "repricing", "timedummy", "rolling_timedummy"),
   dataset = dataset,
   period_variable = "period",
   dependent_variable = "price",
@@ -115,7 +116,12 @@ multi_result <- REPS::calculate_hedonic_index(
 )
 
 head(multi_result$fisher)
+head(multi_result$median)
 ```
+
+The `"median"` method does not use the numerical or categorical quality
+variables. It is included as an unadjusted benchmark so that it can be returned
+and plotted together with the hedonic methods.
 
 ---
 

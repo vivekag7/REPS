@@ -2,7 +2,7 @@
 % Please edit documentation in R/calculate_hedonic_index.R
 \name{calculate_hedonic_index}
 \alias{calculate_hedonic_index}
-\title{Calculate index based on specified method (Fisher, Laspeyres, Paasche, HMTS, Time Dummy, Rolling Time Dummy)}
+\title{Calculate index based on specified method}
 \usage{
 calculate_hedonic_index(
   dataset,
@@ -22,7 +22,7 @@ calculate_hedonic_index(
 \arguments{
 \item{dataset}{Data frame with input data}
 
-\item{method}{One of: "fisher", "laspeyres", "paasche", "hmts", "timedummy", "rolling_timedummy", "repricing"}
+\item{method}{One of: "fisher", "laspeyres", "paasche", "hmts", "timedummy", "rolling_timedummy", "repricing", "median". The median method is an unadjusted comparison benchmark.}
 
 \item{period_variable}{A string with the name of the column containing time periods.}
 
