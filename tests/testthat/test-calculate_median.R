@@ -38,3 +38,26 @@ test_that("median can be plotted alongside hedonic methods", {
   expect_named(result, c("fisher", "paasche", "median"))
   expect_equal(names(result$median), c("period", "Index"))
 })
+
+
+test_that("median defaults to first period as index reference", {
+  tiny_data <- data.frame(
+    period = c("2020Q1", "2020Q1", "2020Q1", "2020Q2", "2020Q2", "2020Q2"),
+    price = c(100, 200, 300, 120, 240, 360)
+  )
+
+  result <- calculate_median(
+    dataset = tiny_data,
+    period_variable = "period",
+    dependent_variable = "price",
+    number_of_observations = FALSE
+  )
+
+  expect_equal(
+    result,
+    data.frame(
+      period = c("2020Q1", "2020Q2"),
+      Index = c(100, 120)
+    )
+  )
+})
