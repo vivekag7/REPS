@@ -1,3 +1,8 @@
+# REPS development version
+
+## New Features
+* Added `"median"` as an unadjusted comparison method in `calculate_hedonic_index()`.
+
 # REPS 1.1.1
 
 ## Bug Fixes
