@@ -22,7 +22,7 @@ calculate_hedonic_index(
 \arguments{
 \item{dataset}{Data frame with input data}
 
-\item{method}{One of: "fisher", "laspeyres", "paasche", "hmts", "timedummy", "rolling_timedummy", "repricing"}
+\item{method}{One of: "fisher", "laspeyres", "paasche", "hmts", "timedummy", "rolling_timedummy", "repricing", "median"}
 
 \item{period_variable}{A string with the name of the column containing time periods.}
 

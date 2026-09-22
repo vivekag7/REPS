@@ -1,10 +1,10 @@
 #' Calculate index based on specified method (Fisher, Laspeyres, Paasche, HMTS,
-#' Time Dummy, Rolling Time Dummy, Repricing)
+#' Time Dummy, Rolling Time Dummy, Repricing, Median)
 #'
 #' Central hub function to calculate index figures using different methods. Can also calculate chained indices using the Annual Overlap Method.
 #'
 #' @author Vivek Gajadhar
-#' @param method One of: "fisher", "laspeyres", "paasche", "hmts", "timedummy", "rolling_timedummy", "repricing"
+#' @param method One of: "fisher", "laspeyres", "paasche", "hmts", "timedummy", "rolling_timedummy", "repricing", "median"
 #' @param dataset Data frame with input data
 #' @param period_variable A string with the name of the column containing time periods.
 #' @param dependent_variable Usually the price
@@ -190,7 +190,8 @@ supported_hedonic_index_methods <- function() {
     "hmts",
     "timedummy",
     "rolling_timedummy",
-    "repricing"
+    "repricing",
+    "median"
   )
 }
 
@@ -281,6 +282,7 @@ get_hedonic_index_method_function <- function(method) {
     timedummy = calculate_time_dummy,
     rolling_timedummy = calculate_rolling_timedummy,
     repricing = calculate_repricing,
+    median = calculate_median,
     stop("Invalid method: ", method)
   )
 }
