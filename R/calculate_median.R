@@ -23,6 +23,13 @@ calculate_median <- function(dataset,
     stats::median(values, na.rm = TRUE)
   }, numeric(1))
 
+  # Transform the series of median prices into an index.
+  index <- calculate_index(
+    periods = periods,
+    values = median_prices,
+    reference_period = reference_period
+  )
+
   observation_counts <- NULL
   if (isTRUE(number_of_observations)) {
     observation_counts <- vapply(periods, function(period) {
@@ -36,8 +43,7 @@ calculate_median <- function(dataset,
 
   format_index_output(
     periods = periods,
-    index_values = median_prices,
-    reference_period = reference_period,
+    index_values = index,
     observation_counts = observation_counts
   )
 }
