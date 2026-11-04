@@ -30,6 +30,46 @@ REPS offers a **single entry point** `calculate_hedonic_index()` to compute pric
 
 All methods are accessed via `calculate_hedonic_index()` with a consistent interface. The function returns either a single index or, for multiple methods, a list of results. A reference period can be specified to normalize index values (default sets the first period to 100).
 
+## Sales Price Appraisal Ratio (SPAR)
+
+Use `calculate_spar()` when transaction prices and corresponding appraisal
+values are available. Its separate public hub follows the same single-method
+data.frame and multi-method named-list convention as `calculate_hedonic_index()`.
+The variants are:
+
+- **Arithmetic:** `mean(price) / mean(appraisal)`.
+- **Geometric:** `exp(mean(log(price))) / exp(mean(log(appraisal)))`.
+- **Unweighted:** `mean(price / appraisal)`.
+
+Every variant uses complete price-appraisal pairs. Each period's ratio is
+divided by its grouping series' reference-period ratio and multiplied by 100.
+The reference regex must select at most one period per group; a group with no
+reference is warned about and omitted.
+
+```r
+data("aritmethic_data")
+spar <- calculate_spar(
+  dataset = aritmethic_data,
+  method = c("arithmetic", "geometric", "unweighted"),
+  period_variable = "Period",
+  dependent_variable = "Price",
+  appraisal_variable = "Appraisal Value",
+  grouping_variables = c("Appraisal Year", "Property Type"),
+  chained = TRUE,
+  index_type_variable = "Property Type"
+)
+plot_price_index(lapply(spar, function(x) x[x[["Property Type"]] == "A", ]))
+```
+
+`parallel = TRUE` can run multiple methods using the existing parallel helper.
+Chaining identifies independent series with `index_type_variable` and numeric
+segments with `month_modulo` (100 for YYYYMM). Every segment starts at its
+reference period. The reference branch's chaining convention is retained:
+the prior endpoint is carried forward unchanged at the next segment start.
+This assumes no boundary movement; it does not estimate a missing bridge between
+appraisal vintages. See `vignette("calculate_spar", package = "REPS")` for
+formulas, validation rules, and hand-calculated chaining examples.
+
 ## Diagnostics and Visualization Tools
 
 - **Regression Diagnostics:** `calculate_regression_diagnostics()` fits a separate log-linear model per period and checks normality, R^2, autocorrelation, and heteroscedasticity of residuals. `plot_regression_diagnostics()` visualizes these over time in a 3x2 grid.
