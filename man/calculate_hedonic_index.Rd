@@ -2,7 +2,7 @@
 % Please edit documentation in R/calculate_hedonic_index.R
 \name{calculate_hedonic_index}
 \alias{calculate_hedonic_index}
-\title{Calculate a price index or an unadjusted median-price baseline}
+\title{Calculate price indices using different methods}
 \usage{
 calculate_hedonic_index(
   dataset,
@@ -30,12 +30,11 @@ calculate_hedonic_index(
 \item{dependent_variable}{Usually the price}
 
 \item{numerical_variables}{Vector with numeric quality-determining variables.
-May be NULL for median-only calls; ignored by median.}
+Optional for median; ignored by that method.}
 
 \item{categorical_variables}{Vector with categorical variables (also dummies).
-May be NULL for median-only calls; ignored by median. At least one numerical
-or categorical explanatory variable is required if any hedonic method is
-selected, including a mixed call such as \code{c("median", "fisher")}.}
+At least one numerical or categorical explanatory variable is required
+for hedonic methods. Optional for median; ignored by that method.}
 
 \item{reference_period}{Period or group of periods that will be set to 100}
 
@@ -66,18 +65,8 @@ A data.frame (or list for HMTS with resting_points = TRUE; named list if multipl
 Central hub function to calculate index figures using different methods. Can also calculate chained indices using the Annual Overlap Method.
 }
 \details{
-The \code{"median"} method is an unadjusted median-price baseline, without
-hedonic quality adjustment. It calculates the median of the untransformed
-dependent variable in each period using complete price-period observations.
-Explanatory variables are ignored for this method, including their missing
-values. Periods without usable price-period observations are omitted.
-By default, the first usable period is set to 100. A reference-period prefix
-uses the arithmetic mean of the matching period medians, following the same
-rebasing convention as other REPS methods.
-
-Median also supports the generic annual-overlap chaining. Its chained result
-retains observation counts when requested; existing hedonic chained results
-retain their two-column output convention.
+For comparison, \code{"median"} provides an unadjusted median-price baseline
+using only price and period observations, without explanatory variables.
 }
 \examples{
 data("hedonic_data")
@@ -97,14 +86,6 @@ Tbl_indices <- REPS::calculate_hedonic_index(
   production_since = NULL,
   resting_points = FALSE,
   imputation = FALSE
-)
-
-# Unadjusted median-price baseline, without explanatory variables
-median_index <- calculate_hedonic_index(
-  dataset = hedonic_data,
-  method = "median",
-  period_variable = "period",
-  dependent_variable = "price"
 )
 }
 \author{

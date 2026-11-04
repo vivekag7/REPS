@@ -26,29 +26,9 @@ REPS offers a **single entry point** `calculate_hedonic_index()` to compute pric
 - **Rolling Time Dummy** - A rolling window (chained) time-dummy hedonic index.
 - **Repricing** - A quasi-repeat-sales method comparing observed vs. predicted price changes between consecutive periods.
 - **HMTS** - *Hedonic Multilateral Time Series re-estimation with Splicing*. An advanced multilateral index method that leverages hedonic models across all period pairs and uses Kalman filtering to improve stability.
-- **Median** - An **unadjusted median-price baseline** for comparison with hedonic methods. It uses untransformed prices and does not adjust for quality or changes in the mix of properties sold.
+- **Median** (`method = "median"`) - Unadjusted median-price baseline; no predictors required.
 
 All methods are accessed via `calculate_hedonic_index()` with a consistent interface. The function returns either a single index or, for multiple methods, a list of results. A reference period can be specified to normalize index values (default sets the first period to 100).
-
-The median baseline requires only price and period columns:
-
-```r
-median_index <- calculate_hedonic_index(
-  dataset = hedonic_data,
-  method = "median",
-  period_variable = "period",
-  dependent_variable = "price"
-)
-```
-
-It calculates the median price per period and divides it by the reference median,
-multiplied by 100. Missing prices or periods are excluded; unused explanatory
-columns do not affect the sample. `reference_period` also accepts a prefix such
-as `"2015"`, using the mean of the matching period medians. Observation counts
-are included by default and can be disabled with `number_of_observations = FALSE`.
-The existing annual-overlap calculation is available through `chained = TRUE`.
-For `method = c("median", "fisher")`, supply explanatory variables for Fisher;
-median still uses only price and period.
 
 ## Diagnostics and Visualization Tools
 

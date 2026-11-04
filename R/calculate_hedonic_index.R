@@ -1,19 +1,9 @@
-#' Calculate a price index or an unadjusted median-price baseline
+#' Calculate price indices using different methods
 #'
 #' Central hub function to calculate index figures using different methods. Can also calculate chained indices using the Annual Overlap Method.
 #'
-#' The `"median"` method is an unadjusted median-price baseline, without
-#' hedonic quality adjustment. It calculates the median of the untransformed
-#' dependent variable in each period using complete price-period observations.
-#' Explanatory variables are ignored for this method, including their missing
-#' values. Periods without usable price-period observations are omitted.
-#' By default, the first usable period is set to 100. A reference-period prefix
-#' uses the arithmetic mean of the matching period medians, following the same
-#' rebasing convention as other REPS methods.
-#'
-#' Median also supports the generic annual-overlap chaining. Its chained result
-#' retains observation counts when requested; existing hedonic chained results
-#' retain their two-column output convention.
+#' For comparison, `"median"` provides an unadjusted median-price baseline
+#' using only price and period observations, without explanatory variables.
 #'
 #' @author Vivek Gajadhar
 #' @param method One or more of: "fisher", "laspeyres", "paasche", "hmts",
@@ -22,11 +12,10 @@
 #' @param period_variable A string with the name of the column containing time periods.
 #' @param dependent_variable Usually the price
 #' @param numerical_variables Vector with numeric quality-determining variables.
-#'   May be NULL for median-only calls; ignored by median.
+#'   Optional for median; ignored by that method.
 #' @param categorical_variables Vector with categorical variables (also dummies).
-#'   May be NULL for median-only calls; ignored by median. At least one numerical
-#'   or categorical explanatory variable is required if any hedonic method is
-#'   selected, including a mixed call such as `c("median", "fisher")`.
+#'   At least one numerical or categorical explanatory variable is required
+#'   for hedonic methods. Optional for median; ignored by that method.
 #' @param reference_period Period or group of periods that will be set to 100
 #' @param number_of_observations Logical, whether to show number of observations (default = TRUE)
 #' @param chained Logical. If TRUE, calculates a chained index using the Annual Overlap Method. Default is FALSE.
@@ -63,14 +52,6 @@
 #'   production_since = NULL,
 #'   resting_points = FALSE,
 #'   imputation = FALSE
-#' )
-#'
-#' # Unadjusted median-price baseline, without explanatory variables
-#' median_index <- calculate_hedonic_index(
-#'   dataset = hedonic_data,
-#'   method = "median",
-#'   period_variable = "period",
-#'   dependent_variable = "price"
 #' )
 #' @export
 calculate_hedonic_index <- function(dataset,
