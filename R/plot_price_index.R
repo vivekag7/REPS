@@ -1,12 +1,15 @@
-#' Plot index output from calculate_hedonic_index
+#' Plot price index output
 #'
 #' Static price index plot using base R graphics with grid lines and external legend.
 #'
-#' Supports both single index data.frame and named list of multiple methods.
+#' Supports single index data.frames and named lists of methods from
+#' `calculate_hedonic_index()` or `calculate_spar()`. Each frame must have one
+#' row per period. Filter grouped SPAR output to one series before plotting.
 #' X-axis shows only first period of each year with rotated labels to avoid clutter.
 #'
 #' @author Vivek Gajadhar
-#' @param index_output A data.frame or named list of data.frames (from calculate_hedonic_index())
+#' @param index_output A data.frame or named list of data.frames containing
+#'   `period` and `Index` columns.
 #' @param title Optional plot title
 #' @return None. Draws plots in the active graphics device.
 #' @importFrom graphics axis grid legend lines par plot text
@@ -26,6 +29,19 @@ plot_price_index <- function(index_output, title = NULL) {
     "#0072B2", "#D55E00", "#CC79A7", "#999999"
   )
 
+  validate_plot_series <- function(data) {
+    if (!is.data.frame(data) || !all(c("period", "Index") %in% names(data))) {
+      stop("Each plot series must be a data.frame with 'period' and 'Index' columns.")
+    }
+    if (anyDuplicated(data$period)) {
+      stop("The output contains multiple rows for the same period; filter grouped output to one series before plotting.")
+    }
+    if (!nrow(data) || anyNA(data$period) || !is.numeric(data$Index) ||
+        !any(is.finite(data$Index))) {
+      stop("Each plot series must contain periods and finite numeric index values.")
+    }
+  }
+
   if (is.null(title)) {
     if (is.data.frame(index_output)) {
       title <- "Price Index"
@@ -35,6 +51,7 @@ plot_price_index <- function(index_output, title = NULL) {
   }
 
   if (is.data.frame(index_output)) {
+    validate_plot_series(index_output)
     df <- index_output[order(index_output$period), ]
     periods <- as.factor(df$period)
     period_levels <- levels(periods)
@@ -63,7 +80,10 @@ plot_price_index <- function(index_output, title = NULL) {
       cex = 0.8
     )
   } else if (is.list(index_output)) {
-    is_valid_multi <- all(vapply(index_output, function(x) {
+    is_valid_multi <- length(index_output) > 0L &&
+      !is.null(names(index_output)) && !anyNA(names(index_output)) &&
+      all(nzchar(names(index_output))) && !anyDuplicated(names(index_output)) &&
+      all(vapply(index_output, function(x) {
       is.data.frame(x) && "period" %in% names(x) && "Index" %in% names(x)
     }, logical(1)))
 
@@ -76,11 +96,12 @@ plot_price_index <- function(index_output, title = NULL) {
       ))
     }
 
+    invisible(lapply(index_output, validate_plot_series))
+
     combined <- do.call(rbind, lapply(names(index_output), function(name) {
       df <- index_output[[name]]
       df <- df[order(df$period), ]
-      df$method <- name
-      df
+      data.frame(period = as.character(df$period), Index = df$Index, method = name)
     }))
     combined$period <- as.factor(combined$period)
     period_levels <- levels(combined$period)
@@ -107,7 +128,7 @@ plot_price_index <- function(index_output, title = NULL) {
       df <- combined[combined$method == method_name, ]
       df <- df[order(df$period), ]
       lines(
-        x,
+        match(as.character(df$period), period_levels),
         df$Index,
         type = "b",
         pch = 19,
@@ -136,6 +157,6 @@ plot_price_index <- function(index_output, title = NULL) {
       xpd = TRUE
     )
   } else {
-    stop("Unsupported input type: must be a data.frame or named list of data.frames from calculate_hedonic_index()")
+    stop("Unsupported input type: supply a data.frame or named list of data.frames from calculate_hedonic_index() or calculate_spar().")
   }
 }
