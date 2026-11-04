@@ -25,7 +25,7 @@ data("hedonic_data")
 
 ## Introduction
 
-The `calculate_hedonic_index()` function is the central entry point in `REPS` for computing price indices using various **hedonic-based methods**. It supports six commonly used approaches:
+The `calculate_hedonic_index()` function is the central entry point in `REPS` for computing price indices using hedonic methods and an unadjusted median-price baseline. It supports the following approaches:
 
 * **Laspeyres** - hedonic double imputation base-weighted index
 * **Paasche** - hedonic double imputation current-weighted index
@@ -34,6 +34,7 @@ The `calculate_hedonic_index()` function is the central entry point in `REPS` fo
 * **Time Dummy** - single-regression hedonic index using time dummies
 * **Rolling Time Dummy** - chained index based on overlapping time-dummy regressions
 * **Repricing** - quasi-repeat-sales method comparing observed vs predicted price changes
+* **Median** - unadjusted median-price baseline without hedonic quality adjustment
 
 This vignette demonstrates how to apply each method using a consistent interface, making it easy to compare results across approaches.
 
@@ -75,6 +76,55 @@ dataset$floor_area <- log(dataset$floor_area)
 ## Using `calculate_hedonic_index()`
 
 The `calculate_hedonic_index()` function provides a unified interface for estimating hedonic price indices. You only need to specify the method via the `method` argument - the function handles the rest.
+
+### Example: Unadjusted Median-Price Baseline
+
+Use `method = "median"` for an **unadjusted median-price baseline**. This method
+uses the untransformed price column and does not correct for quality or changes
+in the composition of sales. It requires no explanatory variables:
+
+```{r median-baseline}
+median_result <- calculate_hedonic_index(
+  dataset = dataset,
+  method = "median",
+  period_variable = "period",
+  dependent_variable = "price",
+  number_of_observations = TRUE
+)
+head(median_result)
+```
+
+For each period, REPS calculates the median of complete price-period pairs.
+Missing values in unused explanatory columns do not remove observations from
+this calculation. The first usable period is set to 100 by default. With an
+explicit `reference_period`, the same REPS rebasing helper is used. A prefix
+such as `"2015"` sets the mean of the matching period medians to 100, rather
+than calculating a pooled median across the reference year.
+
+Set `number_of_observations = FALSE` to return only `period` and `Index`.
+Median also supports `chained = TRUE` through the existing annual-overlap
+infrastructure, with optional observation counts retained. For median prices,
+the overlap ratios telescope to the direct index when the same usable periods
+and reference are used; no separate median chaining formula is needed.
+
+To compare median with Fisher, keep the explanatory variables needed by Fisher:
+
+```{r median-comparison}
+baseline_comparison <- calculate_hedonic_index(
+  dataset = dataset,
+  method = c("median", "fisher"),
+  period_variable = "period",
+  dependent_variable = "price",
+  numerical_variables = c("floor_area", "dist_trainstation"),
+  categorical_variables = c("neighbourhood_code", "dummy_large_city"),
+  reference_period = "2015",
+  number_of_observations = FALSE
+)
+names(baseline_comparison)
+```
+
+The result is a named list with `median` and `fisher`. Each method uses its own
+usable observations: predictors are required for Fisher and ignored by median.
 
 ### Example: Single Index Method - Time Dummy
 
