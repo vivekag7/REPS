@@ -1,14 +1,32 @@
-#' Calculate index based on specified method (Fisher, Laspeyres, Paasche, HMTS, Time Dummy, Rolling Time Dummy)
+#' Calculate a price index or an unadjusted median-price baseline
 #'
 #' Central hub function to calculate index figures using different methods. Can also calculate chained indices using the Annual Overlap Method.
 #'
+#' The `"median"` method is an unadjusted median-price baseline, without
+#' hedonic quality adjustment. It calculates the median of the untransformed
+#' dependent variable in each period using complete price-period observations.
+#' Explanatory variables are ignored for this method, including their missing
+#' values. Periods without usable price-period observations are omitted.
+#' By default, the first usable period is set to 100. A reference-period prefix
+#' uses the arithmetic mean of the matching period medians, following the same
+#' rebasing convention as other REPS methods.
+#'
+#' Median also supports the generic annual-overlap chaining. Its chained result
+#' retains observation counts when requested; existing hedonic chained results
+#' retain their two-column output convention.
+#'
 #' @author Vivek Gajadhar
-#' @param method One of: "fisher", "laspeyres", "paasche", "hmts", "timedummy", "rolling_timedummy", "repricing"
+#' @param method One or more of: "fisher", "laspeyres", "paasche", "hmts",
+#'   "timedummy", "rolling_timedummy", "repricing", "median".
 #' @param dataset Data frame with input data
 #' @param period_variable A string with the name of the column containing time periods.
 #' @param dependent_variable Usually the price
-#' @param numerical_variables Vector with numeric quality-determining variables
-#' @param categorical_variables Vector with categorical variables (also dummies)
+#' @param numerical_variables Vector with numeric quality-determining variables.
+#'   May be NULL for median-only calls; ignored by median.
+#' @param categorical_variables Vector with categorical variables (also dummies).
+#'   May be NULL for median-only calls; ignored by median. At least one numerical
+#'   or categorical explanatory variable is required if any hedonic method is
+#'   selected, including a mixed call such as `c("median", "fisher")`.
 #' @param reference_period Period or group of periods that will be set to 100
 #' @param number_of_observations Logical, whether to show number of observations (default = TRUE)
 #' @param chained Logical. If TRUE, calculates a chained index using the Annual Overlap Method. Default is FALSE.
@@ -46,6 +64,14 @@
 #'   resting_points = FALSE,
 #'   imputation = FALSE
 #' )
+#'
+#' # Unadjusted median-price baseline, without explanatory variables
+#' median_index <- calculate_hedonic_index(
+#'   dataset = hedonic_data,
+#'   method = "median",
+#'   period_variable = "period",
+#'   dependent_variable = "price"
+#' )
 #' @export
 calculate_hedonic_index <- function(dataset,
                                     method,
@@ -70,12 +96,14 @@ calculate_hedonic_index <- function(dataset,
     extra_args = extra_args
   )
 
+  requires_explanatory_variables <- any(method != "median")
   validate_input(
     dataset,
     period_variable,
     dependent_variable,
-    numerical_variables,
-    categorical_variables
+    if (requires_explanatory_variables) numerical_variables else NULL,
+    if (requires_explanatory_variables) categorical_variables else NULL,
+    require_explanatory_variables = requires_explanatory_variables
   )
 
   make_run_method <- function(method_extra_args) {
@@ -108,7 +136,8 @@ calculate_hedonic_index <- function(dataset,
       period_variable = period_variable,
       reference_period = reference_period,
       chained = chained,
-      run_method = run_method_for_method_calculation
+      run_method = run_method_for_method_calculation,
+      dependent_variable = dependent_variable
     )
   }
 
@@ -149,7 +178,8 @@ calculate_hedonic_index <- function(dataset,
             period_variable = period_variable,
             reference_period = reference_period,
             chained = chained,
-            run_method = run_index_contribution_method
+            run_method = run_index_contribution_method,
+            dependent_variable = dependent_variable
           )
         },
         unit_variable = extra_args$unit_variable,
@@ -186,7 +216,8 @@ supported_hedonic_index_methods <- function() {
     "hmts",
     "timedummy",
     "rolling_timedummy",
-    "repricing"
+    "repricing",
+    "median"
   )
 }
 
@@ -207,7 +238,8 @@ hedonic_index_method_functions <- function() {
     hmts = "calculate_hmts",
     timedummy = "calculate_time_dummy",
     rolling_timedummy = "calculate_rolling_timedummy",
-    repricing = "calculate_repricing"
+    repricing = "calculate_repricing",
+    median = "calculate_median"
   )
 }
 
@@ -292,6 +324,7 @@ get_hedonic_index_method_function <- function(method) {
     timedummy = calculate_time_dummy,
     rolling_timedummy = calculate_rolling_timedummy,
     repricing = calculate_repricing,
+    median = calculate_median,
     stop("Invalid method: ", method)
   )
 }
@@ -402,6 +435,7 @@ run_hedonic_index_method <- function(method,
 #' @param reference_period Optional reference period used to normalize the index.
 #' @param chained Logical; whether annual-overlap chaining is requested.
 #' @param run_method Callback used to run one method on a target dataset.
+#' @param dependent_variable Price column used to prepare median chain windows.
 #' @return Data frame or method-specific output for one index method.
 #' @author Vivek Gajadhar
 #' @keywords internal
@@ -411,9 +445,21 @@ calculate_single_hedonic_index_method <- function(method,
                                                   period_variable,
                                                   reference_period,
                                                   chained,
-                                                  run_method) {
+                                                  run_method,
+                                                  dependent_variable = NULL) {
   if (!isTRUE(chained)) {
     return(run_method(method, dataset, reference_period))
+  }
+
+  if (method == "median") {
+    # Exclude unusable pairs before choosing years and overlap periods.
+    dataset <- prepare_hedonic_data(
+      dataset, period_variable, dependent_variable,
+      numerical_variables = NULL, categorical_variables = NULL
+    )
+    if (nrow(dataset) == 0L) {
+      return(run_method(method, dataset, reference_period))
+    }
   }
 
   calculate_chained_hedonic_index(
@@ -422,7 +468,8 @@ calculate_single_hedonic_index_method <- function(method,
     reference_period = reference_period,
     run_method = function(target_dataset, target_reference_period) {
       run_method(method, target_dataset, target_reference_period)
-    }
+    },
+    retain_observation_counts = method == "median"
   )
 }
 
@@ -519,12 +566,14 @@ calculate_annual_overlap_segments <- function(dataset,
 #' series by multiplying later-year growth factors onto the previous level.
 #'
 #' @param short_term_results Named list of segment-level index data frames.
+#' @param retain_observation_counts Logical; preserve counts from method output
+#'   when available. Defaults to FALSE to retain existing chained output.
 #' @return Data frame with `period` and chained `Index` columns.
 #' @author Vivek Gajadhar
 #' @keywords internal
 #' @noRd
 #' @importFrom dplyr bind_rows
-splice_annual_overlap_index <- function(short_term_results) {
+splice_annual_overlap_index <- function(short_term_results, retain_observation_counts = FALSE) {
   full_series <- dplyr::bind_rows(short_term_results)
   full_series <- full_series[order(full_series$period), ]
 
@@ -556,9 +605,10 @@ splice_annual_overlap_index <- function(short_term_results) {
     current_idx <- current_idx + n_obs
   }
 
-  data.frame(
-    period = periods_vec,
-    Index = final_index
+  format_index_output(
+    periods = periods_vec,
+    index_values = final_index,
+    observation_counts = if (retain_observation_counts) full_series$number_of_observations else NULL
   )
 }
 
@@ -571,6 +621,8 @@ splice_annual_overlap_index <- function(short_term_results) {
 #' @param period_variable Name of the period column.
 #' @param reference_period Optional reference period used to normalize the index.
 #' @param run_method Callback that calculates one method on a target dataset.
+#' @param retain_observation_counts Logical; preserve counts from method output
+#'   when available. Defaults to FALSE to retain existing chained output.
 #' @return Data frame with `period` and chained `Index` columns.
 #' @author Vivek Gajadhar
 #' @keywords internal
@@ -578,7 +630,8 @@ splice_annual_overlap_index <- function(short_term_results) {
 calculate_chained_hedonic_index <- function(dataset,
                                             period_variable,
                                             reference_period,
-                                            run_method) {
+                                            run_method,
+                                            retain_observation_counts = FALSE) {
   periods_raw <- as.character(dataset[[period_variable]])
   unique_periods <- sort(unique(periods_raw))
   period_years <- get_hedonic_period_years(unique_periods)
@@ -597,7 +650,10 @@ calculate_chained_hedonic_index <- function(dataset,
     run_method = run_method
   )
 
-  result_table <- splice_annual_overlap_index(short_term_results)
+  result_table <- splice_annual_overlap_index(
+    short_term_results,
+    retain_observation_counts = retain_observation_counts
+  )
 
   if (!is.null(reference_period)) {
     result_table$Index <- calculate_index(
