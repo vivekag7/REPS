@@ -78,6 +78,9 @@ contributions to the index level and period-on-period change, calculated per
 independent series. Use `unit_variable` for grouped exclusions and
 `index_contribution_period` to choose the analyzed period; see the SPAR vignette.
 
+Optionally include `"median"` in the method vector for an unadjusted price
+baseline, using only prices and periods within each independent series.
+
 ## Diagnostics and Visualization Tools
 
 - **Regression Diagnostics:** `calculate_regression_diagnostics()` fits a separate log-linear model per period and checks normality, R^2, autocorrelation, and heteroscedasticity of residuals. `plot_regression_diagnostics()` visualizes these over time in a 3x2 grid.

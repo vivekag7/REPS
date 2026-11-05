@@ -18,7 +18,7 @@ spar_contribution_run <- function(dataset = spar_contribution_data(), method = "
 
 test_that("SPAR row contributions match manual exclusion in each independent series", {
   dataset <- spar_contribution_data()
-  for (method in supported_spar_index_methods()) {
+  for (method in grep("^spar_", supported_spar_index_methods(), value = TRUE)) {
     for (chained in c(FALSE, TRUE)) {
       result <- spar_contribution_run(method = method, chained = chained, index_contribution = TRUE)
       expect_named(result, c("Index", "Index_contribution"))

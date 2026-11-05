@@ -39,13 +39,13 @@ test_that("SPAR retains the reference script's missing-value rules", {
   dataset <- rbind(dataset, extras)
   dataset$unused <- NA_real_
   expected <- c(spar_arithmetic = 9 / 8, spar_geometric = 1.5^(1 / 3), spar_unweighted = 1.25)
-  for (method in supported_spar_index_methods()) {
+  for (method in grep("^spar_", supported_spar_index_methods(), value = TRUE)) {
     result <- spar_test_run(dataset, method)
     expect_equal(result$ratio_numerator, c(unname(expected[method]), 2))
     expect_equal(result$Index, c(100, 200 / unname(expected[method])))
   }
   dataset$price[dataset$month == 202102] <- NA_real_
-  for (method in supported_spar_index_methods()) {
+  for (method in grep("^spar_", supported_spar_index_methods(), value = TRUE)) {
     expect_error(spar_test_run(dataset, method), "enough observed values")
   }
   complementary <- spar_test_data()[1:2, ]
@@ -109,7 +109,7 @@ spar_chain_test_data <- function() {
 
 test_that("SPAR chains each independent series using hand-calculated levels", {
   dataset <- spar_chain_test_data()
-  for (method in supported_spar_index_methods()) {
+  for (method in grep("^spar_", supported_spar_index_methods(), value = TRUE)) {
     result <- spar_test_run(dataset, method, chained = TRUE, index_type_variable = "type")
     a <- result[result$type == "A", ]
     b <- result[result$type == "B", ]
@@ -154,7 +154,7 @@ test_that("SPAR chaining supports monthly numeric and character YYYYMM periods o
 test_that("SPAR does not replace the reference script's December rule by a last-period rule", {
   dataset <- spar_chain_test_data()
   dataset <- dataset[dataset$month != 202112, ]
-  for (method in supported_spar_index_methods()) {
+  for (method in grep("^spar_", supported_spar_index_methods(), value = TRUE)) {
     result <- spar_test_run(dataset, method, chained = TRUE, index_type_variable = "type")
     expect_equal(result$Index, c(100, 300, 110, 100, 400, 80))
     expect_equal(result$chain_long, rep(1, 6))
@@ -237,7 +237,7 @@ test_that("SPAR validates every supplied option including inactive chain options
 
 test_that("sequential and parallel multi-method SPAR results agree", {
   for (chained in c(FALSE, TRUE)) {
-    args <- list(dataset = spar_chain_test_data(), method = supported_spar_index_methods(),
+    args <- list(dataset = spar_chain_test_data(), method = grep("^spar_", supported_spar_index_methods(), value = TRUE),
                  chained = chained, index_type_variable = "type")
     sequential <- do.call(spar_test_run, args)
     parallel <- do.call(spar_test_run, c(args, list(parallel = TRUE)))
@@ -249,7 +249,7 @@ test_that("SPAR results plot as one series and reject grouped output", {
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off(), add = TRUE)
   single <- spar_test_run()
-  multiple <- spar_test_run(method = supported_spar_index_methods())
+  multiple <- spar_test_run(method = grep("^spar_", supported_spar_index_methods(), value = TRUE))
   expect_silent(plot_price_index(single))
   expect_silent(plot_price_index(multiple))
   expect_silent(plot_price_index(list(arithmetic = single, shorter = single[1, ])))

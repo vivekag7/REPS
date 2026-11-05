@@ -173,7 +173,7 @@ data("arithmetic_data")
 str(arithmetic_data)
 spar <- calculate_spar_index(
   dataset = arithmetic_data,
-  method = c("spar_arithmetic", "spar_geometric", "spar_unweighted"),
+  method = c("spar_arithmetic", "spar_geometric", "spar_unweighted", "median"),
   period_variable = "period", dependent_variable = "price",
   appraisal_variable = "appraisal_value",
   grouping_variables = c("appraisal_year", "property_type"),
@@ -182,11 +182,16 @@ spar <- calculate_spar_index(
 names(spar)
 ```
 
+The optional `"median"` is an unadjusted price baseline, calculated separately
+by `index_type_variable` when supplied (otherwise by `grouping_variables`). It
+starts at the first usable period and uses no appraisal values or SPAR chaining
+formula. A median-only call needs just price and period columns.
+
 For multiple methods, `parallel = TRUE` uses the same optional task helper as
 hedonic indices. The output has the same content as sequential calculation;
 small datasets often benefit more from avoiding worker startup costs.
 
-Every frame contains character `period`, `Index`, all grouping identifiers,
+Every SPAR frame contains character `period`, `Index`, all grouping identifiers,
 `ratio_numerator`, `ratio_denominator`, and `growth_rate`. Arithmetic/geometric
 output also preserves the aggregated price and appraisal components as
 `numerator_numerator` and `numerator_denominator`. Chained output additionally

@@ -4,6 +4,7 @@
 #' (SPAR) indices from transaction prices and appraisal values. Each
 #' `grouping_variables` combination defines a short-term series, normalized by
 #' its reference-period ratio. No hedonic regression is fitted.
+#' An optional `"median"` method provides an unadjusted price baseline.
 #'
 #' @details
 #' Arithmetic SPAR uses `mean(price) / mean(appraisal)`, geometric SPAR uses
@@ -36,20 +37,26 @@
 #' Unchained SPAR also supports other labels, such as quarterly strings.
 #'
 #' @param dataset A non-empty data frame of transaction observations.
-#' @param method One or more of `"spar_arithmetic"`, `"spar_geometric"`, `"spar_unweighted"`.
+#' @param method One or more of `"spar_arithmetic"`, `"spar_geometric"`,
+#'   `"spar_unweighted"`, or `"median"`.
 #'   Names are case-insensitive; duplicates are calculated once.
 #' @param period_variable One column name identifying periods.
 #' @param dependent_variable One column name containing untransformed prices.
 #' @param appraisal_variable One column name containing appraisal values.
+#'   Required for SPAR methods; unused by median.
 #' @param grouping_variables Unique column names identifying short-term series,
 #'   for example appraisal vintage and property type. These must be distinct
 #'   from the period, price, and appraisal columns and from output column names.
+#'   Optional for median-only calls. Median uses `index_type_variable` when
+#'   supplied, otherwise these groups, and normalizes each series to its first
+#'   usable period. It uses no appraisal values or SPAR chaining formula.
 #' @param index_type_variable Column names identifying independent chained
-#'   series. Required for chaining and a subset of `grouping_variables`.
+#'   series. Required for chained SPAR and a subset of `grouping_variables`.
 #'   Otherwise may be NULL.
 #' @param reference_period_pattern One regular expression matching at most one
-#'   period per group. Default `"01$"` matches January in `YYYYMM` periods.
-#' @param chained Logical; link short-term series? Default FALSE.
+#'   period per group for SPAR. Default `"01$"` matches January in `YYYYMM` periods.
+#' @param chained Logical; link short-term SPAR series? Default FALSE.
+#'   Median remains a direct baseline.
 #' @param base_value Positive finite starting level for chained series. Default
 #'   100. Unchained indices always use 100.
 #' @param parallel Logical; run multiple methods with the existing REPS parallel
@@ -61,7 +68,7 @@
 #' @param index_contribution_period Period to analyze, defaulting to the latest
 #'   period in the index. Contributions are calculated separately per series.
 #' @return One data frame, or a named list of data frames for multiple methods.
-#'   Each contains character `period`, the grouping identifiers, ratios
+#'   SPAR results contain character `period`, the grouping identifiers, ratios
 #'   `ratio_numerator` and `ratio_denominator`, `growth_rate`, and `Index`.
 #'   Arithmetic/geometric output also contains `numerator_numerator` and
 #'   `numerator_denominator`. Chaining adds `chaining_true_false`,
@@ -71,6 +78,7 @@
 #'   With `index_contribution = TRUE`, returns a list containing `Index` and
 #'   `Index_contribution`, including grouping identifiers. An exclusion that
 #'   leaves the target index uncomputable has missing exclusion/difference values.
+#'   Median results contain `period`, `Index`, and independent-series identifiers.
 #'   Filter grouped output to one series before using [plot_price_index()].
 #' @author Kai Cheung, Vivek Gajadhar
 #' @examples
@@ -90,8 +98,8 @@ calculate_spar_index <- function(dataset,
                            method,
                            period_variable,
                            dependent_variable,
-                           appraisal_variable,
-                           grouping_variables,
+                           appraisal_variable = NULL,
+                           grouping_variables = NULL,
                            index_type_variable = NULL,
                            reference_period_pattern = "01$",
                            chained = FALSE,
@@ -101,35 +109,39 @@ calculate_spar_index <- function(dataset,
                            unit_variable = NULL,
                            index_contribution_period = NULL) {
   method <- validate_spar_index_methods(method)
+  has_spar <- any(method != "median")
   validate_spar_index_options(
     grouping_variables, index_type_variable, chained, base_value,
-    parallel
+    parallel, require_spar_groups = has_spar
   )
-  validate_spar_input(
-    dataset, period_variable, dependent_variable, appraisal_variable,
-    grouping_variables
-  )
+  median_groups <- if (!is.null(index_type_variable)) index_type_variable else grouping_variables
+  if (has_spar) {
+    validate_spar_input(dataset, period_variable, dependent_variable, appraisal_variable, grouping_variables)
+  } else {
+    validate_spar_median_input(dataset, period_variable, dependent_variable, median_groups)
+  }
   validate_spar_contribution_options(
     method, dataset, index_contribution, unit_variable, index_contribution_period
   )
   input_dataset <- dataset
-  if (chained) validate_spar_monthly_periods(dataset[[period_variable]])
-  dataset <- prepare_spar_data(
-    dataset, period_variable, dependent_variable, appraisal_variable,
-    grouping_variables, reference_period_pattern
-  )
-  if (chained) {
-    validate_spar_chain_data(
-      dataset, period_variable, grouping_variables,
-      index_type_variable, reference_period_pattern
+  if (has_spar && chained) validate_spar_monthly_periods(dataset[[period_variable]])
+  if (has_spar) {
+    dataset <- prepare_spar_data(
+      dataset, period_variable, dependent_variable, appraisal_variable,
+      grouping_variables, reference_period_pattern
     )
+    if (chained) {
+      validate_spar_chain_data(dataset, period_variable, grouping_variables,
+        index_type_variable, reference_period_pattern)
+    }
   }
 
   result <- run_parallel_tasks(
     tasks = method,
     task_function = function(method_name) {
       calculate_single_spar_index_method(
-        method_name, dataset, period_variable, dependent_variable,
+        method_name, if (method_name == "median") input_dataset else dataset,
+        period_variable, dependent_variable,
         appraisal_variable, grouping_variables, index_type_variable,
         reference_period_pattern, chained, base_value
       )
@@ -140,6 +152,12 @@ calculate_spar_index <- function(dataset,
   if (length(method) == 1L) {
     if (index_contribution) {
       recalculate <- function(target_dataset) {
+        if (method == "median") {
+          return(calculate_single_spar_index_method(
+            method, target_dataset, period_variable, dependent_variable, appraisal_variable,
+            grouping_variables, index_type_variable, reference_period_pattern, chained, base_value
+          ))
+        }
         prepared <- prepare_spar_data(
           target_dataset, period_variable, dependent_variable, appraisal_variable,
           grouping_variables, reference_period_pattern
@@ -150,8 +168,9 @@ calculate_spar_index <- function(dataset,
         )
       }
       contribution <- calculate_spar_index_contribution(
-        input_dataset, result[[1L]], period_variable, grouping_variables,
-        if (chained) index_type_variable else grouping_variables,
+        input_dataset, result[[1L]], period_variable,
+        if (method == "median") median_groups else grouping_variables,
+        if (method == "median") median_groups else if (chained) index_type_variable else grouping_variables,
         recalculate, unit_variable, index_contribution_period, parallel
       )
       return(list(Index = result[[1L]], Index_contribution = contribution))
@@ -166,7 +185,7 @@ calculate_spar_index <- function(dataset,
 #' @keywords internal
 #' @noRd
 supported_spar_index_methods <- function() {
-  c("spar_arithmetic", "spar_geometric", "spar_unweighted")
+  c("spar_arithmetic", "spar_geometric", "spar_unweighted", "median")
 }
 
 #' @rdname calculate_spar_index-internal
@@ -198,6 +217,7 @@ get_spar_index_method_function <- function(method) {
     spar_arithmetic = aggregate_spar_arithmetic,
     spar_geometric = aggregate_spar_geometric,
     spar_unweighted = aggregate_spar_unweighted,
+    median = calculate_spar_median,
     stop("Invalid method: ", method, call. = FALSE)
   )
 }
@@ -224,6 +244,14 @@ calculate_single_spar_index_method <- function(method, dataset, period_variable,
                                                grouping_variables, index_type_variable,
                                                reference_period_pattern, chained,
                                                base_value) {
+  if (method == "median") {
+    median_function <- get_spar_index_method_function(method)
+    return(median_function(
+      dataset, period_variable, dependent_variable,
+      if (!is.null(index_type_variable)) index_type_variable else grouping_variables,
+      if (chained) base_value else 100
+    ))
+  }
   result <- run_spar_index_method(
     method, dataset, period_variable, dependent_variable,
     appraisal_variable, grouping_variables, reference_period_pattern
