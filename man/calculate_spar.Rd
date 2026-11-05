@@ -102,20 +102,17 @@ Use monthly YYYYMM periods and \code{month_modulo = 100} for calendar-year
 chaining. This is distinct from hedonic annual-overlap chaining.
 }
 \examples{
-spar_data <- data.frame(
-  period = rep(c(202301, 202302), each = 2),
-  vintage = 2023,
-  type = "house",
-  price = c(100, 300, 120, 360),
-  appraisal = c(100, 200, 100, 200)
-)
-result <- calculate_spar(
-  spar_data, c("arithmetic", "geometric", "unweighted"),
+data("arithmetic_data")
+spar <- calculate_spar(
+  arithmetic_data, c("arithmetic", "geometric", "unweighted"),
   period_variable = "period", dependent_variable = "price",
-  appraisal_variable = "appraisal", grouping_variables = c("vintage", "type")
+  appraisal_variable = "appraisal_value",
+  grouping_variables = c("appraisal_year", "property_type"),
+  index_type_variable = "property_type", reference_period_pattern = "01$",
+  chained = TRUE
 )
-names(result)
-plot_price_index(result)
+names(spar)
+plot_price_index(lapply(spar, function(x) x[x$property_type == "Appartement", ]))
 }
 \author{
 Kai Cheung, Vivek Gajadhar

@@ -49,18 +49,18 @@ The reference regex must select at most one period per group; a group with no
 reference is warned about and omitted.
 
 ```r
-data("aritmethic_data")
+data("arithmetic_data")
 spar <- calculate_spar(
-  dataset = aritmethic_data,
+  dataset = arithmetic_data,
   method = c("arithmetic", "geometric", "unweighted"),
-  period_variable = "Period",
-  dependent_variable = "Price",
-  appraisal_variable = "Appraisal Value",
-  grouping_variables = c("Appraisal Year", "Property Type"),
+  period_variable = "period",
+  dependent_variable = "price",
+  appraisal_variable = "appraisal_value",
+  grouping_variables = c("appraisal_year", "property_type"),
   chained = TRUE,
-  index_type_variable = "Property Type"
+  index_type_variable = "property_type"
 )
-plot_price_index(lapply(spar, function(x) x[x[["Property Type"]] == "A", ]))
+plot_price_index(lapply(spar, function(x) x[x$property_type == "Appartement", ]))
 ```
 
 `parallel = TRUE` can run multiple methods using the existing parallel helper.

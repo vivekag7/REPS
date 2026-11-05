@@ -19,30 +19,34 @@
 #' head(hedonic_data)
 "hedonic_data"
 
-#' A sales price appraisal ratio example data frame
+#' A compact sales price appraisal ratio example dataset
 #'
-#' A compact SPAR development fixture with two appraisal vintages, five property
-#' types, twelve monthly periods per vintage, and three transactions per
-#' period/property-type combination. The established name `aritmethic_data` is
-#' retained for compatibility with SPAR development examples.
+#' A deterministic, representative subset of the original SPAR development data
+#' spanning January 2013 through December 2018, with six appraisal vintages and
+#' four property types. Each period/vintage/type stratum retains up to three
+#' observations at approximately quartile-spaced price ranks, with appraisal
+#' value breaking ties. All periods and vintage transitions are retained.
+#' Intended for examples, tests, and demonstrating chaining over vintages.
+#' The selection is reproducible with `data-raw/arithmetic_data.R` and the
+#' external source CSV; the full source is not distributed with the package.
 #'
-#' @format A data frame with 360 rows and 5 columns:
+#' @format A data frame with 857 rows and 5 columns:
 #' \describe{
-#'   \item{Period}{An integer monthly period in YYYYMM format.}
-#'   \item{Appraisal Year}{An integer appraisal vintage.}
-#'   \item{Price}{A numeric transaction price.}
-#'   \item{Property Type}{A character property-type code.}
-#'   \item{Appraisal Value}{A numeric appraisal value.}
+#'   \item{period}{An integer monthly period in YYYYMM format.}
+#'   \item{appraisal_year}{The integer WOZ/appraisal-vintage year on which the appraisal value is based.}
+#'   \item{price}{A numeric transaction price.}
+#'   \item{property_type}{A character housing/property category.}
+#'   \item{appraisal_value}{A numeric appraisal/WOZ value.}
 #' }
-#' @source SPAR example data supplied for REPS development, retained from the
-#'   reference branch at commit 6675d8a.
+#' @source A compact subset of the original SPAR development/test file `test2.csv`.
 #' @examples
-#' data("aritmethic_data")
+#' data("arithmetic_data")
 #' result <- calculate_spar(
-#'   aritmethic_data, "arithmetic", period_variable = "Period",
-#'   dependent_variable = "Price", appraisal_variable = "Appraisal Value",
-#'   grouping_variables = c("Appraisal Year", "Property Type")
+#'   arithmetic_data, "arithmetic", period_variable = "period",
+#'   dependent_variable = "price", appraisal_variable = "appraisal_value",
+#'   grouping_variables = c("appraisal_year", "property_type"),
+#'   index_type_variable = "property_type", chained = TRUE
 #' )
 #' head(result)
-"aritmethic_data"
+"arithmetic_data"
 

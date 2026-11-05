@@ -116,7 +116,7 @@ its grouping series' reference ratio. The calculation is:
 
 | Quantity | Calculation |
 |:--|:--|
-| `growth_rate` | 1 at the first row; `j / previous_j` at later reference periods; `r / j` elsewhere |
+| `growth_rate` | 1 at the first row; `j / previous_j` at later reference periods; `ratio_numerator / ratio_denominator` elsewhere |
 | `growth_rate_long` | Take `growth_rate` at the first row and December periods, then fill forward |
 | `yoy_change` | `growth_rate_long` at reference periods; 1 elsewhere |
 | `chain_long` | `cumprod(yoy_change)` |
@@ -153,20 +153,29 @@ index-type series is initialized at `base_value` separately.
 
 ## Packaged example, parallel methods, and plotting
 
-`aritmethic_data` retains the established dataset name from SPAR development.
-It contains 360 transactions, two appraisal vintages, five property types,
-and twelve monthly periods per vintage. Non-syntactic names are passed as strings.
+`arithmetic_data` contains 857 transactions, six appraisal vintages (2011–2016),
+four property types, and all 72 months from January 2013 through December 2018.
+It retains up to three approximately quartile-spaced price ranks per
+period/vintage/type stratum, using appraisal value to break ties. Thus it
+preserves the complete time pattern and all five vintage transitions per type
+without distributing the full 30,716-row source.
+
+The deterministic selection is implemented in `data-raw/arithmetic_data.R`.
+To rebuild it from the external source, set `REPS_SPAR_SOURCE` to the path of
+`test2.csv` and source that script from the repository root. No random sampling
+is used. Dataset column names are English; the property category values retain
+their original labels.
 
 ```{r packaged-data}
-data("aritmethic_data")
-str(aritmethic_data)
+data("arithmetic_data")
+str(arithmetic_data)
 spar <- calculate_spar(
-  dataset = aritmethic_data,
+  dataset = arithmetic_data,
   method = c("arithmetic", "geometric", "unweighted"),
-  period_variable = "Period", dependent_variable = "Price",
-  appraisal_variable = "Appraisal Value",
-  grouping_variables = c("Appraisal Year", "Property Type"),
-  chained = TRUE, index_type_variable = "Property Type"
+  period_variable = "period", dependent_variable = "price",
+  appraisal_variable = "appraisal_value",
+  grouping_variables = c("appraisal_year", "property_type"),
+  chained = TRUE, index_type_variable = "property_type"
 )
 names(spar)
 ```
@@ -186,6 +195,6 @@ Grouped output must be filtered to one series before plotting. Otherwise
 `plot_price_index()` raises a clear error instead of joining unrelated series.
 
 ```{r plot-spar, fig.width=7, fig.height=4}
-plot_series <- lapply(spar, function(x) x[x[["Property Type"]] == "A", ])
-plot_price_index(plot_series, title = "SPAR comparison: property type A")
+plot_series <- lapply(spar, function(x) x[x$property_type == "Appartement", ])
+plot_price_index(plot_series, title = "SPAR comparison: apartments")
 ```
