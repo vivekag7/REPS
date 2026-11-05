@@ -64,9 +64,10 @@ plot_price_index(lapply(spar, function(x) x[x$property_type == "Apartment", ]))
 ```
 
 `parallel = TRUE` can run multiple methods using the existing parallel helper.
-Chaining identifies independent series with `index_type_variable` and numeric
-segments with `month_modulo` (100 for YYYYMM). Every segment starts at its
-reference period. Later January growth rates compare the current and preceding
+Chaining identifies independent series with `index_type_variable` and follows
+the validated monthly January/December methodology. It requires monthly YYYYMM
+periods and a January reference (`reference_period_pattern = "01$"`).
+Unchained calculations also support other period labels. Later January growth rates compare the current and preceding
 January ratios. December growth rates feed a cumulative long-term multiplier;
 the final index combines that multiplier with the current growth rate.
 See `vignette("calculate_spar", package = "REPS")` for

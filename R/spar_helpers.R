@@ -14,7 +14,7 @@ validate_spar_column_names <- function(value, argument, scalar = FALSE) {
 #' @keywords internal
 #' @noRd
 validate_spar_index_options <- function(grouping_variables, index_type_variable,
-                                        chained, base_value, month_modulo, parallel) {
+                                        chained, base_value, parallel) {
   for (argument in c("chained", "parallel")) {
     value <- get(argument)
     if (!is.logical(value) || length(value) != 1L || is.na(value)) {
@@ -32,10 +32,20 @@ validate_spar_index_options <- function(grouping_variables, index_type_variable,
       !is.finite(base_value) || base_value <= 0) {
     stop("`base_value` must be one positive finite number.", call. = FALSE)
   }
-  if (!is.numeric(month_modulo) || is.complex(month_modulo) || length(month_modulo) != 1L ||
-      !is.finite(month_modulo) || month_modulo <= 1 || month_modulo != floor(month_modulo)) {
-    stop("`month_modulo` must be one finite integer greater than 1.", call. = FALSE)
+}
+
+#' Validate the fixed monthly calendar period convention for chained SPAR
+#' @keywords internal
+#' @noRd
+validate_spar_monthly_periods <- function(period_values) {
+  labels <- as.character(period_values)
+  periods <- suppressWarnings(as.numeric(labels))
+  if (anyNA(periods) || any(!is.finite(periods) | periods <= 0 | periods != floor(periods)) ||
+      any(!grepl("^[0-9]{6}$", labels)) ||
+      any(periods %% 100 < 1 | periods %% 100 > 12 | periods %/% 100 < 1)) {
+    stop("Chained SPAR currently supports monthly YYYYMM-style periods only, following the validated January/December reference methodology.", call. = FALSE)
   }
+  invisible(TRUE)
 }
 
 #' Validate SPAR observations before aggregation
@@ -186,18 +196,14 @@ calculate_spar_component <- function(dataset, period_variable, dependent_variabl
 #' @keywords internal
 #' @noRd
 validate_spar_chain_data <- function(dataset, period_variable, grouping_variables,
-                                      index_type_variable, month_modulo,
+                                      index_type_variable,
                                       reference_period_pattern) {
   if (!nrow(dataset)) return(invisible(TRUE))
-  periods <- suppressWarnings(as.numeric(dataset[[period_variable]]))
-  if (any(!is.finite(periods) | periods <= 0 | periods != floor(periods))) {
-    stop("Chained SPAR requires positive integer numeric or numeric-like periods.", call. = FALSE)
-  }
   keys <- unique(dataset[c(grouping_variables, period_variable)])
   reference_matches <- grepl(reference_period_pattern, keys[[period_variable]])
   keys[[period_variable]] <- as.numeric(keys[[period_variable]])
-  if (any(keys[[period_variable]][reference_matches] %% month_modulo != 1)) {
-    stop("The chaining reference period must match a segment start selected by `month_modulo`.", call. = FALSE)
+  if (any(keys[[period_variable]][reference_matches] %% 100 != 1)) {
+    stop("The chained reference period must be January (YYYY01).", call. = FALSE)
   }
   if (anyDuplicated(keys[c(index_type_variable, period_variable)])) {
     stop("Chained SPAR requires one observation per period and index-type series; refine `index_type_variable`.", call. = FALSE)
@@ -205,10 +211,10 @@ validate_spar_chain_data <- function(dataset, period_variable, grouping_variable
   groups <- dplyr::group_split(dplyr::group_by(keys, dplyr::across(dplyr::all_of(grouping_variables))))
   valid <- vapply(groups, function(group) {
     values <- group[[period_variable]]
-    length(unique(floor(values / month_modulo))) == 1L && min(values) %% month_modulo == 1
+    length(unique(values %/% 100)) == 1L && min(values) %% 100 == 1
   }, logical(1))
   if (any(!valid)) {
-    stop("Each chained grouping series must occupy one numeric segment and begin where period %% month_modulo == 1.", call. = FALSE)
+    stop("Each chained grouping series must occupy one calendar year and begin at its January reference period.", call. = FALSE)
   }
   invisible(TRUE)
 }

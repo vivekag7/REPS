@@ -133,20 +133,22 @@ test_that("SPAR chains each independent series using hand-calculated levels", {
     index_type_variable = c("type", "region"))$Index, c(100, 120, 360, 132, 100, 150, 600, 120))
 })
 
-test_that("SPAR chaining accepts numeric-like periods and custom modulo", {
+test_that("SPAR chaining supports monthly numeric and character YYYYMM periods only", {
   dataset <- spar_chain_test_data()
   dataset$month <- as.character(dataset$month)
   expect_equal(spar_test_run(dataset, chained = TRUE, index_type_variable = "type")$Index,
                c(100, 120, 360, 132, 100, 150, 600, 120))
-  dataset$month <- rep(c(2021001, 2021012, 2022001, 2022002), 2)
-  expect_equal(spar_test_run(dataset, chained = TRUE, index_type_variable = "type",
-    month_modulo = 1000, reference_period_pattern = "001$")$Index,
-    c(100, 120, 360, 132, 100, 150, 600, 120))
-  dataset$month <- paste0(dataset$month, "Q")
-  expect_error(spar_test_run(dataset, chained = TRUE, index_type_variable = "type",
-    reference_period_pattern = "1Q$"), "numeric")
+  for (periods in list(c("2021Q1", "2021Q2"), c(20211, 20212),
+                       c(2021001, 2021002), c(202101, 202113), c(202100, 202101),
+                       c(202101, 202102.5))) {
+    invalid <- spar_test_data()
+    invalid$month <- rep(periods, each = 2)
+    expect_error(spar_test_run(invalid, chained = TRUE, index_type_variable = "type"),
+                 "monthly YYYYMM-style periods only")
+  }
   expect_error(spar_test_run(chained = TRUE, index_type_variable = "type",
-    reference_period_pattern = "02$"), "reference period.*segment start")
+    reference_period_pattern = "02$"), "reference period must be January")
+  expect_false("month_modulo" %in% names(formals(calculate_spar)))
 })
 
 test_that("SPAR does not replace the reference script's December rule by a last-period rule", {
@@ -173,13 +175,13 @@ test_that("ambiguous chain series and misaligned segments are rejected", {
     index_type_variable = c("type", "region"))), 16L)
   dataset <- spar_test_data()
   dataset$month[3:4] <- 202202
-  expect_error(spar_test_run(dataset, chained = TRUE, index_type_variable = "type"), "one numeric segment")
+  expect_error(spar_test_run(dataset, chained = TRUE, index_type_variable = "type"), "one calendar year")
   dataset <- spar_test_data()
   dataset$month <- as.character(dataset$month)
   duplicate <- dataset[3:4, ]
   duplicate$month <- "0202102"
   expect_error(spar_test_run(rbind(dataset, duplicate), chained = TRUE,
-    index_type_variable = "type"), "one observation per period")
+    index_type_variable = "type"), "monthly YYYYMM-style periods only")
 })
 
 test_that("SPAR validates data, identifiers, prices, and regular expressions", {
@@ -227,9 +229,6 @@ test_that("SPAR validates every supplied option including inactive chain options
   }
   for (bad in list(NA_real_, 0, -1, Inf, 1i, c(100, 200), "100", NULL)) {
     expect_error(spar_test_run(base_value = bad), "base_value")
-  }
-  for (bad in list(NA_real_, 0, 1, 1.5, Inf, 1i, c(10, 100), "100", NULL)) {
-    expect_error(spar_test_run(month_modulo = bad), "month_modulo")
   }
   expect_error(spar_test_run(chained = TRUE), "index_type_variable")
   expect_error(spar_test_run(index_type_variable = "missing"), "index_type_variable")

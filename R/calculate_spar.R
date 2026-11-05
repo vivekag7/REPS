@@ -27,13 +27,13 @@
 #' supplied SPAR script's `index_long`, including reference-period jumps and
 #' subsequent returns to the within-vintage development.
 #'
-#' Chaining follows the SPAR development convention: segments use positive
-#' integer, numeric-like periods, with a start where `period %% month_modulo`
-#' equals 1. Each grouping series must occupy one segment and start at its
-#' reference period. The December rule is the literal period suffix `"12"`
-#' used by the reference script, not an inferred last available period.
-#' Use monthly YYYYMM periods and `month_modulo = 100` for calendar-year
-#' chaining. This is distinct from hedonic annual-overlap chaining.
+#' Chained SPAR follows the validated monthly January/December methodology
+#' from the reference implementation. Periods must be positive, six-digit
+#' YYYYMM integers or numeric-like strings, with months 01 through 12.
+#' Each grouping series occupies one calendar year and starts at its January
+#' reference period; `reference_period_pattern = "01$"` is the usual setting.
+#' The December rule is literal, not an inferred last available period.
+#' Unchained SPAR also supports other labels, such as quarterly strings.
 #'
 #' @param dataset A non-empty data frame of transaction observations.
 #' @param method One or more of `"arithmetic"`, `"geometric"`, `"unweighted"`.
@@ -52,9 +52,6 @@
 #' @param chained Logical; link short-term series? Default FALSE.
 #' @param base_value Positive finite starting level for chained series. Default
 #'   100. Unchained indices always use 100.
-#' @param month_modulo Integer greater than 1 identifying numeric chain segments.
-#'   Default 100 for monthly `YYYYMM` periods. Changing this value only changes
-#'   segment validation; it does not change the reference script's `"12$"` rule.
 #' @param parallel Logical; run multiple methods with the existing REPS parallel
 #'   helper. Default FALSE.
 #' @return One data frame, or a named list of data frames for multiple methods.
@@ -90,17 +87,17 @@ calculate_spar <- function(dataset,
                            reference_period_pattern = "01$",
                            chained = FALSE,
                            base_value = 100,
-                           month_modulo = 100,
                            parallel = FALSE) {
   method <- validate_spar_index_methods(method)
   validate_spar_index_options(
     grouping_variables, index_type_variable, chained, base_value,
-    month_modulo, parallel
+    parallel
   )
   validate_spar_input(
     dataset, period_variable, dependent_variable, appraisal_variable,
     grouping_variables
   )
+  if (chained) validate_spar_monthly_periods(dataset[[period_variable]])
   dataset <- prepare_spar_data(
     dataset, period_variable, dependent_variable, appraisal_variable,
     grouping_variables, reference_period_pattern
@@ -108,7 +105,7 @@ calculate_spar <- function(dataset,
   if (chained) {
     validate_spar_chain_data(
       dataset, period_variable, grouping_variables,
-      index_type_variable, month_modulo, reference_period_pattern
+      index_type_variable, reference_period_pattern
     )
   }
 
@@ -118,7 +115,7 @@ calculate_spar <- function(dataset,
       calculate_single_spar_index_method(
         method_name, dataset, period_variable, dependent_variable,
         appraisal_variable, grouping_variables, index_type_variable,
-        reference_period_pattern, chained, base_value, month_modulo
+        reference_period_pattern, chained, base_value
       )
     },
     parallel = parallel && length(method) > 1L,
@@ -192,7 +189,7 @@ calculate_single_spar_index_method <- function(method, dataset, period_variable,
                                                dependent_variable, appraisal_variable,
                                                grouping_variables, index_type_variable,
                                                reference_period_pattern, chained,
-                                               base_value, month_modulo) {
+                                               base_value) {
   result <- run_spar_index_method(
     method, dataset, period_variable, dependent_variable,
     appraisal_variable, grouping_variables, reference_period_pattern

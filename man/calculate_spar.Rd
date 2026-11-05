@@ -15,7 +15,6 @@ calculate_spar(
   reference_period_pattern = "01$",
   chained = FALSE,
   base_value = 100,
-  month_modulo = 100,
   parallel = FALSE
 )
 }
@@ -46,10 +45,6 @@ period per group. Default \code{"01$"} matches January in \code{YYYYMM} periods.
 
 \item{base_value}{Positive finite starting level for chained series. Default
 100. Unchained indices always use 100.}
-
-\item{month_modulo}{Integer greater than 1 identifying numeric chain segments.
-Default 100 for monthly \code{YYYYMM} periods. Changing this value only changes
-segment validation; it does not change the reference script's \code{"12$"} rule.}
 
 \item{parallel}{Logical; run multiple methods with the existing REPS parallel
 helper. Default FALSE.}
@@ -93,13 +88,13 @@ The final \code{Index = base_value * growth_rate * chain_long} reproduces the
 supplied SPAR script's \code{index_long}, including reference-period jumps and
 subsequent returns to the within-vintage development.
 
-Chaining follows the SPAR development convention: segments use positive
-integer, numeric-like periods, with a start where \code{period \%\% month_modulo}
-equals 1. Each grouping series must occupy one segment and start at its
-reference period. The December rule is the literal period suffix \code{"12"}
-used by the reference script, not an inferred last available period.
-Use monthly YYYYMM periods and \code{month_modulo = 100} for calendar-year
-chaining. This is distinct from hedonic annual-overlap chaining.
+Chained SPAR follows the validated monthly January/December methodology
+from the reference implementation. Periods must be positive, six-digit
+YYYYMM integers or numeric-like strings, with months 01 through 12.
+Each grouping series occupies one calendar year and starts at its January
+reference period; \code{reference_period_pattern = "01$"} is the usual setting.
+The December rule is literal, not an inferred last available period.
+Unchained SPAR also supports other labels, such as quarterly strings.
 }
 \examples{
 data("arithmetic_data")

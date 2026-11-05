@@ -27,7 +27,7 @@ calculate_spar(
   dataset, method, period_variable, dependent_variable, appraisal_variable,
   grouping_variables, index_type_variable = NULL,
   reference_period_pattern = "01$", chained = FALSE,
-  base_value = 100, month_modulo = 100, parallel = FALSE
+  base_value = 100, parallel = FALSE
 )
 ```
 
@@ -99,11 +99,12 @@ must not conflict with standardized output names such as `period` or `Index`.
 ## Validated reference and December chaining
 
 Chaining reproduces `index_long` from the supplied SPAR reference script and is separate from
-hedonic annual-overlap chaining. `month_modulo` defines numeric segments, with
-a start where `period %% month_modulo == 1`. With monthly YYYYMM periods, use 100.
-The long-term update rule uses the literal suffix `"12$"` for December; changing
-`month_modulo` does not change this rule. Character labels such
-as `"2021Q1"` are supported only for unchained calculation.
+hedonic annual-overlap chaining. It currently supports monthly YYYYMM-style
+periods only, as integers or six-digit numeric-like strings with valid months
+01 through 12. Reference periods must be January; the normal configuration is
+`reference_period_pattern = "01$"`. The long-term update rule uses the literal
+suffix `"12$"` for December. Quarterly encodings and other frequencies are
+rejected for chaining. Unchained calculation still accepts labels such as `"2021Q1"`.
 
 Each short-term grouping series must lie within one numeric segment and begin
 at its reference period, which must be the segment start. Independent chained
