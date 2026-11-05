@@ -20,7 +20,7 @@ Static price index plot using base R graphics with grid lines and external legen
 }
 \details{
 Supports single index data.frames and named lists of methods from
-\code{calculate_hedonic_index()} or \code{calculate_spar()}. Each frame must have one
+\code{calculate_hedonic_index()} or \code{calculate_spar_index()}. Each frame must have one
 row per period. Filter grouped SPAR output to one series before plotting.
 X-axis shows only first period of each year with rotated labels to avoid clutter.
 }

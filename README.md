@@ -32,7 +32,7 @@ All methods are accessed via `calculate_hedonic_index()` with a consistent inter
 
 ## Sales Price Appraisal Ratio (SPAR)
 
-Use `calculate_spar()` when transaction prices and corresponding appraisal
+Use `calculate_spar_index()` when transaction prices and corresponding appraisal
 values are available. Its separate public hub follows the same single-method
 data.frame and multi-method named-list convention as `calculate_hedonic_index()`.
 The variants are:
@@ -50,9 +50,9 @@ reference is warned about and omitted.
 
 ```r
 data("arithmetic_data")
-spar <- calculate_spar(
+spar <- calculate_spar_index(
   dataset = arithmetic_data,
-  method = c("arithmetic", "geometric", "unweighted"),
+  method = c("spar_arithmetic", "spar_geometric", "spar_unweighted"),
   period_variable = "period",
   dependent_variable = "price",
   appraisal_variable = "appraisal_value",
@@ -70,7 +70,7 @@ periods and a January reference (`reference_period_pattern = "01$"`).
 Unchained calculations also support other period labels. Later January growth rates compare the current and preceding
 January ratios. December growth rates feed a cumulative long-term multiplier;
 the final index combines that multiplier with the current growth rate.
-See `vignette("calculate_spar", package = "REPS")` for
+See `vignette("calculate_spar_index", package = "REPS")` for
 formulas, validation rules, and hand-calculated chaining examples.
 
 ## Diagnostics and Visualization Tools

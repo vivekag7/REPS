@@ -36,7 +36,7 @@
 #' Unchained SPAR also supports other labels, such as quarterly strings.
 #'
 #' @param dataset A non-empty data frame of transaction observations.
-#' @param method One or more of `"arithmetic"`, `"geometric"`, `"unweighted"`.
+#' @param method One or more of `"spar_arithmetic"`, `"spar_geometric"`, `"spar_unweighted"`.
 #'   Names are case-insensitive; duplicates are calculated once.
 #' @param period_variable One column name identifying periods.
 #' @param dependent_variable One column name containing untransformed prices.
@@ -66,8 +66,8 @@
 #' @author Kai Cheung, Vivek Gajadhar
 #' @examples
 #' data("arithmetic_data")
-#' spar <- calculate_spar(
-#'   arithmetic_data, c("arithmetic", "geometric", "unweighted"),
+#' spar <- calculate_spar_index(
+#'   arithmetic_data, c("spar_arithmetic", "spar_geometric", "spar_unweighted"),
 #'   period_variable = "period", dependent_variable = "price",
 #'   appraisal_variable = "appraisal_value",
 #'   grouping_variables = c("appraisal_year", "property_type"),
@@ -77,7 +77,7 @@
 #' names(spar)
 #' plot_price_index(lapply(spar, function(x) x[x$property_type == "Apartment", ]))
 #' @export
-calculate_spar <- function(dataset,
+calculate_spar_index <- function(dataset,
                            method,
                            period_variable,
                            dependent_variable,
@@ -128,14 +128,14 @@ calculate_spar <- function(dataset,
   result
 }
 
-#' @rdname calculate_spar-internal
+#' @rdname calculate_spar_index-internal
 #' @keywords internal
 #' @noRd
 supported_spar_index_methods <- function() {
-  c("arithmetic", "geometric", "unweighted")
+  c("spar_arithmetic", "spar_geometric", "spar_unweighted")
 }
 
-#' @rdname calculate_spar-internal
+#' @rdname calculate_spar_index-internal
 #' @keywords internal
 #' @noRd
 validate_spar_index_methods <- function(method) {
@@ -155,20 +155,20 @@ validate_spar_index_methods <- function(method) {
   method
 }
 
-#' @rdname calculate_spar-internal
+#' @rdname calculate_spar_index-internal
 #' @keywords internal
 #' @noRd
 get_spar_index_method_function <- function(method) {
   switch(
     method,
-    arithmetic = aggregate_spar_arithmetic,
-    geometric = aggregate_spar_geometric,
-    unweighted = aggregate_spar_unweighted,
+    spar_arithmetic = aggregate_spar_arithmetic,
+    spar_geometric = aggregate_spar_geometric,
+    spar_unweighted = aggregate_spar_unweighted,
     stop("Invalid method: ", method, call. = FALSE)
   )
 }
 
-#' @rdname calculate_spar-internal
+#' @rdname calculate_spar_index-internal
 #' @keywords internal
 #' @noRd
 run_spar_index_method <- function(method, dataset, period_variable,
@@ -178,11 +178,11 @@ run_spar_index_method <- function(method, dataset, period_variable,
     dataset, period_variable, dependent_variable, appraisal_variable,
     grouping_variables, reference_period_pattern,
     aggregate_function = get_spar_index_method_function(method),
-    include_aggregates = method != "unweighted"
+    include_aggregates = method != "spar_unweighted"
   )
 }
 
-#' @rdname calculate_spar-internal
+#' @rdname calculate_spar_index-internal
 #' @keywords internal
 #' @noRd
 calculate_single_spar_index_method <- function(method, dataset, period_variable,

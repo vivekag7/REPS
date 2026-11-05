@@ -3,7 +3,7 @@
 #' Static price index plot using base R graphics with grid lines and external legend.
 #'
 #' Supports single index data.frames and named lists of methods from
-#' `calculate_hedonic_index()` or `calculate_spar()`. Each frame must have one
+#' `calculate_hedonic_index()` or `calculate_spar_index()`. Each frame must have one
 #' row per period. Filter grouped SPAR output to one series before plotting.
 #' X-axis shows only first period of each year with rotated labels to avoid clutter.
 #'
@@ -157,6 +157,6 @@ plot_price_index <- function(index_output, title = NULL) {
       xpd = TRUE
     )
   } else {
-    stop("Unsupported input type: supply a data.frame or named list of data.frames from calculate_hedonic_index() or calculate_spar().")
+    stop("Unsupported input type: supply a data.frame or named list of data.frames from calculate_hedonic_index() or calculate_spar_index().")
   }
 }
