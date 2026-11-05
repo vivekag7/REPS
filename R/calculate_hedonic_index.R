@@ -21,11 +21,14 @@
 #' @param chained Logical. If TRUE, calculates a chained index using the Annual Overlap Method. Default is FALSE.
 #' @param index_contribution Logical. If TRUE, calculates an index-contribution table for one method. Default is FALSE.
 #' @param parallel Logical. If TRUE, independent calculations are parallelized where useful. Default is FALSE.
-#' @param margins Logical; add bootstrap variance and 95% normal-approximation
-#'   margins around the original index, resampling within `period_variable`.
+#' @param margins Logical; add bootstrap variance and normal-approximation
+#'   margins around the original index.
 #'   Default FALSE. Requires regular index output.
 #' @param bootstrap_replicates Number of row-bootstrap samples, at least 2.
 #'   Default 999. Used only when `margins = TRUE`.
+#' @param confidence_level Confidence level strictly between 0 and 1. Default 0.95.
+#' @param bootstrap_strata Optional unique column names for resampling within
+#'   each strata combination, preserving its size. NULL samples the full dataset.
 #' @param ... Additional method-specific arguments passed to the underlying functions:
 #' \itemize{
 #'   \item \code{periods_in_year}: (Required for Repricing) Number of periods per year (e.g. 12 for months, 4 for quarters)
@@ -77,13 +80,11 @@ calculate_hedonic_index <- function(dataset,
                                     parallel = FALSE,
                                     margins = FALSE,
                                     bootstrap_replicates = 999,
+                                    confidence_level = 0.95,
+                                    bootstrap_strata = NULL,
                                     ...) {
   method <- validate_hedonic_index_methods(method)
   extra_args <- list(...)
-  if (any(c("confidence_level", "bootstrap_strata") %in% names(extra_args))) {
-    stop("`confidence_level` and `bootstrap_strata` are not supported: bootstrap margins use fixed 95% confidence and resample within `period_variable`.",
-         call. = FALSE)
-  }
   extra_args$parallel <- parallel
 
   validate_hedonic_index_options(
@@ -102,7 +103,9 @@ calculate_hedonic_index <- function(dataset,
     if (requires_explanatory_variables) categorical_variables else NULL,
     require_explanatory_variables = requires_explanatory_variables
   )
-  validate_bootstrap_margin_options(margins, bootstrap_replicates)
+  validate_bootstrap_margin_options(
+    margins, bootstrap_replicates, confidence_level, bootstrap_strata, dataset
+  )
   if (margins && isTRUE(extra_args$resting_points)) {
     stop("`margins = TRUE` requires regular index output; `resting_points = TRUE` is not supported.",
          call. = FALSE)
@@ -160,12 +163,12 @@ calculate_hedonic_index <- function(dataset,
     for (i in seq_along(method)) {
       method_name <- method[i]
       result[[i]] <- calculate_bootstrap_margins(
-        dataset, result[[i]], bootstrap_replicates, period_variable,
+        dataset, result[[i]], bootstrap_replicates, bootstrap_strata,
         calculate_index_function = function(sample_data) {
           do.call(calculate_hedonic_index,
                   c(list(dataset = sample_data, method = method_name), bootstrap_args))
         },
-        method = method_name
+        method = method_name, confidence_level = confidence_level
       )
     }
   }

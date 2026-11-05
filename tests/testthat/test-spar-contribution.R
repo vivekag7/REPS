@@ -81,7 +81,7 @@ test_that("SPAR margins preserve the original contribution analysis", {
   original <- spar_contribution_run(index_contribution = TRUE, unit_variable = "unit")
   set.seed(85)
   result <- spar_contribution_run(index_contribution = TRUE, unit_variable = "unit",
-                                  margins = TRUE, bootstrap_replicates = 3)
+    margins = TRUE, bootstrap_replicates = 3, bootstrap_strata = c("month", "vintage", "type"))
   expect_named(result, c("Index", "Index_contribution"))
   expect_identical(result$Index_contribution, original$Index_contribution)
   expect_identical(result$Index[names(original$Index)], original$Index)

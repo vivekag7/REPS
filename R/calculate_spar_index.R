@@ -30,10 +30,13 @@
 #'   the analyzed period. NULL excludes individual rows.
 #' @param index_contribution_period Period to analyze, defaulting to the latest
 #'   period in the index. Contributions are calculated separately per series.
-#' @param margins Logical; add 95% bootstrap margins around the original index.
-#'   Resampling preserves each period/group's size. Default FALSE.
+#' @param margins Logical; add bootstrap margins around the original index.
+#'   Default FALSE.
 #' @param bootstrap_replicates Number of bootstrap recalculations, at least 2.
 #'   Default 999. Used only when `margins = TRUE`.
+#' @param confidence_level Confidence level strictly between 0 and 1. Default 0.95.
+#' @param bootstrap_strata Optional unique column names for resampling within
+#'   each strata combination, preserving its size. NULL samples the full dataset.
 #' @return One data frame, or a named list of data frames for multiple methods.
 #'   Each contains character `period`, the grouping identifiers, ratios
 #'   `ratio_numerator` and `ratio_denominator`, `growth_rate`, and `Index`.
@@ -79,7 +82,9 @@ calculate_spar_index <- function(dataset,
                            unit_variable = NULL,
                            index_contribution_period = NULL,
                            margins = FALSE,
-                           bootstrap_replicates = 999) {
+                           bootstrap_replicates = 999,
+                           confidence_level = 0.95,
+                           bootstrap_strata = NULL) {
   method <- validate_spar_index_methods(method)
   validate_spar_index_options(
     grouping_variables, index_type_variable, chained, base_value,
@@ -92,7 +97,9 @@ calculate_spar_index <- function(dataset,
   validate_spar_contribution_options(
     method, dataset, index_contribution, unit_variable, index_contribution_period
   )
-  validate_bootstrap_margin_options(margins, bootstrap_replicates)
+  validate_bootstrap_margin_options(
+    margins, bootstrap_replicates, confidence_level, bootstrap_strata, dataset
+  )
   input_dataset <- dataset
   if (chained) validate_spar_monthly_periods(dataset[[period_variable]])
   dataset <- prepare_spar_data(
@@ -122,7 +129,7 @@ calculate_spar_index <- function(dataset,
     for (i in seq_along(method)) {
       method_name <- method[i]
       result[[i]] <- calculate_bootstrap_margins(
-        dataset, result[[i]], bootstrap_replicates, c(period_variable, grouping_variables),
+        input_dataset, result[[i]], bootstrap_replicates, bootstrap_strata,
         calculate_index_function = function(sample_data) {
           calculate_spar_index(
             dataset = sample_data, method = method_name, period_variable = period_variable,
@@ -132,7 +139,8 @@ calculate_spar_index <- function(dataset,
             base_value = base_value, parallel = parallel, index_contribution = FALSE, margins = FALSE
           )
         },
-        method = method_name, index_variables = c("period", grouping_variables)
+        method = method_name, index_variables = c("period", grouping_variables),
+        confidence_level = confidence_level
       )
     }
   }

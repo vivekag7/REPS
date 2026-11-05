@@ -135,10 +135,11 @@ head(result$Index_contribution)
 
 ## Bootstrap margins
 
-Add `margins = TRUE` for 95% bootstrap margins around the original index.
-Resampling preserves the number of transactions within each period/group.
-Use `bootstrap_replicates` to change the default of 999 recalculations, and
-call `set.seed()` beforehand for reproducible results.
+Add `margins = TRUE` for bootstrap margins around the original index, with
+`confidence_level = 0.95` and `bootstrap_replicates = 999` by default.
+`bootstrap_strata = NULL` samples the full dataset; use column names such as
+`c("period", "appraisal_year", "property_type")` to retain those group sizes.
+Call `set.seed()` beforehand for reproducible results.
 
 ## Plotting
 

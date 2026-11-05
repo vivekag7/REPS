@@ -20,7 +20,9 @@ calculate_spar_index(
   unit_variable = NULL,
   index_contribution_period = NULL,
   margins = FALSE,
-  bootstrap_replicates = 999
+  bootstrap_replicates = 999,
+  confidence_level = 0.95,
+  bootstrap_strata = NULL
 )
 }
 \arguments{
@@ -63,11 +65,16 @@ the analyzed period. NULL excludes individual rows.}
 \item{index_contribution_period}{Period to analyze, defaulting to the latest
 period in the index. Contributions are calculated separately per series.}
 
-\item{margins}{Logical; add 95\% bootstrap margins around the original index.
-Resampling preserves each period/group's size. Default FALSE.}
+\item{margins}{Logical; add bootstrap margins around the original index.
+Default FALSE.}
 
 \item{bootstrap_replicates}{Number of bootstrap recalculations, at least 2.
 Default 999. Used only when \code{margins = TRUE}.}
+
+\item{confidence_level}{Confidence level strictly between 0 and 1. Default 0.95.}
+
+\item{bootstrap_strata}{Optional unique column names for resampling within
+each strata combination, preserving its size. NULL samples the full dataset.}
 }
 \value{
 One data frame, or a named list of data frames for multiple methods.

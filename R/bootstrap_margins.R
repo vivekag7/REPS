@@ -4,7 +4,9 @@
 #' @author Kai Cheung, Vivek Gajadhar
 #' @keywords internal
 #' @noRd
-validate_bootstrap_margin_options <- function(margins, bootstrap_replicates) {
+validate_bootstrap_margin_options <- function(margins, bootstrap_replicates,
+                                              confidence_level = 0.95,
+                                              bootstrap_strata = NULL, dataset = NULL) {
   if (!is.logical(margins) || length(margins) != 1L || is.na(margins)) {
     stop("`margins` must be TRUE or FALSE.", call. = FALSE)
   }
@@ -15,16 +17,36 @@ validate_bootstrap_margin_options <- function(margins, bootstrap_replicates) {
       bootstrap_replicates > .Machine$integer.max) {
     stop("`bootstrap_replicates` must be a finite integer of at least 2.", call. = FALSE)
   }
+  if (!is.numeric(confidence_level) || is.complex(confidence_level) ||
+      length(confidence_level) != 1L || !is.finite(confidence_level) ||
+      confidence_level <= 0 || confidence_level >= 1) {
+    stop("`confidence_level` must be a finite number strictly between 0 and 1.", call. = FALSE)
+  }
+  if (!is.null(bootstrap_strata)) {
+    if (!is.character(bootstrap_strata) || !length(bootstrap_strata) ||
+        anyNA(bootstrap_strata) || any(!nzchar(trimws(bootstrap_strata))) ||
+        anyDuplicated(bootstrap_strata)) {
+      stop("`bootstrap_strata` must contain unique column names or be NULL.", call. = FALSE)
+    }
+    missing <- setdiff(bootstrap_strata, names(dataset))
+    if (length(missing)) {
+      stop("Dataset is missing `bootstrap_strata` column(s): ", paste(missing, collapse = ", "),
+           call. = FALSE)
+    }
+  }
   invisible(TRUE)
 }
 
-#' Resample rows within index periods or groups
+#' Resample rows with optional strata
 #' @author Kai Cheung, Vivek Gajadhar
 #' @keywords internal
 #' @noRd
-sample_bootstrap_rows <- function(dataset, resampling_variables) {
+sample_bootstrap_rows <- function(dataset, bootstrap_strata = NULL) {
+  if (is.null(bootstrap_strata)) {
+    return(dataset[sample.int(nrow(dataset), nrow(dataset), replace = TRUE), , drop = FALSE])
+  }
   groups <- dplyr::group_rows(dplyr::group_by(
-    dataset, dplyr::across(dplyr::all_of(resampling_variables)), .drop = TRUE
+    dataset, dplyr::across(dplyr::all_of(bootstrap_strata)), .drop = TRUE
   ))
   rows <- unlist(lapply(groups, function(group_rows) {
     group_rows[sample.int(length(group_rows), length(group_rows), replace = TRUE)]
@@ -51,15 +73,15 @@ validate_bootstrap_index_output <- function(index, index_variables = "period") {
 #' @keywords internal
 #' @noRd
 calculate_bootstrap_margins <- function(dataset, index_output, bootstrap_replicates,
-                                        resampling_variables,
+                                        bootstrap_strata,
                                         calculate_index_function, method,
-                                        index_variables = "period") {
+                                        index_variables = "period", confidence_level = 0.95) {
   validate_bootstrap_index_output(index_output, index_variables)
   original_keys <- as.data.frame(lapply(index_output[index_variables], as.character), check.names = FALSE)
   value_column <- utils::tail(make.unique(c(index_variables, ".bootstrap_value")), 1L)
   values <- matrix(NA_real_, nrow = nrow(index_output), ncol = bootstrap_replicates)
   for (replicate in seq_len(bootstrap_replicates)) {
-    sample_data <- sample_bootstrap_rows(dataset, resampling_variables)
+    sample_data <- sample_bootstrap_rows(dataset, bootstrap_strata)
     index <- tryCatch({
       output <- calculate_index_function(sample_data)
       validate_bootstrap_index_output(output, index_variables)
@@ -94,8 +116,8 @@ calculate_bootstrap_margins <- function(dataset, index_output, bootstrap_replica
   variance <- vapply(seq_len(nrow(values)), function(i) {
     if (insufficient[i]) NA_real_ else stats::var(values[i, ], na.rm = TRUE)
   }, numeric(1))
-  # The public API uses a fixed two-sided 95% normal approximation.
-  width <- stats::qnorm(0.975) * sqrt(variance)
+  z <- stats::qnorm(1 - (1 - confidence_level) / 2)
+  width <- z * sqrt(variance)
   index_output$bootstrap_variance <- variance
   index_output$lower_margin <- index_output$Index - width
   index_output$upper_margin <- index_output$Index + width

@@ -279,11 +279,18 @@ test_that("disabled SPAR margins preserve results and RNG state", {
   seed <- .Random.seed
   expect_identical(spar_test_run(dataset, supported_spar_index_methods(), margins = FALSE), original)
   expect_identical(.Random.seed, seed)
-  expect_false(any(c("confidence_level", "bootstrap_strata") %in% names(formals(calculate_spar_index))))
+  expect_identical(formals(calculate_spar_index)$confidence_level, 0.95)
+  expect_null(formals(calculate_spar_index)$bootstrap_strata)
   expect_error(spar_test_run(margins = NA), "margins")
   expect_error(spar_test_run(margins = 1), "margins")
   for (bad in list(1, 2.5, NA, "5")) {
     expect_error(spar_test_run(margins = TRUE, bootstrap_replicates = bad), "bootstrap_replicates")
+  }
+  for (bad in list(NULL, NA, NaN, Inf, -Inf, 0, 1, -0.1, 1.1, "0.95", TRUE, 1i, c(0.8, 0.9))) {
+    expect_error(spar_test_run(margins = TRUE, confidence_level = bad), "confidence_level")
+  }
+  for (bad in list(character(), NA_character_, "", " ", 1, c("month", "month"), "missing")) {
+    expect_error(spar_test_run(margins = TRUE, bootstrap_strata = bad), "bootstrap_strata")
   }
 })
 
@@ -295,7 +302,8 @@ test_that("every SPAR method supports grouped direct and chained bootstrap margi
                                 index_type_variable = "type", base_value = 200)
       set.seed(82)
       result <- spar_test_run(dataset, method, chained = chained,
-        index_type_variable = "type", base_value = 200, margins = TRUE, bootstrap_replicates = 5)
+        index_type_variable = "type", base_value = 200, margins = TRUE, bootstrap_replicates = 5,
+        bootstrap_strata = c("month", "vintage", "type"))
       expect_identical(result[names(original)], original)
       expect_named(result, c(names(original), "bootstrap_variance", "lower_margin", "upper_margin"))
       expect_true(all(is.finite(result$bootstrap_variance) & result$bootstrap_variance >= 0))
@@ -307,7 +315,8 @@ test_that("every SPAR method supports grouped direct and chained bootstrap margi
     }
   }
   set.seed(83)
-  custom <- spar_test_run(reference_period_pattern = "02$", margins = TRUE, bootstrap_replicates = 5)
+  custom <- spar_test_run(reference_period_pattern = "02$", margins = TRUE,
+                          bootstrap_replicates = 5, bootstrap_strata = "month")
   expect_equal(custom$Index[custom$period == "202102"], 100)
   expect_equal(custom$bootstrap_variance[custom$period == "202102"], 0)
 })
@@ -321,10 +330,12 @@ test_that("multi-method SPAR margins are reproducible and samples preserve group
     do.call(real_hub, args)
   })
   dataset <- spar_margin_test_data()
+  dataset$region <- rep(c("north", "south", "north"), 8)
+  strata <- c("month", "vintage", "type", "region")
   run <- function() real_hub(
     dataset, supported_spar_index_methods(), "month", "price", "appraisal",
     c("vintage", "type"), index_type_variable = "type", chained = TRUE,
-    base_value = 200, margins = TRUE, bootstrap_replicates = 3
+    base_value = 200, margins = TRUE, bootstrap_replicates = 3, bootstrap_strata = strata
   )
   set.seed(84)
   first <- run()
@@ -338,7 +349,23 @@ test_that("multi-method SPAR margins are reproducible and samples preserve group
     expect_identical(args$index_contribution, FALSE)
     expect_identical(args$chained, TRUE)
     expect_identical(args$base_value, 200)
-    expect_equal(table(args$dataset[c("month", "vintage", "type")]),
-                 table(dataset[c("month", "vintage", "type")]))
+    expect_equal(table(args$dataset[strata]), table(dataset[strata]))
   }
+})
+
+test_that("SPAR confidence levels use the same generic variance and margin calculation", {
+  run <- function(...) spar_test_run(spar_margin_test_data(), margins = TRUE,
+    bootstrap_replicates = 5, bootstrap_strata = c("month", "vintage", "type"), ...)
+  set.seed(86)
+  default <- run()
+  set.seed(86)
+  expect_identical(run(confidence_level = 0.95), default)
+  set.seed(86)
+  narrower <- run(confidence_level = 0.90)
+  expect_identical(narrower$bootstrap_variance, default$bootstrap_variance)
+  expect_equal(narrower$lower_margin, default$Index - qnorm(0.95) * sqrt(default$bootstrap_variance))
+  expect_equal(narrower$upper_margin, default$Index + qnorm(0.95) * sqrt(default$bootstrap_variance))
+  expect_true(any(narrower$lower_margin > default$lower_margin))
+  expect_true(all(narrower$lower_margin >= default$lower_margin))
+  expect_true(all(narrower$upper_margin <= default$upper_margin))
 })
