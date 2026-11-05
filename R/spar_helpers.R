@@ -59,7 +59,8 @@ validate_spar_input <- function(dataset, period_variable, dependent_variable,
   }
   reserved <- c(
     "period", "Index", "ratio_numerator", "ratio_denominator", "growth_rate",
-    "numerator_numerator", "numerator_denominator", "growth_factor", "chaining_true_false"
+    "numerator_numerator", "numerator_denominator", "growth_factor", "chaining_true_false",
+    "growth_rate_long", "yoy_change", "chain_long"
   )
   if (any(grouping_variables %in% reserved)) {
     stop("`grouping_variables` must not use reserved SPAR output column names.", call. = FALSE)
@@ -119,17 +120,17 @@ prepare_spar_data <- function(dataset, period_variable, dependent_variable,
   dplyr::semi_join(dataset, references, by = grouping_variables)
 }
 
-#' Arithmetic SPAR aggregates on complete pairs
+#' Arithmetic SPAR aggregates with separate missing-value removal
 #' @keywords internal
 #' @noRd
 aggregate_spar_arithmetic <- function(prices, appraisals) {
-  price <- mean(prices)
-  appraisal <- mean(appraisals)
+  price <- mean(prices, na.rm = TRUE)
+  appraisal <- mean(appraisals, na.rm = TRUE)
   c(numerator_numerator = price, numerator_denominator = appraisal,
     ratio_numerator = price / appraisal)
 }
 
-#' Geometric SPAR aggregates on complete pairs
+#' Geometric SPAR aggregates with separate missing-value removal
 #' @keywords internal
 #' @noRd
 aggregate_spar_geometric <- function(prices, appraisals) {
@@ -139,11 +140,11 @@ aggregate_spar_geometric <- function(prices, appraisals) {
     ratio_numerator = price / appraisal)
 }
 
-#' Unweighted SPAR aggregate on complete pairs
+#' Unweighted SPAR aggregate using observed price-appraisal ratios
 #' @keywords internal
 #' @noRd
 aggregate_spar_unweighted <- function(prices, appraisals) {
-  c(ratio_numerator = mean(prices / appraisals))
+  c(ratio_numerator = mean(prices / appraisals, na.rm = TRUE))
 }
 
 #' Calculate one central SPAR component using the selected aggregate
@@ -164,15 +165,11 @@ calculate_spar_component <- function(dataset, period_variable, dependent_variabl
   result <- dplyr::group_modify(grouped, function(.x, .y) {
     prices <- .x[[dependent_variable]]
     appraisals <- .x[[appraisal_variable]]
-    paired <- !is.na(prices) & !is.na(appraisals)
-    if (!any(paired)) {
-      stop("At least one period/group has no complete price-appraisal pair.", call. = FALSE)
-    }
-    as.data.frame(as.list(aggregate_function(prices[paired], appraisals[paired])))
+    as.data.frame(as.list(aggregate_function(prices, appraisals)))
   })
   result <- as.data.frame(dplyr::ungroup(result))
   if (any(!is.finite(result$ratio_numerator) | result$ratio_numerator <= 0)) {
-    stop("SPAR aggregation requires positive finite ratios.", call. = FALSE)
+    stop("Each period/group must have enough observed values to calculate a positive finite SPAR ratio.", call. = FALSE)
   }
   reference <- result[grepl(reference_period_pattern, result[[period_variable]]),
                       c(grouping_variables, "ratio_numerator"), drop = FALSE]
@@ -216,29 +213,40 @@ validate_spar_chain_data <- function(dataset, period_variable, grouping_variable
   invisible(TRUE)
 }
 
-#' Chain SPAR short-term series using the segment-start convention
+#' Apply the validated SPAR reference and December chaining methodology
 #' @keywords internal
 #' @noRd
 chain_spar_index <- function(result, period_variable, index_type_variable,
-                              base_value, month_modulo) {
+                              base_value, reference_period_pattern) {
   if (!nrow(result)) {
     result$chaining_true_false <- logical()
-    result$growth_factor <- numeric()
-    result$Index <- numeric()
+    for (column in c("growth_rate_long", "yoy_change", "chain_long", "growth_factor", "Index")) {
+      result[[column]] <- numeric()
+    }
     return(result)
   }
   grouped <- dplyr::group_by(result, dplyr::across(dplyr::all_of(index_type_variable)))
   result <- dplyr::group_modify(grouped, function(.x, .y) {
     periods <- as.numeric(.x[[period_variable]])
     .x <- .x[order(periods), , drop = FALSE]
-    periods <- sort(periods)
-    .x$chaining_true_false <- periods %% month_modulo == 1 & seq_along(periods) > 1L
-    growth <- .x$growth_rate
-    .x$growth_factor <- ifelse(
-      .x$chaining_true_false, growth, growth / c(NA_real_, utils::head(growth, -1L))
-    )
+    reference <- grepl(reference_period_pattern, .x[[period_variable]])
+    reference_ratio <- .x$ratio_denominator
+    .x$growth_rate[reference] <- (reference_ratio / dplyr::lag(reference_ratio))[reference]
+    .x$growth_rate[1L] <- 1
+    .x$chaining_true_false <- reference & seq_len(nrow(.x)) > 1L
+
+    # The reference script updates the long-term rate at the first row and
+    # periods ending in "12", then carries the most recent update forward.
+    updates <- grepl("12$", .x[[period_variable]])
+    updates[1L] <- TRUE
+    .x$growth_rate_long <- .x$growth_rate[
+      cummax(ifelse(updates, seq_len(nrow(.x)), 0L))
+    ]
+    .x$yoy_change <- ifelse(reference, .x$growth_rate_long, 1)
+    .x$chain_long <- cumprod(.x$yoy_change)
+    .x$Index <- base_value * .x$growth_rate * .x$chain_long
+    .x$growth_factor <- .x$Index / dplyr::lag(.x$Index)
     .x$growth_factor[1L] <- 1
-    .x$Index <- base_value * cumprod(.x$growth_factor)
     .x
   })
   result <- as.data.frame(dplyr::ungroup(result))

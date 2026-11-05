@@ -1,33 +1,39 @@
 #' Calculate a sales price appraisal ratio index
 #'
 #' Calculates arithmetic, geometric, or unweighted sales price appraisal ratio
-#' (SPAR) indices using complete transaction-price/appraisal pairs. Each
+#' (SPAR) indices from transaction prices and appraisal values. Each
 #' `grouping_variables` combination defines a short-term series, normalized by
 #' its reference-period ratio. No hedonic regression is fitted.
 #'
 #' @details
 #' Arithmetic SPAR uses `mean(price) / mean(appraisal)`, geometric SPAR uses
 #' `exp(mean(log(price))) / exp(mean(log(appraisal)))`, and unweighted SPAR uses
-#' `mean(price / appraisal)`. Both sides of each calculation use the same
-#' complete pairs. A period/group with no complete pair is an error. Missing or
+#' `mean(price / appraisal)`. Following the reference script, arithmetic and
+#' geometric aggregates remove missing prices and appraisals separately;
+#' unweighted removes missing individual ratios. A period/group without enough
+#' observed values for its method is an error. Missing or
 #' blank period/group identifiers are errors. Groups without a reference period
 #' are warned about and omitted; multiple matching periods in a group are errors.
 #'
 #' Without chaining, `Index = 100 * growth_rate`, where `growth_rate` is the
 #' period ratio divided by its group's reference ratio. With chaining, each
-#' independent series begins at `base_value`. Within a segment, the growth
-#' factor is the current `growth_rate` divided by the previous `growth_rate`.
-#' At later segment starts, the factor is the current `growth_rate` itself.
-#' The chained index is `base_value * cumprod(growth_factor)`.
+#' independent series begins at `base_value`. Its first `growth_rate` is 1;
+#' at later reference periods it is the current reference ratio divided by the
+#' previous row's reference ratio. Other periods use the short-term ratio.
+#' `growth_rate_long` updates at the first row and periods ending in `"12"`,
+#' and is then carried forward. `yoy_change` equals that rate at reference
+#' periods and 1 elsewhere; `chain_long = cumprod(yoy_change)`.
+#' The final `Index = base_value * growth_rate * chain_long` reproduces the
+#' supplied SPAR script's `index_long`, including reference-period jumps and
+#' subsequent returns to the within-vintage development.
 #'
 #' Chaining follows the SPAR development convention: segments use positive
 #' integer, numeric-like periods, with a start where `period %% month_modulo`
 #' equals 1. Each grouping series must occupy one segment and start at its
-#' reference period. Thus the start ratio is 1 and the previous endpoint is
-#' carried forward unchanged. This convention assumes no price movement at the
-#' segment boundary; it does not estimate an unobserved December-to-January
-#' movement or a bridge between different appraisal vintages. It is distinct
-#' from hedonic annual-overlap chaining.
+#' reference period. The December rule is the literal period suffix `"12"`
+#' used by the reference script, not an inferred last available period.
+#' Use monthly YYYYMM periods and `month_modulo = 100` for calendar-year
+#' chaining. This is distinct from hedonic annual-overlap chaining.
 #'
 #' @param dataset A non-empty data frame of transaction observations.
 #' @param method One or more of `"arithmetic"`, `"geometric"`, `"unweighted"`.
@@ -47,15 +53,18 @@
 #' @param base_value Positive finite starting level for chained series. Default
 #'   100. Unchained indices always use 100.
 #' @param month_modulo Integer greater than 1 identifying numeric chain segments.
-#'   Default 100 for `YYYYMM`; use 10 for numeric `YYYYQ` quarterly periods.
+#'   Default 100 for monthly `YYYYMM` periods. Changing this value only changes
+#'   segment validation; it does not change the reference script's `"12$"` rule.
 #' @param parallel Logical; run multiple methods with the existing REPS parallel
 #'   helper. Default FALSE.
 #' @return One data frame, or a named list of data frames for multiple methods.
 #'   Each contains character `period`, the grouping identifiers, ratios
 #'   `ratio_numerator` and `ratio_denominator`, `growth_rate`, and `Index`.
 #'   Arithmetic/geometric output also contains `numerator_numerator` and
-#'   `numerator_denominator`. Chaining adds `chaining_true_false` and
-#'   `growth_factor`. If all groups lack a reference, the result has zero rows.
+#'   `numerator_denominator`. Chaining adds `chaining_true_false`,
+#'   `growth_rate_long`, `yoy_change`, `chain_long`, and `growth_factor`
+#'   (the actual period-on-period factor of `Index`). If all groups lack a
+#'   reference, the result has zero rows.
 #'   Filter grouped output to one series before using [plot_price_index()].
 #' @author Kai Cheung, Vivek Gajadhar
 #' @examples
@@ -193,7 +202,7 @@ calculate_single_spar_index_method <- function(method, dataset, period_variable,
   )
   if (chained) {
     result <- chain_spar_index(
-      result, period_variable, index_type_variable, base_value, month_modulo
+      result, period_variable, index_type_variable, base_value, reference_period_pattern
     )
   } else {
     result$Index <- 100 * result$growth_rate

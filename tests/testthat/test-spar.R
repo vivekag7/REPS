@@ -31,19 +31,29 @@ test_that("SPAR aggregates and normalization match hand calculations", {
                c(sqrt(30000), sqrt(120000)))
 })
 
-test_that("all SPAR variants use complete price-appraisal pairs", {
+test_that("SPAR retains the reference script's missing-value rules", {
   dataset <- spar_test_data()
-  extras <- dataset[rep(c(1, 3), each = 2), ]
-  extras$price <- rep(c(NA, 1e9), 2)
-  extras$appraisal <- rep(c(1e9, NA), 2)
+  extras <- dataset[c(1, 1), ]
+  extras$price <- c(NA, 500)
+  extras$appraisal <- c(500, NA)
   dataset <- rbind(dataset, extras)
   dataset$unused <- NA_real_
+  expected <- c(arithmetic = 9 / 8, geometric = 1.5^(1 / 3), unweighted = 1.25)
   for (method in supported_spar_index_methods()) {
-    expect_equal(spar_test_run(dataset, method), spar_test_run(method = method))
+    result <- spar_test_run(dataset, method)
+    expect_equal(result$ratio_numerator, c(unname(expected[method]), 2))
+    expect_equal(result$Index, c(100, 200 / unname(expected[method])))
   }
   dataset$price[dataset$month == 202102] <- NA_real_
-  expect_error(spar_test_run(dataset), "no complete price-appraisal pair")
-  expect_error(spar_test_run(transform(spar_test_data(), price = NA_real_)), "no complete")
+  for (method in supported_spar_index_methods()) {
+    expect_error(spar_test_run(dataset, method), "enough observed values")
+  }
+  complementary <- spar_test_data()[1:2, ]
+  complementary$price <- c(100, NA)
+  complementary$appraisal <- c(NA, 200)
+  expect_equal(spar_test_run(complementary)$ratio_numerator, 0.5)
+  expect_equal(spar_test_run(complementary, "geometric")$ratio_numerator, 0.5)
+  expect_error(spar_test_run(complementary, "unweighted"), "enough observed values")
 })
 
 test_that("SPAR custom and quarterly reference patterns are respected", {
@@ -103,10 +113,14 @@ test_that("SPAR chains each independent series using hand-calculated levels", {
     result <- spar_test_run(dataset, method, chained = TRUE, index_type_variable = "type")
     a <- result[result$type == "A", ]
     b <- result[result$type == "B", ]
-    # The next reference period carries the previous endpoint (no boundary jump).
-    expect_equal(a$Index, c(100, 120, 120, 132))
-    expect_equal(b$Index, c(100, 150, 150, 120))
-    expect_equal(a$growth_factor, c(1, 1.2, 1, 1.1))
+    # January uses 3/1 (A) or 4/1 (B), multiplied by the previous December level.
+    expect_equal(a$Index, c(100, 120, 360, 132))
+    expect_equal(b$Index, c(100, 150, 600, 120))
+    expect_equal(a$growth_rate, c(1, 1.2, 3, 1.1))
+    expect_equal(a$growth_rate_long, c(1, 1.2, 1.2, 1.2))
+    expect_equal(a$yoy_change, c(1, 1, 1.2, 1))
+    expect_equal(a$chain_long, c(1, 1, 1.2, 1.2))
+    expect_equal(a$growth_factor, c(1, 1.2, 3, 132 / 360))
     expect_equal(a$chaining_true_false, c(FALSE, FALSE, TRUE, FALSE))
     expect_equal(spar_test_run(dataset, method, chained = TRUE,
       index_type_variable = "type", base_value = 200)$Index, 2 * result$Index)
@@ -116,23 +130,33 @@ test_that("SPAR chains each independent series using hand-calculated levels", {
   dataset$region <- "north"
   expect_equal(spar_test_run(dataset, chained = TRUE,
     grouping_variables = c("vintage", "type", "region"),
-    index_type_variable = c("type", "region"))$Index, c(100, 120, 120, 132, 100, 150, 150, 120))
+    index_type_variable = c("type", "region"))$Index, c(100, 120, 360, 132, 100, 150, 600, 120))
 })
 
 test_that("SPAR chaining accepts numeric-like periods and custom modulo", {
   dataset <- spar_chain_test_data()
   dataset$month <- as.character(dataset$month)
   expect_equal(spar_test_run(dataset, chained = TRUE, index_type_variable = "type")$Index,
-               c(100, 120, 120, 132, 100, 150, 150, 120))
-  dataset$month <- rep(c(20211, 20214, 20221, 20222), 2)
+               c(100, 120, 360, 132, 100, 150, 600, 120))
+  dataset$month <- rep(c(2021001, 2021012, 2022001, 2022002), 2)
   expect_equal(spar_test_run(dataset, chained = TRUE, index_type_variable = "type",
-    month_modulo = 10, reference_period_pattern = "1$")$Index,
-    c(100, 120, 120, 132, 100, 150, 150, 120))
+    month_modulo = 1000, reference_period_pattern = "001$")$Index,
+    c(100, 120, 360, 132, 100, 150, 600, 120))
   dataset$month <- paste0(dataset$month, "Q")
   expect_error(spar_test_run(dataset, chained = TRUE, index_type_variable = "type",
     reference_period_pattern = "1Q$"), "numeric")
   expect_error(spar_test_run(chained = TRUE, index_type_variable = "type",
     reference_period_pattern = "02$"), "reference period.*segment start")
+})
+
+test_that("SPAR does not replace the reference script's December rule by a last-period rule", {
+  dataset <- spar_chain_test_data()
+  dataset <- dataset[dataset$month != 202112, ]
+  for (method in supported_spar_index_methods()) {
+    result <- spar_test_run(dataset, method, chained = TRUE, index_type_variable = "type")
+    expect_equal(result$Index, c(100, 300, 110, 100, 400, 80))
+    expect_equal(result$chain_long, rep(1, 6))
+  }
 })
 
 test_that("ambiguous chain series and misaligned segments are rejected", {

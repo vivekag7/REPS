@@ -37,7 +37,7 @@ identifies the independent series to chain, such as property type or property
 type and region; it must be a subset of the grouping columns. There is no
 additional `type_variable` argument.
 
-## Three variants, one sample of complete pairs
+## Three variants
 
 For each period/group, with transaction price `p` and appraisal value `a`:
 
@@ -47,11 +47,12 @@ For each period/group, with transaction price `p` and appraisal value `a`:
 | `"geometric"` | `exp(mean(log(p))) / exp(mean(log(a)))` |
 | `"unweighted"` | `mean(p / a)` |
 
-If either side of a pair is missing, both sides are excluded for that
-observation. In particular, an appraisal with a missing transaction price does
-not enter the arithmetic or geometric denominator. Unused columns do not affect
-the sample. Observed prices and appraisals must be finite and strictly positive.
-A retained period/group without any complete pair is an error.
+Following the validated script, arithmetic and geometric SPAR omit missing prices
+and missing appraisals separately, so their two aggregates may use different
+observations. Unweighted SPAR omits missing individual price/appraisal ratios.
+Unused columns do not affect the calculation. Observed prices and appraisals must
+be finite and strictly positive. A period/group without enough observed values
+to calculate its method's ratio is an error.
 
 This small example can be calculated by hand:
 
@@ -95,12 +96,13 @@ columns. Missing/blank period or grouping identifiers are rejected rather than
 treated as separate series. Column roles must be distinct; grouping columns
 must not conflict with standardized output names such as `period` or `Index`.
 
-## Chaining and its boundary assumption
+## Validated reference and December chaining
 
-Chaining follows the newer SPAR development convention and is separate from
+Chaining reproduces `index_long` from the supplied SPAR reference script and is separate from
 hedonic annual-overlap chaining. `month_modulo` defines numeric segments, with
-a start where `period %% month_modulo == 1`. With YYYYMM, use 100. Numeric YYYYQ
-quarters can use 10 with a reference pattern of `"1$"`. Character labels such
+a start where `period %% month_modulo == 1`. With monthly YYYYMM periods, use 100.
+The long-term update rule uses the literal suffix `"12$"` for December; changing
+`month_modulo` does not change this rule. Character labels such
 as `"2021Q1"` are supported only for unchained calculation.
 
 Each short-term grouping series must lie within one numeric segment and begin
@@ -109,20 +111,24 @@ series must have at most one aggregated row for each numeric period; ambiguous
 overlapping appraisal vintages require an explicit data selection before
 chaining. All chain arguments are validated even when chaining is disabled.
 
-For a short-term normalized ratio `g`, the applied factor is:
+Within each independent series, let `r` be the current period's ratio and `j`
+its grouping series' reference ratio. The calculation is:
 
-| Position | Growth factor |
+| Quantity | Calculation |
 |:--|:--|
-| First observation in an independent series | 1 |
-| First observation of a later segment | `g` |
-| Other observations | `g / previous_g` |
+| `growth_rate` | 1 at the first row; `j / previous_j` at later reference periods; `r / j` elsewhere |
+| `growth_rate_long` | Take `growth_rate` at the first row and December periods, then fill forward |
+| `yoy_change` | `growth_rate_long` at reference periods; 1 elsewhere |
+| `chain_long` | `cumprod(yoy_change)` |
+| `Index` | `base_value * growth_rate * chain_long` |
 
-The index is `base_value * cumprod(growth_factor)`. At a reference segment start,
-`g = 1`, so the previous endpoint is carried forward unchanged. This **assumes
-no movement at the boundary**: the calculation does not infer an unobserved
-December-to-January change or a valuation bridge. Use it only when that linking
-convention is appropriate; it is not an estimate of missing cross-vintage
-information. Gaps within a segment compare the available observations.
+`previous_j` means the preceding row's reference ratio after sorting the
+independent series by period. At a vintage transition, it is the preceding
+vintage's January ratio. January can therefore jump; the following month again
+uses its own within-vintage ratio and the long-term multiplier. This behavior
+is intentional here because it reproduces the supplied reference script.
+A missing December does not cause another month to be substituted: the last
+available long-term update remains in use.
 
 ```{r manual-chain}
 chain_data <- data.frame(
@@ -139,9 +145,10 @@ chain_result <- calculate_spar(
 chain_result[c("period", "growth_rate", "growth_factor", "Index")]
 ```
 
-The short-term ratios are `1, 1.2, 1, 1.1`; the factors are `1, 1.2, 1, 1.1`;
-the chained levels are **100, 120, 120, 132**. The raw price increase from 120 to
-300 across vintages is not used as a measured price change. Every independent
+The growth rates are `1, 1.2, 3, 1.1`; the long-term multipliers are
+`1, 1, 1.2, 1.2`; the chained levels are **100, 120, 360, 132**.
+January uses the ratio of January values, `3 / 1`, times the previous December
+level. February uses `1.1` times the multiplier `1.2`. Every independent
 index-type series is initialized at `base_value` separately.
 
 ## Packaged example, parallel methods, and plotting
@@ -172,7 +179,8 @@ Every frame contains character `period`, `Index`, all grouping identifiers,
 `ratio_numerator`, `ratio_denominator`, and `growth_rate`. Arithmetic/geometric
 output also preserves the aggregated price and appraisal components as
 `numerator_numerator` and `numerator_denominator`. Chained output additionally
-contains `chaining_true_false` and `growth_factor`.
+contains `chaining_true_false`, `growth_rate_long`, `yoy_change`, `chain_long`,
+and `growth_factor` (the actual period-on-period factor of `Index`).
 
 Grouped output must be filtered to one series before plotting. Otherwise
 `plot_price_index()` raises a clear error instead of joining unrelated series.

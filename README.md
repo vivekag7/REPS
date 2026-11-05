@@ -41,7 +41,9 @@ The variants are:
 - **Geometric:** `exp(mean(log(price))) / exp(mean(log(appraisal)))`.
 - **Unweighted:** `mean(price / appraisal)`.
 
-Every variant uses complete price-appraisal pairs. Each period's ratio is
+Arithmetic and geometric SPAR remove missing prices and appraisals separately;
+unweighted SPAR removes missing individual ratios, following the reference script.
+Each period's ratio is
 divided by its grouping series' reference-period ratio and multiplied by 100.
 The reference regex must select at most one period per group; a group with no
 reference is warned about and omitted.
@@ -64,10 +66,10 @@ plot_price_index(lapply(spar, function(x) x[x[["Property Type"]] == "A", ]))
 `parallel = TRUE` can run multiple methods using the existing parallel helper.
 Chaining identifies independent series with `index_type_variable` and numeric
 segments with `month_modulo` (100 for YYYYMM). Every segment starts at its
-reference period. The reference branch's chaining convention is retained:
-the prior endpoint is carried forward unchanged at the next segment start.
-This assumes no boundary movement; it does not estimate a missing bridge between
-appraisal vintages. See `vignette("calculate_spar", package = "REPS")` for
+reference period. Later January growth rates compare the current and preceding
+January ratios. December growth rates feed a cumulative long-term multiplier;
+the final index combines that multiplier with the current growth rate.
+See `vignette("calculate_spar", package = "REPS")` for
 formulas, validation rules, and hand-calculated chaining examples.
 
 ## Diagnostics and Visualization Tools

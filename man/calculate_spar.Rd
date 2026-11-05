@@ -48,7 +48,8 @@ period per group. Default \code{"01$"} matches January in \code{YYYYMM} periods.
 100. Unchained indices always use 100.}
 
 \item{month_modulo}{Integer greater than 1 identifying numeric chain segments.
-Default 100 for \code{YYYYMM}; use 10 for numeric \code{YYYYQ} quarterly periods.}
+Default 100 for monthly \code{YYYYMM} periods. Changing this value only changes
+segment validation; it does not change the reference script's \code{"12$"} rule.}
 
 \item{parallel}{Logical; run multiple methods with the existing REPS parallel
 helper. Default FALSE.}
@@ -58,39 +59,47 @@ One data frame, or a named list of data frames for multiple methods.
 Each contains character \code{period}, the grouping identifiers, ratios
 \code{ratio_numerator} and \code{ratio_denominator}, \code{growth_rate}, and \code{Index}.
 Arithmetic/geometric output also contains \code{numerator_numerator} and
-\code{numerator_denominator}. Chaining adds \code{chaining_true_false} and
-\code{growth_factor}. If all groups lack a reference, the result has zero rows.
+\code{numerator_denominator}. Chaining adds \code{chaining_true_false},
+\code{growth_rate_long}, \code{yoy_change}, \code{chain_long}, and \code{growth_factor}
+(the actual period-on-period factor of \code{Index}). If all groups lack a
+reference, the result has zero rows.
 Filter grouped output to one series before using \code{\link[=plot_price_index]{plot_price_index()}}.
 }
 \description{
 Calculates arithmetic, geometric, or unweighted sales price appraisal ratio
-(SPAR) indices using complete transaction-price/appraisal pairs. Each
+(SPAR) indices from transaction prices and appraisal values. Each
 \code{grouping_variables} combination defines a short-term series, normalized by
 its reference-period ratio. No hedonic regression is fitted.
 }
 \details{
 Arithmetic SPAR uses \code{mean(price) / mean(appraisal)}, geometric SPAR uses
 \code{exp(mean(log(price))) / exp(mean(log(appraisal)))}, and unweighted SPAR uses
-\code{mean(price / appraisal)}. Both sides of each calculation use the same
-complete pairs. A period/group with no complete pair is an error. Missing or
+\code{mean(price / appraisal)}. Following the reference script, arithmetic and
+geometric aggregates remove missing prices and appraisals separately;
+unweighted removes missing individual ratios. A period/group without enough
+observed values for its method is an error. Missing or
 blank period/group identifiers are errors. Groups without a reference period
 are warned about and omitted; multiple matching periods in a group are errors.
 
 Without chaining, \code{Index = 100 * growth_rate}, where \code{growth_rate} is the
 period ratio divided by its group's reference ratio. With chaining, each
-independent series begins at \code{base_value}. Within a segment, the growth
-factor is the current \code{growth_rate} divided by the previous \code{growth_rate}.
-At later segment starts, the factor is the current \code{growth_rate} itself.
-The chained index is \code{base_value * cumprod(growth_factor)}.
+independent series begins at \code{base_value}. Its first \code{growth_rate} is 1;
+at later reference periods it is the current reference ratio divided by the
+previous row's reference ratio. Other periods use the short-term ratio.
+\code{growth_rate_long} updates at the first row and periods ending in \code{"12"},
+and is then carried forward. \code{yoy_change} equals that rate at reference
+periods and 1 elsewhere; \code{chain_long = cumprod(yoy_change)}.
+The final \code{Index = base_value * growth_rate * chain_long} reproduces the
+supplied SPAR script's \code{index_long}, including reference-period jumps and
+subsequent returns to the within-vintage development.
 
 Chaining follows the SPAR development convention: segments use positive
 integer, numeric-like periods, with a start where \code{period \%\% month_modulo}
 equals 1. Each grouping series must occupy one segment and start at its
-reference period. Thus the start ratio is 1 and the previous endpoint is
-carried forward unchanged. This convention assumes no price movement at the
-segment boundary; it does not estimate an unobserved December-to-January
-movement or a bridge between different appraisal vintages. It is distinct
-from hedonic annual-overlap chaining.
+reference period. The December rule is the literal period suffix \code{"12"}
+used by the reference script, not an inferred last available period.
+Use monthly YYYYMM periods and \code{month_modulo = 100} for calendar-year
+chaining. This is distinct from hedonic annual-overlap chaining.
 }
 \examples{
 spar_data <- data.frame(
