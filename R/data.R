@@ -35,7 +35,7 @@
 #'     End-of-terrace house, Mid-terrace house, or Semi-detached house.}
 #'   \item{appraisal_value}{A numeric appraisal/WOZ value.}
 #' }
-#' @source Local example data in `data-raw/arithmetic_data.csv`.
+#' @source A compact subset of the SPAR development data.
 #' @examples
 #' data("arithmetic_data")
 #' result <- calculate_spar_index(

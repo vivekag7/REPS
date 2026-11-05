@@ -16,7 +16,7 @@ End-of-terrace house, Mid-terrace house, or Semi-detached house.}
 }
 }
 \source{
-Local example data in \code{data-raw/arithmetic_data.csv}.
+A compact subset of the SPAR development data.
 }
 \usage{
 arithmetic_data

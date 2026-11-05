@@ -1,7 +1,3 @@
-arithmetic_data <- read.csv(
-  "data-raw/arithmetic_data.csv",
-  stringsAsFactors = FALSE,
-  colClasses = c("integer", "integer", "numeric", "character", "numeric")
-)
+## code to prepare `arithmetic_data` dataset goes here
 
-usethis::use_data(arithmetic_data, overwrite = TRUE, compress = "xz", version = 2)
+usethis::use_data(arithmetic_data, overwrite = TRUE)

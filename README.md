@@ -70,8 +70,7 @@ periods and a January reference (`reference_period_pattern = "01$"`).
 Unchained calculations also support other period labels. Later January growth rates compare the current and preceding
 January ratios. December growth rates feed a cumulative long-term multiplier;
 the final index combines that multiplier with the current growth rate.
-See `vignette("calculate_spar_index", package = "REPS")` for
-formulas, validation rules, and hand-calculated chaining examples.
+See `vignette("calculate_spar_index", package = "REPS")` for usage examples.
 
 For one method, `index_contribution = TRUE` also returns leave-one-row/unit-out
 contributions to the index level and period-on-period change, calculated per
