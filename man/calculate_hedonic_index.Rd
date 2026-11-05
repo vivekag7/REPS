@@ -109,5 +109,5 @@ Tbl_indices <- REPS::calculate_hedonic_index(
 )
 }
 \author{
-Vivek Gajadhar
+Kai Cheung, Vivek Gajadhar
 }

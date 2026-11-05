@@ -5,7 +5,7 @@
 #' For comparison, `"median"` provides an unadjusted median-price baseline
 #' using only price and period observations, without explanatory variables.
 #'
-#' @author Vivek Gajadhar
+#' @author Kai Cheung, Vivek Gajadhar
 #' @param method One or more of: "fisher", "laspeyres", "paasche", "hmts",
 #'   "timedummy", "rolling_timedummy", "repricing", "median".
 #' @param dataset Data frame with input data

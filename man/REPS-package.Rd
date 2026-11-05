@@ -31,6 +31,7 @@ Authors:
   \item Cynthia Cao
   \item Mohammed Kardal
   \item Odens van der Zwan
+  \item Kai Cheung
 }
 
 }

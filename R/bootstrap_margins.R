@@ -1,5 +1,9 @@
 # Internal bootstrap support shared by all methods in the hedonic hub.
 
+#' Validate bootstrap margin options
+#' @author Kai Cheung, Vivek Gajadhar
+#' @keywords internal
+#' @noRd
 validate_bootstrap_margin_options <- function(dataset, margins, bootstrap_replicates,
                                               confidence_level, bootstrap_strata) {
   if (!is.logical(margins) || length(margins) != 1L || is.na(margins)) {
@@ -32,6 +36,10 @@ validate_bootstrap_margin_options <- function(dataset, margins, bootstrap_replic
   invisible(TRUE)
 }
 
+#' Resample rows with optional strata
+#' @author Kai Cheung, Vivek Gajadhar
+#' @keywords internal
+#' @noRd
 sample_bootstrap_rows <- function(dataset, bootstrap_strata = NULL) {
   if (is.null(bootstrap_strata)) {
     rows <- sample.int(nrow(dataset), nrow(dataset), replace = TRUE)
@@ -46,6 +54,10 @@ sample_bootstrap_rows <- function(dataset, bootstrap_strata = NULL) {
   dataset[rows, , drop = FALSE]
 }
 
+#' Validate a bootstrap index frame
+#' @author Kai Cheung, Vivek Gajadhar
+#' @keywords internal
+#' @noRd
 validate_bootstrap_index_output <- function(index) {
   if (!is.data.frame(index) || !all(c("period", "Index") %in% names(index)) ||
       !nrow(index) || anyNA(index$period) || anyDuplicated(as.character(index$period)) ||
@@ -56,6 +68,10 @@ validate_bootstrap_index_output <- function(index) {
   invisible(TRUE)
 }
 
+#' Add generic bootstrap margins to an index
+#' @author Kai Cheung, Vivek Gajadhar
+#' @keywords internal
+#' @noRd
 calculate_bootstrap_margins <- function(dataset, index_output, bootstrap_replicates,
                                         confidence_level, bootstrap_strata,
                                         calculate_index_function, method) {

@@ -162,6 +162,24 @@ head(chained_fisher)
 
 ---
 
+## Bootstrap margins
+
+Set `margins = TRUE` to add `bootstrap_variance`, `lower_margin`, and
+`upper_margin` around the original index. This is available through
+`calculate_hedonic_index()` (including median), but not `calculate_spar_index()`.
+The defaults are 999 replicates and 95% confidence; `bootstrap_strata = "period"`
+preserves each period's sample size.
+
+```r
+set.seed(123)
+with_margins <- calculate_hedonic_index(
+  dataset, "timedummy", "period", "price",
+  numerical_variables = c("floor_area", "dist_trainstation"),
+  categorical_variables = c("dummy_large_city", "neighbourhood_code"),
+  margins = TRUE, bootstrap_strata = "period"
+)
+```
+
 ## Visualizing the Index
 
 For quick and clear visualizations, the `plot_price_index()` utility function can be used to generate time-series plots of the calculated indices. Because the output of both chained and unchained indices mirrors the standard REPS dataframe structure, it is fully compatible with this built-in plotting utility.

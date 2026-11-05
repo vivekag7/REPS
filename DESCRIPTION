@@ -10,6 +10,7 @@ Authors@R: c(
     person(given = "Cynthia", family = "Cao", role = "aut"),
     person(given = "Mohammed", family = "Kardal", role = "aut"),
     person(given = "Odens", family = "van der Zwan", role = "aut"),
+    person(given = "Kai", family = "Cheung", role = "aut"),
     person(given = "Vivek", family = "Gajadhar", role = c("aut", "cre"), email = "v.gajadhar@cbs.nl")
   )
 Maintainer: Vivek Gajadhar <v.gajadhar@cbs.nl>
