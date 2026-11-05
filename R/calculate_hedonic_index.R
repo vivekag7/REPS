@@ -21,6 +21,13 @@
 #' @param chained Logical. If TRUE, calculates a chained index using the Annual Overlap Method. Default is FALSE.
 #' @param index_contribution Logical. If TRUE, calculates an index-contribution table for one method. Default is FALSE.
 #' @param parallel Logical. If TRUE, independent calculations are parallelized where useful. Default is FALSE.
+#' @param margins Logical; add bootstrap variance and normal-approximation margins
+#'   around the original index. Default FALSE. Requires regular index output.
+#' @param bootstrap_replicates Number of row-bootstrap samples, at least 2.
+#'   Default 999. Used only when `margins = TRUE`.
+#' @param confidence_level Confidence level strictly between 0 and 1. Default 0.95.
+#' @param bootstrap_strata Optional column names for resampling within strata,
+#'   preserving each stratum's size. NULL samples from the entire dataset.
 #' @param ... Additional method-specific arguments passed to the underlying functions:
 #' \itemize{
 #'   \item \code{periods_in_year}: (Required for Repricing) Number of periods per year (e.g. 12 for months, 4 for quarters)
@@ -34,6 +41,11 @@
 #' }
 #'
 #' @return A data.frame (or list for HMTS with resting_points = TRUE; named list if multiple methods are used; or list with Index and Index_contribution when index_contribution = TRUE)
+#'   With `margins = TRUE`, index frames retain their existing columns and add
+#'   `bootstrap_variance`, `lower_margin`, and `upper_margin`. Each period needs
+#'   at least 2 and at least 80% of the requested replicates with finite index
+#'   values; otherwise its margins are NA with a warning. Failed replicates warn
+#'   and are skipped. Use `set.seed()` before calling for reproducible resampling.
 #' @examples
 #' data("hedonic_data")
 #'
@@ -65,6 +77,10 @@ calculate_hedonic_index <- function(dataset,
                                     chained = FALSE,
                                     index_contribution = FALSE,
                                     parallel = FALSE,
+                                    margins = FALSE,
+                                    bootstrap_replicates = 999,
+                                    confidence_level = 0.95,
+                                    bootstrap_strata = NULL,
                                     ...) {
   method <- validate_hedonic_index_methods(method)
   extra_args <- list(...)
@@ -86,6 +102,13 @@ calculate_hedonic_index <- function(dataset,
     if (requires_explanatory_variables) categorical_variables else NULL,
     require_explanatory_variables = requires_explanatory_variables
   )
+  validate_bootstrap_margin_options(
+    dataset, margins, bootstrap_replicates, confidence_level, bootstrap_strata
+  )
+  if (margins && isTRUE(extra_args$resting_points)) {
+    stop("`margins = TRUE` requires regular index output; `resting_points = TRUE` is not supported.",
+         call. = FALSE)
+  }
 
   make_run_method <- function(method_extra_args) {
     function(method_name, target_dataset, target_reference_period) {
@@ -128,6 +151,26 @@ calculate_hedonic_index <- function(dataset,
     parallel = isTRUE(parallel) && length(method) > 1,
     fallback_message = "Parallel method calculation failed; falling back to sequential calculation."
   )
+
+  if (margins) {
+    bootstrap_args <- c(list(
+      period_variable = period_variable, dependent_variable = dependent_variable,
+      numerical_variables = numerical_variables, categorical_variables = categorical_variables,
+      reference_period = reference_period, number_of_observations = number_of_observations,
+      chained = chained, index_contribution = FALSE, margins = FALSE
+    ), extra_args)
+    for (i in seq_along(method)) {
+      method_name <- method[i]
+      result[[i]] <- calculate_bootstrap_margins(
+        dataset, result[[i]], bootstrap_replicates, confidence_level, bootstrap_strata,
+        calculate_index_function = function(sample_data) {
+          do.call(calculate_hedonic_index,
+                  c(list(dataset = sample_data, method = method_name), bootstrap_args))
+        },
+        method = method_name
+      )
+    }
+  }
 
   if (length(method) == 1) {
     if (isTRUE(index_contribution)) {

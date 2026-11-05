@@ -133,3 +133,16 @@ test_that("median uses generic annual-overlap chaining and retains counts", {
     result[c("period", "Index")]
   )
 })
+
+test_that("median supports generic bootstrap margins without predictors, including chaining", {
+  dataset <- median_test_data()
+  for (chained in c(FALSE, TRUE)) {
+    original <- median_test_index(dataset, chained = chained)
+    set.seed(76)
+    result <- median_test_index(dataset, chained = chained, margins = TRUE,
+      bootstrap_replicates = 5, bootstrap_strata = "quarter")
+    expect_identical(result[names(original)], original)
+    expect_true(all(is.finite(result$bootstrap_variance) & result$bootstrap_variance >= 0))
+    expect_true(all(result$lower_margin <= result$Index & result$Index <= result$upper_margin))
+  }
+})

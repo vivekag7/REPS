@@ -16,6 +16,10 @@ calculate_hedonic_index(
   chained = FALSE,
   index_contribution = FALSE,
   parallel = FALSE,
+  margins = FALSE,
+  bootstrap_replicates = 999,
+  confidence_level = 0.95,
+  bootstrap_strata = NULL,
   ...
 )
 }
@@ -46,6 +50,17 @@ for hedonic methods. Optional for median; ignored by that method.}
 
 \item{parallel}{Logical. If TRUE, independent calculations are parallelized where useful. Default is FALSE.}
 
+\item{margins}{Logical; add bootstrap variance and normal-approximation margins
+around the original index. Default FALSE. Requires regular index output.}
+
+\item{bootstrap_replicates}{Number of row-bootstrap samples, at least 2.
+Default 999. Used only when \code{margins = TRUE}.}
+
+\item{confidence_level}{Confidence level strictly between 0 and 1. Default 0.95.}
+
+\item{bootstrap_strata}{Optional column names for resampling within strata,
+preserving each stratum's size. NULL samples from the entire dataset.}
+
 \item{...}{Additional method-specific arguments passed to the underlying functions:
 \itemize{
 \item \code{periods_in_year}: (Required for Repricing) Number of periods per year (e.g. 12 for months, 4 for quarters)
@@ -60,6 +75,11 @@ for hedonic methods. Optional for median; ignored by that method.}
 }
 \value{
 A data.frame (or list for HMTS with resting_points = TRUE; named list if multiple methods are used; or list with Index and Index_contribution when index_contribution = TRUE)
+With \code{margins = TRUE}, index frames retain their existing columns and add
+\code{bootstrap_variance}, \code{lower_margin}, and \code{upper_margin}. Each period needs
+at least 2 and at least 80\% of the requested replicates with finite index
+values; otherwise its margins are NA with a warning. Failed replicates warn
+and are skipped. Use \code{set.seed()} before calling for reproducible resampling.
 }
 \description{
 Central hub function to calculate index figures using different methods. Can also calculate chained indices using the Annual Overlap Method.
