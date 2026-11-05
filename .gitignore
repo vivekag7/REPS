@@ -9,3 +9,4 @@ inst/doc
 REPS.Rproj
 /*.csv
 validation*.R
+/local-analysis/
