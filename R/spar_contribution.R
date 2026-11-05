@@ -75,7 +75,7 @@ calculate_spar_index_contribution <- function(dataset, index_output, period_vari
       }
       output <- tryCatch(calculate_index_function(target_dataset), error = function(error) {
         if (grepl("Each period/group must have enough observed values", conditionMessage(error), fixed = TRUE) ||
-            grepl("Median index calculation requires", conditionMessage(error), fixed = TRUE)) {
+            grepl("^(Mean|Median) index calculation requires", conditionMessage(error))) {
           return(unavailable())
         }
         stop(error)

@@ -48,7 +48,7 @@ test_that("median-only validation requires no appraisal or vintage columns", {
   expect_error(calculate_spar_index(dataset, c("spar_arithmetic", "median"), "period", "price",
     grouping_variables = "type"), "appraisal_variable")
   expect_error(calculate_spar_index(dataset, "median", "period", "price",
-    grouping_variables = "missing"), "missing median grouping")
+    grouping_variables = "missing"), "missing baseline grouping")
   dataset$price <- NA_real_
   expect_error(calculate_spar_index(dataset, "median", "period", "price"), "complete price-period")
 })

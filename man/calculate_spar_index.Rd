@@ -25,7 +25,7 @@ calculate_spar_index(
 \item{dataset}{A non-empty data frame of transaction observations.}
 
 \item{method}{One or more of \code{"spar_arithmetic"}, \code{"spar_geometric"},
-\code{"spar_unweighted"}, or \code{"median"}.
+\code{"spar_unweighted"}, \code{"median"}, or \code{"mean"}.
 Names are case-insensitive; duplicates are calculated once.}
 
 \item{period_variable}{One column name identifying periods.}
@@ -33,14 +33,15 @@ Names are case-insensitive; duplicates are calculated once.}
 \item{dependent_variable}{One column name containing untransformed prices.}
 
 \item{appraisal_variable}{One column name containing appraisal values.
-Required for SPAR methods; unused by median.}
+Required for SPAR methods; unused by median and mean.}
 
 \item{grouping_variables}{Unique column names identifying short-term series,
 for example appraisal vintage and property type. These must be distinct
 from the period, price, and appraisal columns and from output column names.
-Optional for median-only calls. Median uses \code{index_type_variable} when
-supplied, otherwise these groups, and normalizes each series to its first
-usable period. It uses no appraisal values or SPAR chaining formula.}
+Optional for baseline-only calls. Median and mean use \code{index_type_variable} when
+supplied, otherwise these groups, and normalize each series to its first
+usable period. They use no appraisal values or SPAR chaining formula.
+Mean averages untransformed prices within each period.}
 
 \item{index_type_variable}{Column names identifying independent chained
 series. Required for chained SPAR and a subset of \code{grouping_variables}.
@@ -50,7 +51,7 @@ Otherwise may be NULL.}
 period per group for SPAR. Default \code{"01$"} matches January in \code{YYYYMM} periods.}
 
 \item{chained}{Logical; link short-term SPAR series? Default FALSE.
-Median remains a direct baseline.}
+Median and mean remain direct baselines.}
 
 \item{base_value}{Positive finite starting level for chained series. Default
 100. Unchained indices always use 100.}
@@ -79,7 +80,7 @@ reference, the result has zero rows.
 With \code{index_contribution = TRUE}, returns a list containing \code{Index} and
 \code{Index_contribution}, including grouping identifiers. An exclusion that
 leaves the target index uncomputable has missing exclusion/difference values.
-Median results contain \code{period}, \code{Index}, and independent-series identifiers.
+Baseline results contain \code{period}, \code{Index}, and independent-series identifiers.
 Filter grouped output to one series before using \code{\link[=plot_price_index]{plot_price_index()}}.
 }
 \description{
@@ -87,7 +88,7 @@ Calculates arithmetic, geometric, or unweighted sales price appraisal ratio
 (SPAR) indices from transaction prices and appraisal values. Each
 \code{grouping_variables} combination defines a short-term series, normalized by
 its reference-period ratio. No hedonic regression is fitted.
-An optional \code{"median"} method provides an unadjusted price baseline.
+Optional \code{"median"} and \code{"mean"} methods provide unadjusted price baselines.
 }
 \details{
 Arithmetic SPAR uses \code{mean(price) / mean(appraisal)}, geometric SPAR uses

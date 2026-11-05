@@ -78,8 +78,8 @@ contributions to the index level and period-on-period change, calculated per
 independent series. Use `unit_variable` for grouped exclusions and
 `index_contribution_period` to choose the analyzed period; see the SPAR vignette.
 
-Optionally include `"median"` in the method vector for an unadjusted price
-baseline, using only prices and periods within each independent series.
+Optionally include `"median"` or `"mean"` in the method vector for unadjusted
+price baselines, using only prices and periods within each independent series.
 
 ## Diagnostics and Visualization Tools
 
