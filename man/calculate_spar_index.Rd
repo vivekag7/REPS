@@ -81,36 +81,6 @@ Calculates arithmetic, geometric, or unweighted sales price appraisal ratio
 \code{grouping_variables} combination defines a short-term series, normalized by
 its reference-period ratio. No hedonic regression is fitted.
 }
-\details{
-Arithmetic SPAR uses \code{mean(price) / mean(appraisal)}, geometric SPAR uses
-\code{exp(mean(log(price))) / exp(mean(log(appraisal)))}, and unweighted SPAR uses
-\code{mean(price / appraisal)}. Following the reference script, arithmetic and
-geometric aggregates remove missing prices and appraisals separately;
-unweighted removes missing individual ratios. A period/group without enough
-observed values for its method is an error. Missing or
-blank period/group identifiers are errors. Groups without a reference period
-are warned about and omitted; multiple matching periods in a group are errors.
-
-Without chaining, \code{Index = 100 * growth_rate}, where \code{growth_rate} is the
-period ratio divided by its group's reference ratio. With chaining, each
-independent series begins at \code{base_value}. Its first \code{growth_rate} is 1;
-at later reference periods it is the current reference ratio divided by the
-previous row's reference ratio. Other periods use the short-term ratio.
-\code{growth_rate_long} updates at the first row and periods ending in \code{"12"},
-and is then carried forward. \code{yoy_change} equals that rate at reference
-periods and 1 elsewhere; \code{chain_long = cumprod(yoy_change)}.
-The final \code{Index = base_value * growth_rate * chain_long} reproduces the
-supplied SPAR script's \code{index_long}, including reference-period jumps and
-subsequent returns to the within-vintage development.
-
-Chained SPAR follows the validated monthly January/December methodology
-from the reference implementation. Periods must be positive, six-digit
-YYYYMM integers or numeric-like strings, with months 01 through 12.
-Each grouping series occupies one calendar year and starts at its January
-reference period; \code{reference_period_pattern = "01$"} is the usual setting.
-The December rule is literal, not an inferred last available period.
-Unchained SPAR also supports other labels, such as quarterly strings.
-}
 \examples{
 data("arithmetic_data")
 spar <- calculate_spar_index(

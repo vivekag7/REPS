@@ -18,6 +18,37 @@ Sales price appraisal ratio (SPAR) indices measure price development using
 transaction prices and appraisal values. `calculate_spar_index()` supports
 three methods: `"arithmetic"`, `"geometric"`, and `"unweighted"`.
 
+## Required data
+
+Supply a data frame with one row per property transaction. Each row should
+match the transaction price to an appraisal value for the same property,
+and identify when the sale took place. Prices and appraisals should use the
+same currency and units; supply their original values without taking logs.
+SPAR does not require explanatory variables such as floor area or neighbourhood,
+or repeated sales of the same property.
+
+The example uses these five columns; your own column names can differ:
+
+| Column | Meaning |
+|:--|:--|
+| `period` | Transaction month, for example `201301` for January 2013. |
+| `appraisal_year` | Valuation vintage to which the appraisal value refers. |
+| `price` | Numeric transaction price. |
+| `property_type` | Category used here to calculate separate housing series. |
+| `appraisal_value` | Numeric appraisal value for the transacted property. |
+
+Use `grouping_variables` to identify short-term groups with the same appraisal
+vintage and any categories you want to keep separate. Property type is an
+optional way to split the data, rather than a required SPAR characteristic.
+In this example, grouping by appraisal year and property type creates one
+short-term index for each combination.
+
+Observed prices and appraisal values must be positive and finite. Missing
+values are omitted during aggregation, but each period/group needs enough
+observed values for the selected method. Period and group identifiers must
+not be missing or blank. Each group needs its reference period, January by
+default; groups without a matching reference are warned about and omitted.
+
 ## Example data
 
 ```{r example-data}
@@ -25,9 +56,7 @@ data("arithmetic_data")
 head(arithmetic_data)
 ```
 
-The five columns contain the monthly `period`, `appraisal_year`, transaction
-`price`, `property_type`, and `appraisal_value`. Column arguments below are
-supplied as strings.
+Column arguments below are supplied as strings.
 
 ## Calculate a SPAR index
 
@@ -66,7 +95,9 @@ names(spar)
 
 Chained SPAR uses monthly YYYYMM periods with January as the reference period.
 Here, `property_type` identifies the independent series to chain across
-appraisal years.
+appraisal years. Each short-term group must cover a single calendar year
+and start in January, with only one appraisal vintage per month within each
+independent series.
 
 ```{r chained-spar}
 spar_chained <- calculate_spar_index(
