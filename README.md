@@ -60,7 +60,7 @@ spar <- calculate_spar(
   chained = TRUE,
   index_type_variable = "property_type"
 )
-plot_price_index(lapply(spar, function(x) x[x$property_type == "Appartement", ]))
+plot_price_index(lapply(spar, function(x) x[x$property_type == "Apartment", ]))
 ```
 
 `parallel = TRUE` can run multiple methods using the existing parallel helper.

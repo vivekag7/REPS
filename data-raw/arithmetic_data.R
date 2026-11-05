@@ -23,6 +23,14 @@ source_data$period <- as.integer(source_data$period)
 source_data$appraisal_year <- as.integer(source_data$appraisal_year)
 source_data$price <- as.numeric(source_data$price)
 source_data$property_type <- as.character(source_data$property_type)
+property_type_labels <- c(
+  "Appartement" = "Apartment",
+  "Hoekwoning" = "End-of-terrace house",
+  "Tussenwoning" = "Mid-terrace house",
+  "Twee onder 1 kap" = "Semi-detached house"
+)
+stopifnot(all(source_data$property_type %in% names(property_type_labels)))
+source_data$property_type <- unname(property_type_labels[source_data$property_type])
 source_data$appraisal_value <- as.numeric(source_data$appraisal_value)
 stopifnot(
   !anyNA(source_data), all(is.finite(source_data$price)),

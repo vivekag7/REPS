@@ -112,7 +112,7 @@ spar <- calculate_spar(
   chained = TRUE
 )
 names(spar)
-plot_price_index(lapply(spar, function(x) x[x$property_type == "Appartement", ]))
+plot_price_index(lapply(spar, function(x) x[x$property_type == "Apartment", ]))
 }
 \author{
 Kai Cheung, Vivek Gajadhar

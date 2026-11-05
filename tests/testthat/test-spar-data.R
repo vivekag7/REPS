@@ -13,7 +13,7 @@ test_that("arithmetic_data preserves the complete source time pattern in a compa
   expect_equal(range(arithmetic_data$period), c(201301L, 201812L))
   expect_equal(sort(unique(arithmetic_data$appraisal_year)), 2011:2016)
   expect_equal(sort(unique(arithmetic_data$property_type)),
-    c("Appartement", "Hoekwoning", "Tussenwoning", "Twee onder 1 kap"))
+    c("Apartment", "End-of-terrace house", "Mid-terrace house", "Semi-detached house"))
   counts <- table(arithmetic_data$period, arithmetic_data$property_type)
   expect_equal(dim(counts), c(72L, 4L))
   expect_true(all(counts >= 1L & counts <= 3L))
@@ -42,6 +42,6 @@ test_that("arithmetic_data works with every public SPAR method and plotting", {
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off(), add = TRUE)
   expect_error(plot_price_index(result), "filter grouped output")
-  filtered <- lapply(result, function(x) x[x$property_type == "Appartement", ])
+  filtered <- lapply(result, function(x) x[x$property_type == "Apartment", ])
   expect_silent(plot_price_index(filtered))
 })

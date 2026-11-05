@@ -10,7 +10,8 @@ A data frame with 857 rows and 5 columns:
 \item{period}{An integer monthly period in YYYYMM format.}
 \item{appraisal_year}{The integer WOZ/appraisal-vintage year on which the appraisal value is based.}
 \item{price}{A numeric transaction price.}
-\item{property_type}{A character housing/property category.}
+\item{property_type}{A character housing category: Apartment,
+End-of-terrace house, Mid-terrace house, or Semi-detached house.}
 \item{appraisal_value}{A numeric appraisal/WOZ value.}
 }
 }

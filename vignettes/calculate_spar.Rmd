@@ -163,8 +163,7 @@ without distributing the full 30,716-row source.
 The deterministic selection is implemented in `data-raw/arithmetic_data.R`.
 To rebuild it from the external source, set `REPS_SPAR_SOURCE` to the path of
 `test2.csv` and source that script from the repository root. No random sampling
-is used. Dataset column names are English; the property category values retain
-their original labels.
+is used. Dataset column names and property category values are English.
 
 ```{r packaged-data}
 data("arithmetic_data")
@@ -195,6 +194,6 @@ Grouped output must be filtered to one series before plotting. Otherwise
 `plot_price_index()` raises a clear error instead of joining unrelated series.
 
 ```{r plot-spar, fig.width=7, fig.height=4}
-plot_series <- lapply(spar, function(x) x[x$property_type == "Appartement", ])
+plot_series <- lapply(spar, function(x) x[x$property_type == "Apartment", ])
 plot_price_index(plot_series, title = "SPAR comparison: apartments")
 ```
