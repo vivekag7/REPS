@@ -54,6 +54,12 @@
 #'   100. Unchained indices always use 100.
 #' @param parallel Logical; run multiple methods with the existing REPS parallel
 #'   helper. Default FALSE.
+#' @param index_contribution Logical; calculate leave-one-row/unit-out index and
+#'   period-on-period contribution for a single method. Default FALSE.
+#' @param unit_variable Optional column identifying units excluded together in
+#'   the analyzed period. NULL excludes individual rows.
+#' @param index_contribution_period Period to analyze, defaulting to the latest
+#'   period in the index. Contributions are calculated separately per series.
 #' @return One data frame, or a named list of data frames for multiple methods.
 #'   Each contains character `period`, the grouping identifiers, ratios
 #'   `ratio_numerator` and `ratio_denominator`, `growth_rate`, and `Index`.
@@ -62,6 +68,9 @@
 #'   `growth_rate_long`, `yoy_change`, `chain_long`, and `growth_factor`
 #'   (the actual period-on-period factor of `Index`). If all groups lack a
 #'   reference, the result has zero rows.
+#'   With `index_contribution = TRUE`, returns a list containing `Index` and
+#'   `Index_contribution`, including grouping identifiers. An exclusion that
+#'   leaves the target index uncomputable has missing exclusion/difference values.
 #'   Filter grouped output to one series before using [plot_price_index()].
 #' @author Kai Cheung, Vivek Gajadhar
 #' @examples
@@ -87,7 +96,10 @@ calculate_spar_index <- function(dataset,
                            reference_period_pattern = "01$",
                            chained = FALSE,
                            base_value = 100,
-                           parallel = FALSE) {
+                           parallel = FALSE,
+                           index_contribution = FALSE,
+                           unit_variable = NULL,
+                           index_contribution_period = NULL) {
   method <- validate_spar_index_methods(method)
   validate_spar_index_options(
     grouping_variables, index_type_variable, chained, base_value,
@@ -97,6 +109,10 @@ calculate_spar_index <- function(dataset,
     dataset, period_variable, dependent_variable, appraisal_variable,
     grouping_variables
   )
+  validate_spar_contribution_options(
+    method, dataset, index_contribution, unit_variable, index_contribution_period
+  )
+  input_dataset <- dataset
   if (chained) validate_spar_monthly_periods(dataset[[period_variable]])
   dataset <- prepare_spar_data(
     dataset, period_variable, dependent_variable, appraisal_variable,
@@ -122,6 +138,24 @@ calculate_spar_index <- function(dataset,
     fallback_message = "Parallel SPAR method calculation failed; falling back to sequential calculation."
   )
   if (length(method) == 1L) {
+    if (index_contribution) {
+      recalculate <- function(target_dataset) {
+        prepared <- prepare_spar_data(
+          target_dataset, period_variable, dependent_variable, appraisal_variable,
+          grouping_variables, reference_period_pattern
+        )
+        calculate_single_spar_index_method(
+          method, prepared, period_variable, dependent_variable, appraisal_variable,
+          grouping_variables, index_type_variable, reference_period_pattern, chained, base_value
+        )
+      }
+      contribution <- calculate_spar_index_contribution(
+        input_dataset, result[[1L]], period_variable, grouping_variables,
+        if (chained) index_type_variable else grouping_variables,
+        recalculate, unit_variable, index_contribution_period, parallel
+      )
+      return(list(Index = result[[1L]], Index_contribution = contribution))
+    }
     return(result[[1L]])
   }
   names(result) <- method

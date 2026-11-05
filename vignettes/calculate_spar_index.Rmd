@@ -27,7 +27,9 @@ calculate_spar_index(
   dataset, method, period_variable, dependent_variable, appraisal_variable,
   grouping_variables, index_type_variable = NULL,
   reference_period_pattern = "01$", chained = FALSE,
-  base_value = 100, parallel = FALSE
+  base_value = 100, parallel = FALSE,
+  index_contribution = FALSE, unit_variable = NULL,
+  index_contribution_period = NULL
 )
 ```
 
@@ -198,3 +200,36 @@ Grouped output must be filtered to one series before plotting. Otherwise
 plot_series <- lapply(spar, function(x) x[x$property_type == "Apartment", ])
 plot_price_index(plot_series, title = "SPAR comparison: apartments")
 ```
+
+## Contributions to index movement
+
+For a single method, `index_contribution = TRUE` returns `Index` and
+`Index_contribution`, following the hedonic hub convention. It removes one
+observation (or all rows of one `unit_variable` value) from the selected period
+and recalculates the same index. Other periods and other independent series
+remain intact. The calculation is performed separately for each series;
+grouping identifiers are retained in the contribution table.
+
+```{r spar-contribution}
+apartments <- arithmetic_data[arithmetic_data$property_type == "Apartment", ]
+influence <- calculate_spar_index(
+  apartments, "spar_arithmetic", period_variable = "period",
+  dependent_variable = "price", appraisal_variable = "appraisal_value",
+  grouping_variables = c("appraisal_year", "property_type"),
+  index_type_variable = "property_type", chained = TRUE,
+  index_contribution = TRUE, index_contribution_period = "201801"
+)
+head(influence$Index_contribution)
+```
+
+Without `unit_variable`, `row_id` identifies the row's position in the original
+input. Supply a unit column to exclude groups instead. The period defaults to
+the latest available index period. `parallel = TRUE` uses the existing REPS task
+helper for the independent exclusions.
+
+`Index_difference = Index_original - Index_excl_observation` measures influence
+on the index level. `PoP_difference = PoP_excl_observation - PoP_original` uses
+percentage points, following the existing REPS sign conventions. These are
+leave-one-out sensitivity measures; they need not add up to the index movement.
+If exclusion makes the selected-period index unavailable, the corresponding
+exclusion/difference fields are `NA`.

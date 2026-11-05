@@ -15,7 +15,10 @@ calculate_spar_index(
   reference_period_pattern = "01$",
   chained = FALSE,
   base_value = 100,
-  parallel = FALSE
+  parallel = FALSE,
+  index_contribution = FALSE,
+  unit_variable = NULL,
+  index_contribution_period = NULL
 )
 }
 \arguments{
@@ -48,6 +51,15 @@ period per group. Default \code{"01$"} matches January in \code{YYYYMM} periods.
 
 \item{parallel}{Logical; run multiple methods with the existing REPS parallel
 helper. Default FALSE.}
+
+\item{index_contribution}{Logical; calculate leave-one-row/unit-out index and
+period-on-period contribution for a single method. Default FALSE.}
+
+\item{unit_variable}{Optional column identifying units excluded together in
+the analyzed period. NULL excludes individual rows.}
+
+\item{index_contribution_period}{Period to analyze, defaulting to the latest
+period in the index. Contributions are calculated separately per series.}
 }
 \value{
 One data frame, or a named list of data frames for multiple methods.
@@ -58,6 +70,9 @@ Arithmetic/geometric output also contains \code{numerator_numerator} and
 \code{growth_rate_long}, \code{yoy_change}, \code{chain_long}, and \code{growth_factor}
 (the actual period-on-period factor of \code{Index}). If all groups lack a
 reference, the result has zero rows.
+With \code{index_contribution = TRUE}, returns a list containing \code{Index} and
+\code{Index_contribution}, including grouping identifiers. An exclusion that
+leaves the target index uncomputable has missing exclusion/difference values.
 Filter grouped output to one series before using \code{\link[=plot_price_index]{plot_price_index()}}.
 }
 \description{
