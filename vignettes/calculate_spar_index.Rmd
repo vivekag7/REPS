@@ -12,224 +12,109 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(REPS)
 ```
 
-## A separate hub with familiar output
+## Introduction
 
-`calculate_spar_index()` calculates sales price appraisal ratio (SPAR) indices from
-transaction prices and matched appraisal values. It does not fit a hedonic
-regression. As with `calculate_hedonic_index()`, one method returns a data.frame;
-multiple methods return a named list in the requested order. Method names are
-case-insensitive and repeated names are calculated once.
+Sales price appraisal ratio (SPAR) indices measure price development using
+transaction prices and appraisal values. `calculate_spar_index()` supports
+three methods: `"arithmetic"`, `"geometric"`, and `"unweighted"`.
 
-The public interface is:
+## Example data
 
-```r
-calculate_spar_index(
-  dataset, method, period_variable, dependent_variable, appraisal_variable,
-  grouping_variables, index_type_variable = NULL,
-  reference_period_pattern = "01$", chained = FALSE,
-  base_value = 100, parallel = FALSE,
-  index_contribution = FALSE, unit_variable = NULL,
-  index_contribution_period = NULL
-)
-```
-
-Column arguments are strings. `grouping_variables` defines each short-term
-series, usually by appraisal vintage and property type. `index_type_variable`
-identifies the independent series to chain, such as property type or property
-type and region; it must be a subset of the grouping columns. There is no
-additional `type_variable` argument.
-
-## Three variants
-
-For each period/group, with transaction price `p` and appraisal value `a`:
-
-| Method | Period ratio |
-|:--|:--|
-| `"arithmetic"` | `mean(p) / mean(a)` |
-| `"geometric"` | `exp(mean(log(p))) / exp(mean(log(a)))` |
-| `"unweighted"` | `mean(p / a)` |
-
-Following the validated script, arithmetic and geometric SPAR omit missing prices
-and missing appraisals separately, so their two aggregates may use different
-observations. Unweighted SPAR omits missing individual price/appraisal ratios.
-Unused columns do not affect the calculation. Observed prices and appraisals must
-be finite and strictly positive. A period/group without enough observed values
-to calculate its method's ratio is an error.
-
-This small example can be calculated by hand:
-
-```{r manual-data}
-example <- data.frame(
-  month = rep(c(202101, 202102), each = 2),
-  vintage = 2019, type = "A",
-  price = c(100, 300, 200, 600),
-  appraisal = c(100, 200, 100, 300)
-)
-results <- calculate_spar_index(
-  example, c("arithmetic", "geometric", "unweighted"),
-  period_variable = "month", dependent_variable = "price",
-  appraisal_variable = "appraisal", grouping_variables = c("vintage", "type")
-)
-lapply(results, function(x) x[c("period", "ratio_numerator", "growth_rate", "Index")])
-```
-
-The January ratios are `4/3`, `sqrt(1.5)`, and `1.25`; all February ratios are 2.
-Thus the February indices are 150, approximately 163.30, and 160. These variants
-need not agree because they weight transaction/appraisal relationships
-differently.
-
-## References and identifiers
-
-Within each grouping series:
-
-```text
-growth_rate = current period ratio / reference period ratio
-Index       = 100 * growth_rate                 (unchained)
-```
-
-`reference_period_pattern` is a regular expression, not a REPS reference-year
-prefix. The default `"01$"` selects January in YYYYMM periods. `"Q1$"` works for
-unchained quarterly character periods such as `"2021Q1"`.
-
-The regex must match at most one distinct period per group. Multiple matches
-are an error. A group without a matching reference is warned about and omitted;
-if none remain, the result is an empty data.frame with the regular output
-columns. Missing/blank period or grouping identifiers are rejected rather than
-treated as separate series. Column roles must be distinct; grouping columns
-must not conflict with standardized output names such as `period` or `Index`.
-
-## Validated reference and December chaining
-
-Chaining reproduces `index_long` from the supplied SPAR reference script and is separate from
-hedonic annual-overlap chaining. It currently supports monthly YYYYMM-style
-periods only, as integers or six-digit numeric-like strings with valid months
-01 through 12. Reference periods must be January; the normal configuration is
-`reference_period_pattern = "01$"`. The long-term update rule uses the literal
-suffix `"12$"` for December. Quarterly encodings and other frequencies are
-rejected for chaining. Unchained calculation still accepts labels such as `"2021Q1"`.
-
-Each short-term grouping series must lie within one numeric segment and begin
-at its reference period, which must be the segment start. Independent chained
-series must have at most one aggregated row for each numeric period; ambiguous
-overlapping appraisal vintages require an explicit data selection before
-chaining. All chain arguments are validated even when chaining is disabled.
-
-Within each independent series, let `r` be the current period's ratio and `j`
-its grouping series' reference ratio. The calculation is:
-
-| Quantity | Calculation |
-|:--|:--|
-| `growth_rate` | 1 at the first row; `j / previous_j` at later reference periods; `ratio_numerator / ratio_denominator` elsewhere |
-| `growth_rate_long` | Take `growth_rate` at the first row and December periods, then fill forward |
-| `yoy_change` | `growth_rate_long` at reference periods; 1 elsewhere |
-| `chain_long` | `cumprod(yoy_change)` |
-| `Index` | `base_value * growth_rate * chain_long` |
-
-`previous_j` means the preceding row's reference ratio after sorting the
-independent series by period. At a vintage transition, it is the preceding
-vintage's January ratio. January can therefore jump; the following month again
-uses its own within-vintage ratio and the long-term multiplier. This behavior
-is intentional here because it reproduces the supplied reference script.
-A missing December does not cause another month to be substituted: the last
-available long-term update remains in use.
-
-```{r manual-chain}
-chain_data <- data.frame(
-  month = c(202101, 202112, 202201, 202202),
-  vintage = c(2019, 2019, 2020, 2020), type = "A",
-  price = c(100, 120, 300, 330), appraisal = 100
-)
-chain_result <- calculate_spar_index(
-  chain_data, "arithmetic", period_variable = "month",
-  dependent_variable = "price", appraisal_variable = "appraisal",
-  grouping_variables = c("vintage", "type"),
-  chained = TRUE, index_type_variable = "type"
-)
-chain_result[c("period", "growth_rate", "growth_factor", "Index")]
-```
-
-The growth rates are `1, 1.2, 3, 1.1`; the long-term multipliers are
-`1, 1, 1.2, 1.2`; the chained levels are **100, 120, 360, 132**.
-January uses the ratio of January values, `3 / 1`, times the previous December
-level. February uses `1.1` times the multiplier `1.2`. Every independent
-index-type series is initialized at `base_value` separately.
-
-## Packaged example, parallel methods, and plotting
-
-`arithmetic_data` contains 857 transactions, six appraisal vintages (2011–2016),
-four property types, and all 72 months from January 2013 through December 2018.
-It retains up to three approximately quartile-spaced price ranks per
-period/vintage/type stratum, using appraisal value to break ties. Thus it
-preserves the complete time pattern and all five vintage transitions per type
-without distributing the full 30,716-row source.
-
-The deterministic selection is implemented in `data-raw/arithmetic_data.R`.
-To rebuild it from the external source, set `REPS_SPAR_SOURCE` to the path of
-`test2.csv` and source that script from the repository root. No random sampling
-is used. Dataset column names and property category values are English.
-
-```{r packaged-data}
+```{r example-data}
 data("arithmetic_data")
-str(arithmetic_data)
+head(arithmetic_data)
+```
+
+The five columns contain the monthly `period`, `appraisal_year`, transaction
+`price`, `property_type`, and `appraisal_value`. Column arguments below are
+supplied as strings.
+
+## Calculate a SPAR index
+
+Group by appraisal year and property type to calculate separate short-term
+indices. The default reference period is January, with an index level of 100.
+
+```{r single-method}
+spar_arithmetic <- calculate_spar_index(
+  dataset = arithmetic_data,
+  method = "arithmetic",
+  period_variable = "period",
+  dependent_variable = "price",
+  appraisal_variable = "appraisal_value",
+  grouping_variables = c("appraisal_year", "property_type")
+)
+head(spar_arithmetic)
+```
+
+## Multiple methods
+
+Supply a method vector to receive a named list of results.
+
+```{r multiple-methods}
 spar <- calculate_spar_index(
   dataset = arithmetic_data,
   method = c("arithmetic", "geometric", "unweighted"),
-  period_variable = "period", dependent_variable = "price",
+  period_variable = "period",
+  dependent_variable = "price",
   appraisal_variable = "appraisal_value",
-  grouping_variables = c("appraisal_year", "property_type"),
-  chained = TRUE, index_type_variable = "property_type"
+  grouping_variables = c("appraisal_year", "property_type")
 )
 names(spar)
 ```
 
-For multiple methods, `parallel = TRUE` uses the same optional task helper as
-hedonic indices. The output has the same content as sequential calculation;
-small datasets often benefit more from avoiding worker startup costs.
+## Chained SPAR
 
-Every frame contains character `period`, `Index`, all grouping identifiers,
-`ratio_numerator`, `ratio_denominator`, and `growth_rate`. Arithmetic/geometric
-output also preserves the aggregated price and appraisal components as
-`numerator_numerator` and `numerator_denominator`. Chained output additionally
-contains `chaining_true_false`, `growth_rate_long`, `yoy_change`, `chain_long`,
-and `growth_factor` (the actual period-on-period factor of `Index`).
+Chained SPAR uses monthly YYYYMM periods with January as the reference period.
+Here, `property_type` identifies the independent series to chain across
+appraisal years.
 
-Grouped output must be filtered to one series before plotting. Otherwise
-`plot_price_index()` raises a clear error instead of joining unrelated series.
-
-```{r plot-spar, fig.width=7, fig.height=4}
-plot_series <- lapply(spar, function(x) x[x$property_type == "Apartment", ])
-plot_price_index(plot_series, title = "SPAR comparison: apartments")
-```
-
-## Contributions to index movement
-
-For a single method, `index_contribution = TRUE` returns `Index` and
-`Index_contribution`, following the hedonic hub convention. It removes one
-observation (or all rows of one `unit_variable` value) from the selected period
-and recalculates the same index. Other periods and other independent series
-remain intact. The calculation is performed separately for each series;
-grouping identifiers are retained in the contribution table.
-
-```{r spar-contribution}
-apartments <- arithmetic_data[arithmetic_data$property_type == "Apartment", ]
-influence <- calculate_spar_index(
-  apartments, "arithmetic", period_variable = "period",
-  dependent_variable = "price", appraisal_variable = "appraisal_value",
+```{r chained-spar}
+spar_chained <- calculate_spar_index(
+  dataset = arithmetic_data,
+  method = c("arithmetic", "geometric", "unweighted"),
+  period_variable = "period",
+  dependent_variable = "price",
+  appraisal_variable = "appraisal_value",
   grouping_variables = c("appraisal_year", "property_type"),
-  index_type_variable = "property_type", chained = TRUE,
-  index_contribution = TRUE, index_contribution_period = "201801"
+  chained = TRUE,
+  index_type_variable = "property_type"
 )
-head(influence$Index_contribution)
 ```
 
-Without `unit_variable`, `row_id` identifies the row's position in the original
-input. Supply a unit column to exclude groups instead. The period defaults to
-the latest available index period. `parallel = TRUE` uses the existing REPS task
-helper for the independent exclusions.
+## Index contribution
 
-`Index_difference = Index_original - Index_excl_observation` measures influence
-on the index level. `PoP_difference = PoP_excl_observation - PoP_original` uses
-percentage points, following the existing REPS sign conventions. These are
-leave-one-out sensitivity measures; they need not add up to the index movement.
-If exclusion makes the selected-period index unavailable, the corresponding
-exclusion/difference fields are `NA`.
+For a single method, add `index_contribution = TRUE` to inspect each
+observation's influence on the index level and period-on-period change.
+The latest period is analyzed by default; use `index_contribution_period`
+to choose another period or `unit_variable` to exclude units together.
+
+```{r index-contribution}
+result <- calculate_spar_index(
+  dataset = arithmetic_data,
+  method = "arithmetic",
+  period_variable = "period",
+  dependent_variable = "price",
+  appraisal_variable = "appraisal_value",
+  grouping_variables = c("appraisal_year", "property_type"),
+  index_contribution = TRUE
+)
+head(result$Index)
+head(result$Index_contribution)
+```
+
+## Plotting
+
+Filter to one property type before comparing the three chained methods.
+
+```{r plotting, fig.width=7, fig.height=4}
+apartments <- lapply(spar_chained, function(x) {
+  x[x$property_type == "Apartment", ]
+})
+plot_price_index(apartments, title = "SPAR indices: apartments")
+```
+
+## Summary
+
+Use one method for a data frame or several for a named list. Add chaining to
+link appraisal years, and enable index contribution when analyzing a single
+method's observations.

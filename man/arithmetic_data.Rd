@@ -16,20 +16,16 @@ End-of-terrace house, Mid-terrace house, or Semi-detached house.}
 }
 }
 \source{
-A compact subset of the original SPAR development/test file \code{test2.csv}.
+Local example data in \code{data-raw/arithmetic_data.csv}.
 }
 \usage{
 arithmetic_data
 }
 \description{
-A deterministic, representative subset of the original SPAR development data
+A compact, representative example of transaction prices and appraisal values
 spanning January 2013 through December 2018, with six appraisal vintages and
-four property types. Each period/vintage/type stratum retains up to three
-observations at approximately quartile-spaced price ranks, with appraisal
-value breaking ties. All periods and vintage transitions are retained.
+four property types.
 Intended for examples, tests, and demonstrating chaining over vintages.
-The selection is reproducible with \code{data-raw/arithmetic_data.R} and the
-external source CSV; the full source is not distributed with the package.
 }
 \examples{
 data("arithmetic_data")

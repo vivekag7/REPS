@@ -21,14 +21,10 @@
 
 #' A compact sales price appraisal ratio example dataset
 #'
-#' A deterministic, representative subset of the original SPAR development data
+#' A compact, representative example of transaction prices and appraisal values
 #' spanning January 2013 through December 2018, with six appraisal vintages and
-#' four property types. Each period/vintage/type stratum retains up to three
-#' observations at approximately quartile-spaced price ranks, with appraisal
-#' value breaking ties. All periods and vintage transitions are retained.
+#' four property types.
 #' Intended for examples, tests, and demonstrating chaining over vintages.
-#' The selection is reproducible with `data-raw/arithmetic_data.R` and the
-#' external source CSV; the full source is not distributed with the package.
 #'
 #' @format A data frame with 857 rows and 5 columns:
 #' \describe{
@@ -39,7 +35,7 @@
 #'     End-of-terrace house, Mid-terrace house, or Semi-detached house.}
 #'   \item{appraisal_value}{A numeric appraisal/WOZ value.}
 #' }
-#' @source A compact subset of the original SPAR development/test file `test2.csv`.
+#' @source Local example data in `data-raw/arithmetic_data.csv`.
 #' @examples
 #' data("arithmetic_data")
 #' result <- calculate_spar_index(
