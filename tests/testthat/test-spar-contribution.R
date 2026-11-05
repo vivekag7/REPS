@@ -76,3 +76,56 @@ test_that("SPAR contribution options reject ambiguous or invalid inputs", {
   dataset$unit[dataset$month == 202202] <- NA_character_
   expect_error(spar_contribution_run(dataset, index_contribution = TRUE, unit_variable = "unit"), "identifiers")
 })
+
+test_that("SPAR recalculation errors use the generic per-unit warning and NA handling", {
+  dataset <- spar_contribution_data()
+  dataset <- dataset[dataset$type == "A", ]
+  dataset$price[dataset$month == 202202 & dataset$unit != "u1"] <- NA_real_
+  fields <- c("Index_excl_observation", "Index_difference",
+              "PoP_excl_observation", "PoP_difference")
+  for (method in supported_spar_index_methods()) {
+    original <- spar_contribution_run(dataset, method)
+    without_u1 <- dataset[!(dataset$month == 202202 & dataset$unit == "u1"), ]
+    # This is a real method failure, not a synthetic callback or an empty period.
+    error <- tryCatch(spar_contribution_run(without_u1, method), error = identity)
+    expect_s3_class(error, "error")
+    expect_match(conditionMessage(error), "Each period/group must have enough observed values",
+                 fixed = TRUE)
+
+    warnings <- character()
+    result <- withCallingHandlers(spar_contribution_run(
+      dataset, method, unit_variable = "unit", index_contribution = TRUE
+    ), warning = function(warning) {
+      warnings <<- c(warnings, conditionMessage(warning))
+      invokeRestart("muffleWarning")
+    })
+    expect_equal(result$Index, original)
+    contribution <- result$Index_contribution
+    expect_equal(nrow(contribution), 3L)
+    expect_setequal(contribution$unit, c("u1", "u2", "u3"))
+    failed <- contribution$unit == "u1"
+    expect_true(all(is.na(contribution[failed, fields])))
+    expect_true(all(is.finite(as.matrix(contribution[!failed, fields]))))
+    original_level <- original$Index[original$period == "202202"]
+    original_pop <- 100 * (original_level / original$Index[original$period == "202201"] - 1)
+    expect_equal(contribution$Index_original, rep(original_level, 3))
+    expect_equal(contribution$PoP_original, rep(original_pop, 3))
+    expect_length(warnings, 1L)
+    expect_match(warnings, "unit/row 'u1'", fixed = TRUE)
+    expect_match(warnings, "202202", fixed = TRUE)
+    expect_match(warnings, conditionMessage(error), fixed = TRUE)
+
+    for (unit in c("u2", "u3")) {
+      manual <- spar_contribution_run(
+        dataset[!(dataset$month == 202202 & dataset$unit == unit), ], method
+      )
+      level <- manual$Index[manual$period == "202202"]
+      pop <- 100 * (level / manual$Index[manual$period == "202201"] - 1)
+      row <- contribution[contribution$unit == unit, ]
+      expect_equal(row$Index_excl_observation, level)
+      expect_equal(row$Index_difference, original_level - level)
+      expect_equal(row$PoP_excl_observation, pop)
+      expect_equal(row$PoP_difference, pop - original_pop)
+    }
+  }
+})

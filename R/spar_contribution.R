@@ -73,12 +73,7 @@ calculate_spar_index_contribution <- function(dataset, index_output, period_vari
       if (!any(as.character(target_dataset[[period_variable]]) == target_period)) {
         return(unavailable())
       }
-      output <- tryCatch(calculate_index_function(target_dataset), error = function(error) {
-        if (grepl("Each period/group must have enough observed values", conditionMessage(error), fixed = TRUE)) {
-          return(unavailable())
-        }
-        stop(error)
-      })
+      output <- calculate_index_function(target_dataset)
       if (!nrow(output)) return(unavailable())
       output
     }
