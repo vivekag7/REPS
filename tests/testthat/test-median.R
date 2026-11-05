@@ -140,7 +140,7 @@ test_that("median supports generic bootstrap margins without predictors, includi
     original <- median_test_index(dataset, chained = chained)
     set.seed(76)
     result <- median_test_index(dataset, chained = chained, margins = TRUE,
-      bootstrap_replicates = 5, bootstrap_strata = "quarter")
+      bootstrap_replicates = 5)
     expect_identical(result[names(original)], original)
     expect_true(all(is.finite(result$bootstrap_variance) & result$bootstrap_variance >= 0))
     expect_true(all(result$lower_margin <= result$Index & result$Index <= result$upper_margin))

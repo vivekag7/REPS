@@ -614,21 +614,20 @@ test_that("disabled bootstrap preserves ordinary output and RNG state", {
   expect_identical(result, expected)
   expect_identical(.Random.seed, seed)
   expect_identical(bootstrap_test_run("median", margins = FALSE,
-    bootstrap_replicates = NULL, confidence_level = NULL, bootstrap_strata = "unused"),
+    bootstrap_replicates = NULL),
     expected$median)
 })
 
 test_that("bootstrap margins preserve columns and surround the original index", {
   set.seed(72)
   original <- bootstrap_test_run("timedummy")
-  result <- bootstrap_test_run("timedummy", margins = TRUE, bootstrap_replicates = 6,
-                               bootstrap_strata = "period", confidence_level = 0.9)
+  result <- bootstrap_test_run("timedummy", margins = TRUE, bootstrap_replicates = 6)
   expect_identical(result[names(original)], original)
   expect_named(result, c(names(original), "bootstrap_variance", "lower_margin", "upper_margin"))
   expect_true(all(is.finite(result$bootstrap_variance) & result$bootstrap_variance >= 0))
   expect_true(any(result$bootstrap_variance > 0))
   expect_true(all(result$lower_margin <= result$Index & result$Index <= result$upper_margin))
-  width <- qnorm(0.95) * sqrt(result$bootstrap_variance)
+  width <- qnorm(0.975) * sqrt(result$bootstrap_variance)
   expect_equal(result$lower_margin, original$Index - width)
   expect_equal(result$upper_margin, original$Index + width)
 })
@@ -640,37 +639,34 @@ test_that("bootstrap options are validated when margins are enabled", {
   for (bad in list(NULL, NA, Inf, -Inf, 0, 1, -2, 2.5, "5", TRUE, 2i, c(2, 3))) {
     expect_error(bootstrap_test_run(margins = TRUE, bootstrap_replicates = bad), "bootstrap_replicates")
   }
-  for (bad in list(NULL, NA, Inf, -Inf, 0, 1, -0.1, 1.1, "0.95", TRUE, 1i, c(0.8, 0.9))) {
-    expect_error(bootstrap_test_run(margins = TRUE, confidence_level = bad), "confidence_level")
-  }
-  for (bad in list(character(), NA_character_, "", " ", 1, c("period", "period"), "missing")) {
-    expect_error(bootstrap_test_run(margins = TRUE, bootstrap_strata = bad), "bootstrap_strata")
-  }
+  expect_false(any(c("confidence_level", "bootstrap_strata") %in% names(formals(calculate_hedonic_index))))
+  expect_error(bootstrap_test_run(margins = TRUE, confidence_level = 0.9), "not supported")
+  expect_error(bootstrap_test_run(margins = TRUE, bootstrap_strata = "period"), "not supported")
   expect_error(bootstrap_test_run("hmts", margins = TRUE, resting_points = TRUE), "regular index output")
 })
 
-test_that("bootstrap samples rows with replacement and preserves strata sizes", {
+test_that("bootstrap always samples with replacement within the supplied period column", {
   dataset <- data.frame(period = c("a", "a", "a", "b", "b", "b", "b", "c"),
-                        region = c("x", "x", "y", "x", "x", "y", NA, "z"), id = 1:8)
+                        id = 1:8)
+  names(dataset)[1] <- "month"
   set.seed(73)
-  sample <- sample_bootstrap_rows(dataset)
-  expect_equal(sample$id, { set.seed(73); sample.int(8, 8, replace = TRUE) })
+  sample <- sample_bootstrap_rows(dataset, "month")
+  set.seed(73)
+  expected <- c(sample.int(3, 3, replace = TRUE), 3L + sample.int(4, 4, replace = TRUE), 8L)
+  expect_equal(sample$id, expected)
   expect_true(anyDuplicated(sample$id) > 0)
-  for (strata in list("period", c("period", "region"))) {
-    for (i in 1:3) {
-      sample <- sample_bootstrap_rows(dataset, strata)
-      expect_equal(nrow(sample), nrow(dataset))
-      expect_equal(as.data.frame(table(sample[strata], useNA = "ifany")),
-                   as.data.frame(table(dataset[strata], useNA = "ifany")))
-      expect_equal(sample$id[sample$period == "c"], 8L)
-    }
+  for (i in 1:3) {
+    sample <- sample_bootstrap_rows(dataset, "month")
+    expect_equal(nrow(sample), nrow(dataset))
+    expect_equal(table(sample$month), table(dataset$month))
+    expect_equal(sample$id[sample$month == "c"], 8L)
   }
 })
 
 test_that("bootstrap values align with period labels including reordered and missing periods", {
   original <- data.frame(period = c("p2", "p1"), Index = c(250, 100), number_of_observations = 2L)
   replicate <- 0L
-  result <- calculate_bootstrap_margins(data.frame(x = 1:3), original, 5, 0.95, NULL,
+  result <- calculate_bootstrap_margins(data.frame(x = 1:3), original, 5, "x",
     function(data) {
       replicate <<- replicate + 1L
       output <- data.frame(period = c("p1", "p2"), Index = c(replicate, 10 * replicate))
@@ -685,7 +681,7 @@ test_that("bootstrap values align with period labels including reordered and mis
 test_that("one failed bootstrap replicate warns and leaves remaining replicates usable", {
   replicate <- 0L
   captured <- capture_bootstrap_warnings(calculate_bootstrap_margins(
-    data.frame(x = 1:3), data.frame(period = "p1", Index = 120), 5, 0.95, NULL,
+    data.frame(x = 1:3), data.frame(period = "p1", Index = 120), 5, "x",
     function(data) {
       replicate <<- replicate + 1L
       if (replicate == 3L) stop("Synthetic model fit failed")
@@ -703,7 +699,7 @@ test_that("insufficient valid bootstrap values warn and produce NA margins per p
   replicate <- 0L
   original <- data.frame(period = c("p1", "p2"), Index = c(100, 120))
   captured <- capture_bootstrap_warnings(calculate_bootstrap_margins(
-    data.frame(x = 1:3), original, 5, 0.95, NULL, function(data) {
+    data.frame(x = 1:3), original, 5, "x", function(data) {
       replicate <<- replicate + 1L
       data.frame(period = c("p1", "p2"), Index = c(100, if (replicate <= 3L) 120 else Inf))
     }, "synthetic"
@@ -715,7 +711,7 @@ test_that("insufficient valid bootstrap values warn and produce NA margins per p
   expect_true(all(is.na(captured$result[2, c("bootstrap_variance", "lower_margin", "upper_margin")])))
   expect_identical(captured$result[names(original)], original)
   captured <- capture_bootstrap_warnings(calculate_bootstrap_margins(
-    data.frame(x = 1:3), original, 2, 0.95, NULL, function(data) stop("fit failed"), "synthetic"
+    data.frame(x = 1:3), original, 2, "x", function(data) stop("fit failed"), "synthetic"
   ))
   expect_length(captured$warnings, 3L)
   expect_true(all(is.na(captured$result$bootstrap_variance)))
@@ -723,7 +719,7 @@ test_that("insufficient valid bootstrap values warn and produce NA margins per p
 
 test_that("multiple methods receive reproducible bootstrap margins through the hub", {
   run <- function() bootstrap_test_run(c("median", "fisher"), margins = TRUE,
-    bootstrap_replicates = 5, bootstrap_strata = "period", reference_period = "2020Q2")
+    bootstrap_replicates = 5, reference_period = "2020Q2")
   set.seed(74)
   first <- run()
   set.seed(74)
@@ -750,7 +746,7 @@ test_that("bootstrap calls the same hub with settings preserved and margins disa
     dataset = bootstrap_test_data(), method = "laspeyres", period_variable = "period",
     dependent_variable = "price", numerical_variables = "area", categorical_variables = NULL,
     reference_period = "2020Q2", number_of_observations = FALSE, imputation = TRUE,
-    parallel = TRUE, margins = TRUE, bootstrap_replicates = 2, bootstrap_strata = "period"
+    parallel = TRUE, margins = TRUE, bootstrap_replicates = 2
   )
   expect_length(seen, 2L)
   for (args in seen) {
@@ -766,6 +762,7 @@ test_that("bootstrap calls the same hub with settings preserved and margins disa
     expect_identical(args$chained, FALSE)
     expect_identical(args$parallel, TRUE)
     expect_identical(args$imputation, TRUE)
+    expect_equal(table(args$dataset$period), table(bootstrap_test_data()$period))
   }
   expect_true("Imputation" %in% names(result))
   expect_false("number_of_observations" %in% names(result))
@@ -775,7 +772,7 @@ test_that("bootstrap margins preserve the contribution output convention", {
   original <- bootstrap_test_run(index_contribution = TRUE)
   set.seed(75)
   result <- bootstrap_test_run(index_contribution = TRUE, margins = TRUE,
-    bootstrap_replicates = 3, bootstrap_strata = "period")
+    bootstrap_replicates = 3)
   expect_named(result, c("Index", "Index_contribution"))
   expect_identical(result$Index_contribution, original$Index_contribution)
   expect_identical(result$Index[names(original$Index)], original$Index)
