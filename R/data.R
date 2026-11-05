@@ -43,7 +43,7 @@
 #' @examples
 #' data("arithmetic_data")
 #' result <- calculate_spar_index(
-#'   arithmetic_data, "spar_arithmetic", period_variable = "period",
+#'   arithmetic_data, "arithmetic", period_variable = "period",
 #'   dependent_variable = "price", appraisal_variable = "appraisal_value",
 #'   grouping_variables = c("appraisal_year", "property_type"),
 #'   index_type_variable = "property_type", chained = TRUE

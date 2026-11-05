@@ -45,9 +45,9 @@ For each period/group, with transaction price `p` and appraisal value `a`:
 
 | Method | Period ratio |
 |:--|:--|
-| `"spar_arithmetic"` | `mean(p) / mean(a)` |
-| `"spar_geometric"` | `exp(mean(log(p))) / exp(mean(log(a)))` |
-| `"spar_unweighted"` | `mean(p / a)` |
+| `"arithmetic"` | `mean(p) / mean(a)` |
+| `"geometric"` | `exp(mean(log(p))) / exp(mean(log(a)))` |
+| `"unweighted"` | `mean(p / a)` |
 
 Following the validated script, arithmetic and geometric SPAR omit missing prices
 and missing appraisals separately, so their two aggregates may use different
@@ -66,7 +66,7 @@ example <- data.frame(
   appraisal = c(100, 200, 100, 300)
 )
 results <- calculate_spar_index(
-  example, c("spar_arithmetic", "spar_geometric", "spar_unweighted"),
+  example, c("arithmetic", "geometric", "unweighted"),
   period_variable = "month", dependent_variable = "price",
   appraisal_variable = "appraisal", grouping_variables = c("vintage", "type")
 )
@@ -140,7 +140,7 @@ chain_data <- data.frame(
   price = c(100, 120, 300, 330), appraisal = 100
 )
 chain_result <- calculate_spar_index(
-  chain_data, "spar_arithmetic", period_variable = "month",
+  chain_data, "arithmetic", period_variable = "month",
   dependent_variable = "price", appraisal_variable = "appraisal",
   grouping_variables = c("vintage", "type"),
   chained = TRUE, index_type_variable = "type"
@@ -173,7 +173,7 @@ data("arithmetic_data")
 str(arithmetic_data)
 spar <- calculate_spar_index(
   dataset = arithmetic_data,
-  method = c("spar_arithmetic", "spar_geometric", "spar_unweighted", "median", "mean"),
+  method = c("arithmetic", "geometric", "unweighted"),
   period_variable = "period", dependent_variable = "price",
   appraisal_variable = "appraisal_value",
   grouping_variables = c("appraisal_year", "property_type"),
@@ -182,17 +182,11 @@ spar <- calculate_spar_index(
 names(spar)
 ```
 
-The optional `"median"` and `"mean"` are unadjusted price baselines, calculated separately
-by `index_type_variable` when supplied (otherwise by `grouping_variables`). They
-start at the first usable period and use no appraisal values or SPAR chaining
-formula. Baseline-only calls need just price and period columns. Mean uses the
-arithmetic average of untransformed prices in each period.
-
 For multiple methods, `parallel = TRUE` uses the same optional task helper as
 hedonic indices. The output has the same content as sequential calculation;
 small datasets often benefit more from avoiding worker startup costs.
 
-Every SPAR frame contains character `period`, `Index`, all grouping identifiers,
+Every frame contains character `period`, `Index`, all grouping identifiers,
 `ratio_numerator`, `ratio_denominator`, and `growth_rate`. Arithmetic/geometric
 output also preserves the aggregated price and appraisal components as
 `numerator_numerator` and `numerator_denominator`. Chained output additionally
@@ -219,7 +213,7 @@ grouping identifiers are retained in the contribution table.
 ```{r spar-contribution}
 apartments <- arithmetic_data[arithmetic_data$property_type == "Apartment", ]
 influence <- calculate_spar_index(
-  apartments, "spar_arithmetic", period_variable = "period",
+  apartments, "arithmetic", period_variable = "period",
   dependent_variable = "price", appraisal_variable = "appraisal_value",
   grouping_variables = c("appraisal_year", "property_type"),
   index_type_variable = "property_type", chained = TRUE,

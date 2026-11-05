@@ -31,13 +31,13 @@ test_that("arithmetic_data preserves the complete source time pattern in a compa
 test_that("arithmetic_data works with every public SPAR method and plotting", {
   data("arithmetic_data", package = "REPS")
   result <- calculate_spar_index(
-    arithmetic_data, c("spar_arithmetic", "spar_geometric", "spar_unweighted"),
+    arithmetic_data, c("arithmetic", "geometric", "unweighted"),
     period_variable = "period", dependent_variable = "price",
     appraisal_variable = "appraisal_value",
     grouping_variables = c("appraisal_year", "property_type"),
     chained = TRUE, index_type_variable = "property_type"
   )
-  expect_named(result, c("spar_arithmetic", "spar_geometric", "spar_unweighted"))
+  expect_named(result, c("arithmetic", "geometric", "unweighted"))
   expect_true(all(vapply(result, nrow, integer(1)) == 288L))
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off(), add = TRUE)

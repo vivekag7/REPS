@@ -32,13 +32,13 @@ test_that("arithmetic_data matches the independently generated script expectatio
   data("arithmetic_data", package = "REPS")
   fixture <- readRDS(test_path("test_data", "spar_reference_output.rds"))
   result <- calculate_spar_index(
-    arithmetic_data, c("spar_arithmetic", "spar_geometric", "spar_unweighted"),
+    arithmetic_data, c("arithmetic", "geometric", "unweighted"),
     period_variable = "period", dependent_variable = "price",
     appraisal_variable = "appraisal_value", grouping_variables = c("appraisal_year", "property_type"),
     index_type_variable = "property_type", chained = TRUE
   )
   for (method in names(fixture$expected)) {
-    expect_spar_reference_values(fixture$expected[[method]], result[[paste0("spar_", method)]])
+    expect_spar_reference_values(fixture$expected[[method]], result[[method]])
   }
 })
 
@@ -72,14 +72,14 @@ test_that("full external SPAR source and original script match the public API", 
   )
   reference_hub <- do.call(reference$calculate_spar, c(reference_args, list(method = "all")))
   result <- calculate_spar_index(
-    source_data, paste0("spar_", names(fixture$expected)), period_variable = "Periode", dependent_variable = "KoopSom",
+    source_data, names(fixture$expected), period_variable = "Periode", dependent_variable = "KoopSom",
     appraisal_variable = "WozWaarde", grouping_variables = c("WozPeilJaar", "Woningtype"),
     index_type_variable = "Woningtype", chained = TRUE
   )
   for (method in names(fixture$expected)) {
     original <- do.call(reference[[paste0("calculate_spar_", method)]], reference_args)
     expect_equal(original$index_long, reference_hub[[paste0("index_long_", method)]], tolerance = 1e-10)
-    actual <- result[[paste0("spar_", method)]]
+    actual <- result[[method]]
     names(actual)[match(c("WozPeilJaar", "Woningtype"), names(actual))] <- c("appraisal_year", "property_type")
     expect_spar_reference_values(spar_reference_columns(original), actual)
   }

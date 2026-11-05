@@ -14,17 +14,15 @@ validate_spar_column_names <- function(value, argument, scalar = FALSE) {
 #' @keywords internal
 #' @noRd
 validate_spar_index_options <- function(grouping_variables, index_type_variable,
-                                        chained, base_value, parallel, require_spar_groups = TRUE) {
+                                        chained, base_value, parallel) {
   for (argument in c("chained", "parallel")) {
     value <- get(argument)
     if (!is.logical(value) || length(value) != 1L || is.na(value)) {
       stop("`", argument, "` must be TRUE or FALSE.", call. = FALSE)
     }
   }
-  if (require_spar_groups || !is.null(grouping_variables)) {
-    validate_spar_column_names(grouping_variables, "grouping_variables")
-  }
-  if ((chained && require_spar_groups) || !is.null(index_type_variable)) {
+  validate_spar_column_names(grouping_variables, "grouping_variables")
+  if (chained || !is.null(index_type_variable)) {
     validate_spar_column_names(index_type_variable, "index_type_variable")
     if (!all(index_type_variable %in% grouping_variables)) {
       stop("Every `index_type_variable` must occur in `grouping_variables`.", call. = FALSE)

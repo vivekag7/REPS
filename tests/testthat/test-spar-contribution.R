@@ -9,7 +9,7 @@ spar_contribution_data <- function() {
   )
 }
 
-spar_contribution_run <- function(dataset = spar_contribution_data(), method = "spar_arithmetic", ...) {
+spar_contribution_run <- function(dataset = spar_contribution_data(), method = "arithmetic", ...) {
   args <- list(dataset = dataset, method = method, period_variable = "month", dependent_variable = "price",
     appraisal_variable = "appraisal", grouping_variables = c("vintage", "type"),
     index_type_variable = "type", chained = TRUE)
@@ -18,7 +18,7 @@ spar_contribution_run <- function(dataset = spar_contribution_data(), method = "
 
 test_that("SPAR row contributions match manual exclusion in each independent series", {
   dataset <- spar_contribution_data()
-  for (method in grep("^spar_", supported_spar_index_methods(), value = TRUE)) {
+  for (method in supported_spar_index_methods()) {
     for (chained in c(FALSE, TRUE)) {
       result <- spar_contribution_run(method = method, chained = chained, index_contribution = TRUE)
       expect_named(result, c("Index", "Index_contribution"))
@@ -66,7 +66,7 @@ test_that("removing all target observations produces missing contribution values
 })
 
 test_that("SPAR contribution options reject ambiguous or invalid inputs", {
-  expect_error(spar_contribution_run(method = c("spar_arithmetic", "spar_geometric"),
+  expect_error(spar_contribution_run(method = c("arithmetic", "geometric"),
     index_contribution = TRUE), "single method")
   expect_error(spar_contribution_run(index_contribution = NA), "index_contribution")
   expect_error(spar_contribution_run(index_contribution = TRUE, unit_variable = "absent"), "unit_variable")

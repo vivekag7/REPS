@@ -51,7 +51,7 @@ calculate_spar_index_contribution <- function(dataset, index_output, period_vari
     dataset[[unit_column]] <- as.character(seq_len(nrow(dataset)))
   }
   valid_groups <- unique(index_output[grouping_variables])
-  if (length(grouping_variables)) dataset <- dplyr::semi_join(dataset, valid_groups, by = grouping_variables)
+  dataset <- dplyr::semi_join(dataset, valid_groups, by = grouping_variables)
   series <- unique(target_index[series_variables])
   if (!length(series_variables)) series <- data.frame(.single_series = 1L)
 
@@ -74,8 +74,7 @@ calculate_spar_index_contribution <- function(dataset, index_output, period_vari
         return(unavailable())
       }
       output <- tryCatch(calculate_index_function(target_dataset), error = function(error) {
-        if (grepl("Each period/group must have enough observed values", conditionMessage(error), fixed = TRUE) ||
-            grepl("^(Mean|Median) index calculation requires", conditionMessage(error))) {
+        if (grepl("Each period/group must have enough observed values", conditionMessage(error), fixed = TRUE)) {
           return(unavailable())
         }
         stop(error)

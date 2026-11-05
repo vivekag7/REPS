@@ -52,7 +52,7 @@ reference is warned about and omitted.
 data("arithmetic_data")
 spar <- calculate_spar_index(
   dataset = arithmetic_data,
-  method = c("spar_arithmetic", "spar_geometric", "spar_unweighted"),
+  method = c("arithmetic", "geometric", "unweighted"),
   period_variable = "period",
   dependent_variable = "price",
   appraisal_variable = "appraisal_value",
@@ -77,9 +77,6 @@ For one method, `index_contribution = TRUE` also returns leave-one-row/unit-out
 contributions to the index level and period-on-period change, calculated per
 independent series. Use `unit_variable` for grouped exclusions and
 `index_contribution_period` to choose the analyzed period; see the SPAR vignette.
-
-Optionally include `"median"` or `"mean"` in the method vector for unadjusted
-price baselines, using only prices and periods within each independent series.
 
 ## Diagnostics and Visualization Tools
 
