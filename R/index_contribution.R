@@ -3,6 +3,8 @@
 #' Calculates how much each observation, or each unit group, contributes to the
 #' index change in one selected period by recalculating the index while
 #' excluding that observation or unit.
+#' Failed individual recalculations warn and retain the original values with
+#' missing counterfactual values; input and original-index errors still stop.
 #'
 #' @author Vivek Gajadhar
 #' @param dataset Data frame with input data.
@@ -224,16 +226,25 @@ run_index_contribution_unit_calculations <- function(units,
                                                 period_growth_original,
                                                 parallel = FALSE) {
   task_function <- function(unit_id) {
-    calculate_index_contribution_unit(
-      unit_id = unit_id,
-      target_data = target_data,
-      other_data = other_data,
-      original_names = original_names,
-      index_contribution_period = index_contribution_period,
-      calculate_index_function = calculate_index_function,
-      index_original = index_original,
-      period_growth_original = period_growth_original
+    warning_messages <- character()
+    result <- withCallingHandlers(
+      calculate_index_contribution_unit(
+        unit_id = unit_id,
+        target_data = target_data,
+        other_data = other_data,
+        original_names = original_names,
+        index_contribution_period = index_contribution_period,
+        calculate_index_function = calculate_index_function,
+        index_original = index_original,
+        period_growth_original = period_growth_original
+      ),
+      warning = function(warning) {
+        warning_messages <<- c(warning_messages, conditionMessage(warning))
+        invokeRestart("muffleWarning")
+      }
     )
+    # Return warnings explicitly so socket and fork workers retain them.
+    list(result = result, warnings = warning_messages)
   }
   
   total_runs <- length(units)
@@ -276,7 +287,11 @@ run_index_contribution_unit_calculations <- function(units,
     )
   }
   
-  do.call(rbind, unlist(results, recursive = FALSE))
+  unit_results <- unlist(results, recursive = FALSE)
+  for (unit_result in unit_results) {
+    for (message in unit_result$warnings) warning(message, call. = FALSE)
+  }
+  do.call(rbind, lapply(unit_results, `[[`, "result"))
 }
 
 #' Get Index Contribution Chunk Size
@@ -364,20 +379,32 @@ calculate_index_contribution_unit <- function(unit_id,
   ]
   dataset_without_unit <- rbind(other_data[, original_names, drop = FALSE], target_without_unit)
 
-  index_without_unit <- calculate_index_function(dataset_without_unit)
-  index_without_unit <- add_period_growth_to_index(index_without_unit)
-  excluded_row <- index_without_unit[
-    as.character(index_without_unit$period) == index_contribution_period,
-    ,
-    drop = FALSE
-  ]
-
-  if (nrow(excluded_row) == 1) {
-    index_excl <- excluded_row$Index[1]
-    period_growth_excl <- excluded_row$period_growth[1]
-  } else {
-    index_excl <- NA_real_
-    period_growth_excl <- NA_real_
+  recalculation_failed <- FALSE
+  index_without_unit <- tryCatch(
+    calculate_index_function(dataset_without_unit),
+    error = function(error) {
+      recalculation_failed <<- TRUE
+      warning(
+        "Index contribution recalculation failed for unit/row '", unit_id,
+        "' in period '", index_contribution_period, "': ", conditionMessage(error),
+        call. = FALSE
+      )
+      NULL
+    }
+  )
+  index_excl <- NA_real_
+  period_growth_excl <- NA_real_
+  if (!recalculation_failed) {
+    index_without_unit <- add_period_growth_to_index(index_without_unit)
+    excluded_row <- index_without_unit[
+      as.character(index_without_unit$period) == index_contribution_period,
+      ,
+      drop = FALSE
+    ]
+    if (nrow(excluded_row) == 1) {
+      index_excl <- excluded_row$Index[1]
+      period_growth_excl <- excluded_row$period_growth[1]
+    }
   }
 
   data.frame(
