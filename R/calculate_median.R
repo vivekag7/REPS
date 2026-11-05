@@ -3,6 +3,7 @@
 #' Uses the untransformed dependent variable and complete price-period pairs.
 #' Explanatory variables are ignored, including their missing values.
 #'
+#' @author Farley Ishaak, Vivek Gajadhar
 #' @inheritParams calculate_hedonic_index
 #' @return A data frame with period, optional observation counts, and Index.
 #' @keywords internal
