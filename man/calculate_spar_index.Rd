@@ -18,7 +18,9 @@ calculate_spar_index(
   parallel = FALSE,
   index_contribution = FALSE,
   unit_variable = NULL,
-  index_contribution_period = NULL
+  index_contribution_period = NULL,
+  margins = FALSE,
+  bootstrap_replicates = 999
 )
 }
 \arguments{
@@ -60,6 +62,12 @@ the analyzed period. NULL excludes individual rows.}
 
 \item{index_contribution_period}{Period to analyze, defaulting to the latest
 period in the index. Contributions are calculated separately per series.}
+
+\item{margins}{Logical; add 95\% bootstrap margins around the original index.
+Resampling preserves each period/group's size. Default FALSE.}
+
+\item{bootstrap_replicates}{Number of bootstrap recalculations, at least 2.
+Default 999. Used only when \code{margins = TRUE}.}
 }
 \value{
 One data frame, or a named list of data frames for multiple methods.
@@ -73,6 +81,10 @@ reference, the result has zero rows.
 With \code{index_contribution = TRUE}, returns a list containing \code{Index} and
 \code{Index_contribution}, including grouping identifiers. An exclusion that
 leaves the target index uncomputable has missing exclusion/difference values.
+Margins add \code{bootstrap_variance}, \code{lower_margin}, and \code{upper_margin} to
+index frames. A period/group needs at least 2 and at least 80\% of the
+requested replicates; otherwise its margins are NA with a warning.
+Failed replicates warn and are skipped. Use \code{set.seed()} for reproducibility.
 Filter grouped output to one series before using \code{\link[=plot_price_index]{plot_price_index()}}.
 }
 \description{

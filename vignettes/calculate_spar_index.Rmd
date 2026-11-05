@@ -133,6 +133,13 @@ head(result$Index)
 head(result$Index_contribution)
 ```
 
+## Bootstrap margins
+
+Add `margins = TRUE` for 95% bootstrap margins around the original index.
+Resampling preserves the number of transactions within each period/group.
+Use `bootstrap_replicates` to change the default of 999 recalculations, and
+call `set.seed()` beforehand for reproducible results.
+
 ## Plotting
 
 Filter to one property type before comparing the three chained methods.

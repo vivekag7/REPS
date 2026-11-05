@@ -77,6 +77,17 @@ test_that("SPAR contribution options reject ambiguous or invalid inputs", {
   expect_error(spar_contribution_run(dataset, index_contribution = TRUE, unit_variable = "unit"), "identifiers")
 })
 
+test_that("SPAR margins preserve the original contribution analysis", {
+  original <- spar_contribution_run(index_contribution = TRUE, unit_variable = "unit")
+  set.seed(85)
+  result <- spar_contribution_run(index_contribution = TRUE, unit_variable = "unit",
+                                  margins = TRUE, bootstrap_replicates = 3)
+  expect_named(result, c("Index", "Index_contribution"))
+  expect_identical(result$Index_contribution, original$Index_contribution)
+  expect_identical(result$Index[names(original$Index)], original$Index)
+  expect_true(all(is.finite(result$Index$bootstrap_variance)))
+})
+
 test_that("SPAR recalculation errors use the generic per-unit warning and NA handling", {
   dataset <- spar_contribution_data()
   dataset <- dataset[dataset$type == "A", ]

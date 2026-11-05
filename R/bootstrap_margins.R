@@ -1,4 +1,4 @@
-# Internal bootstrap support shared by all methods in the hedonic hub.
+# Internal bootstrap support shared by the hedonic and SPAR hubs.
 
 #' Validate bootstrap margin options
 #' @author Kai Cheung, Vivek Gajadhar
@@ -36,11 +36,11 @@ sample_bootstrap_rows <- function(dataset, resampling_variables) {
 #' @author Kai Cheung, Vivek Gajadhar
 #' @keywords internal
 #' @noRd
-validate_bootstrap_index_output <- function(index) {
-  if (!is.data.frame(index) || !all(c("period", "Index") %in% names(index)) ||
-      !nrow(index) || anyNA(index$period) || anyDuplicated(as.character(index$period)) ||
+validate_bootstrap_index_output <- function(index, index_variables = "period") {
+  if (!is.data.frame(index) || !all(c(index_variables, "Index") %in% names(index)) ||
+      !nrow(index) || anyNA(index[index_variables]) || anyDuplicated(index[index_variables]) ||
       !is.numeric(index$Index) || is.complex(index$Index)) {
-    stop("Bootstrap margins require a non-empty index data.frame with unique `period` labels and numeric `Index`.",
+    stop("Bootstrap margins require a non-empty index data.frame with unique index keys and numeric `Index`.",
          call. = FALSE)
   }
   invisible(TRUE)
@@ -52,14 +52,17 @@ validate_bootstrap_index_output <- function(index) {
 #' @noRd
 calculate_bootstrap_margins <- function(dataset, index_output, bootstrap_replicates,
                                         resampling_variables,
-                                        calculate_index_function, method) {
-  validate_bootstrap_index_output(index_output)
+                                        calculate_index_function, method,
+                                        index_variables = "period") {
+  validate_bootstrap_index_output(index_output, index_variables)
+  original_keys <- as.data.frame(lapply(index_output[index_variables], as.character), check.names = FALSE)
+  value_column <- utils::tail(make.unique(c(index_variables, ".bootstrap_value")), 1L)
   values <- matrix(NA_real_, nrow = nrow(index_output), ncol = bootstrap_replicates)
   for (replicate in seq_len(bootstrap_replicates)) {
     sample_data <- sample_bootstrap_rows(dataset, resampling_variables)
     index <- tryCatch({
       output <- calculate_index_function(sample_data)
-      validate_bootstrap_index_output(output)
+      validate_bootstrap_index_output(output, index_variables)
       output
     }, error = function(error) {
       warning("Bootstrap replicate ", replicate, " for method '", method,
@@ -67,8 +70,10 @@ calculate_bootstrap_margins <- function(dataset, index_output, bootstrap_replica
       NULL
     })
     if (!is.null(index)) {
-      # Replicates can omit or reorder periods; row positions have no meaning.
-      matched <- index$Index[match(as.character(index_output$period), as.character(index$period))]
+      # Match labels and group identifiers, retaining the original row order.
+      bootstrap_keys <- as.data.frame(lapply(index[index_variables], as.character), check.names = FALSE)
+      bootstrap_keys[[value_column]] <- index$Index
+      matched <- dplyr::left_join(original_keys, bootstrap_keys, by = index_variables)[[value_column]]
       matched[!is.finite(matched)] <- NA_real_
       values[, replicate] <- matched
     }
@@ -81,7 +86,8 @@ calculate_bootstrap_margins <- function(dataset, index_output, bootstrap_replica
   insufficient <- valid < required
   if (any(insufficient)) {
     warning("Too few valid bootstrap values for method '", method, "': ",
-            paste0(index_output$period[insufficient], " (", valid[insufficient], "/",
+            paste0(apply(original_keys[insufficient, , drop = FALSE], 1, paste, collapse = "/"),
+                   " (", valid[insufficient], "/",
                    bootstrap_replicates, ")", collapse = ", "),
             ". At least ", required, " required per period; returning NA margins.", call. = FALSE)
   }

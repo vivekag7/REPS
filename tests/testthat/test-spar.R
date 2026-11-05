@@ -12,6 +12,15 @@ spar_test_run <- function(dataset = spar_test_data(), method = "arithmetic", ...
   do.call(calculate_spar_index, utils::modifyList(args, list(...), keep.null = TRUE))
 }
 
+spar_margin_test_data <- function() {
+  dataset <- spar_chain_test_data()
+  dataset <- dataset[rep(seq_len(nrow(dataset)), each = 3), ]
+  dataset$price <- dataset$price * rep(c(0.8, 1, 1.4), 8)
+  dataset$appraisal <- dataset$appraisal * rep(c(0.9, 1, 1.2), 8)
+  row.names(dataset) <- NULL
+  dataset
+}
+
 test_that("SPAR aggregates and normalization match hand calculations", {
   expected <- list(arithmetic = c(4 / 3, 2), geometric = c(sqrt(1.5), 2),
                    unweighted = c(1.25, 2))
@@ -261,4 +270,75 @@ test_that("SPAR results plot as one series and reject grouped output", {
   expect_error(plot_price_index(list(grouped = grouped)), "filter grouped output to one series")
   expect_error(plot_price_index(single[FALSE, ]), "finite numeric")
   expect_error(plot_price_index(list()), "valid multi-method output")
+})
+
+test_that("disabled SPAR margins preserve results and RNG state", {
+  dataset <- spar_margin_test_data()
+  original <- spar_test_run(dataset, supported_spar_index_methods())
+  set.seed(81)
+  seed <- .Random.seed
+  expect_identical(spar_test_run(dataset, supported_spar_index_methods(), margins = FALSE), original)
+  expect_identical(.Random.seed, seed)
+  expect_false(any(c("confidence_level", "bootstrap_strata") %in% names(formals(calculate_spar_index))))
+  expect_error(spar_test_run(margins = NA), "margins")
+  expect_error(spar_test_run(margins = 1), "margins")
+  for (bad in list(1, 2.5, NA, "5")) {
+    expect_error(spar_test_run(margins = TRUE, bootstrap_replicates = bad), "bootstrap_replicates")
+  }
+})
+
+test_that("every SPAR method supports grouped direct and chained bootstrap margins", {
+  dataset <- spar_margin_test_data()
+  for (chained in c(FALSE, TRUE)) {
+    for (method in supported_spar_index_methods()) {
+      original <- spar_test_run(dataset, method, chained = chained,
+                                index_type_variable = "type", base_value = 200)
+      set.seed(82)
+      result <- spar_test_run(dataset, method, chained = chained,
+        index_type_variable = "type", base_value = 200, margins = TRUE, bootstrap_replicates = 5)
+      expect_identical(result[names(original)], original)
+      expect_named(result, c(names(original), "bootstrap_variance", "lower_margin", "upper_margin"))
+      expect_true(all(is.finite(result$bootstrap_variance) & result$bootstrap_variance >= 0))
+      expect_true(any(result$bootstrap_variance > 0))
+      width <- qnorm(0.975) * sqrt(result$bootstrap_variance)
+      expect_equal(result$lower_margin, result$Index - width)
+      expect_equal(result$upper_margin, result$Index + width)
+      expect_true(all(result$lower_margin <= result$Index & result$Index <= result$upper_margin))
+    }
+  }
+  set.seed(83)
+  custom <- spar_test_run(reference_period_pattern = "02$", margins = TRUE, bootstrap_replicates = 5)
+  expect_equal(custom$Index[custom$period == "202102"], 100)
+  expect_equal(custom$bootstrap_variance[custom$period == "202102"], 0)
+})
+
+test_that("multi-method SPAR margins are reproducible and samples preserve group sizes", {
+  real_hub <- calculate_spar_index
+  samples <- list()
+  local_mocked_bindings(calculate_spar_index = function(...) {
+    args <- list(...)
+    samples[[length(samples) + 1L]] <<- args
+    do.call(real_hub, args)
+  })
+  dataset <- spar_margin_test_data()
+  run <- function() real_hub(
+    dataset, supported_spar_index_methods(), "month", "price", "appraisal",
+    c("vintage", "type"), index_type_variable = "type", chained = TRUE,
+    base_value = 200, margins = TRUE, bootstrap_replicates = 3
+  )
+  set.seed(84)
+  first <- run()
+  set.seed(84)
+  second <- run()
+  expect_identical(first, second)
+  expect_named(first, supported_spar_index_methods())
+  expect_length(samples, 18L)
+  for (args in samples) {
+    expect_identical(args$margins, FALSE)
+    expect_identical(args$index_contribution, FALSE)
+    expect_identical(args$chained, TRUE)
+    expect_identical(args$base_value, 200)
+    expect_equal(table(args$dataset[c("month", "vintage", "type")]),
+                 table(dataset[c("month", "vintage", "type")]))
+  }
 })

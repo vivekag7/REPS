@@ -30,6 +30,10 @@
 #'   the analyzed period. NULL excludes individual rows.
 #' @param index_contribution_period Period to analyze, defaulting to the latest
 #'   period in the index. Contributions are calculated separately per series.
+#' @param margins Logical; add 95% bootstrap margins around the original index.
+#'   Resampling preserves each period/group's size. Default FALSE.
+#' @param bootstrap_replicates Number of bootstrap recalculations, at least 2.
+#'   Default 999. Used only when `margins = TRUE`.
 #' @return One data frame, or a named list of data frames for multiple methods.
 #'   Each contains character `period`, the grouping identifiers, ratios
 #'   `ratio_numerator` and `ratio_denominator`, `growth_rate`, and `Index`.
@@ -41,6 +45,10 @@
 #'   With `index_contribution = TRUE`, returns a list containing `Index` and
 #'   `Index_contribution`, including grouping identifiers. An exclusion that
 #'   leaves the target index uncomputable has missing exclusion/difference values.
+#'   Margins add `bootstrap_variance`, `lower_margin`, and `upper_margin` to
+#'   index frames. A period/group needs at least 2 and at least 80% of the
+#'   requested replicates; otherwise its margins are NA with a warning.
+#'   Failed replicates warn and are skipped. Use `set.seed()` for reproducibility.
 #'   Filter grouped output to one series before using [plot_price_index()].
 #' @author Kai Cheung, Vivek Gajadhar
 #' @examples
@@ -69,7 +77,9 @@ calculate_spar_index <- function(dataset,
                            parallel = FALSE,
                            index_contribution = FALSE,
                            unit_variable = NULL,
-                           index_contribution_period = NULL) {
+                           index_contribution_period = NULL,
+                           margins = FALSE,
+                           bootstrap_replicates = 999) {
   method <- validate_spar_index_methods(method)
   validate_spar_index_options(
     grouping_variables, index_type_variable, chained, base_value,
@@ -82,6 +92,7 @@ calculate_spar_index <- function(dataset,
   validate_spar_contribution_options(
     method, dataset, index_contribution, unit_variable, index_contribution_period
   )
+  validate_bootstrap_margin_options(margins, bootstrap_replicates)
   input_dataset <- dataset
   if (chained) validate_spar_monthly_periods(dataset[[period_variable]])
   dataset <- prepare_spar_data(
@@ -107,6 +118,24 @@ calculate_spar_index <- function(dataset,
     parallel = parallel && length(method) > 1L,
     fallback_message = "Parallel SPAR method calculation failed; falling back to sequential calculation."
   )
+  if (margins) {
+    for (i in seq_along(method)) {
+      method_name <- method[i]
+      result[[i]] <- calculate_bootstrap_margins(
+        dataset, result[[i]], bootstrap_replicates, c(period_variable, grouping_variables),
+        calculate_index_function = function(sample_data) {
+          calculate_spar_index(
+            dataset = sample_data, method = method_name, period_variable = period_variable,
+            dependent_variable = dependent_variable, appraisal_variable = appraisal_variable,
+            grouping_variables = grouping_variables, index_type_variable = index_type_variable,
+            reference_period_pattern = reference_period_pattern, chained = chained,
+            base_value = base_value, parallel = parallel, index_contribution = FALSE, margins = FALSE
+          )
+        },
+        method = method_name, index_variables = c("period", grouping_variables)
+      )
+    }
+  }
   if (length(method) == 1L) {
     if (index_contribution) {
       recalculate <- function(target_dataset) {

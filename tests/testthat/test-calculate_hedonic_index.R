@@ -778,3 +778,20 @@ test_that("bootstrap margins preserve the contribution output convention", {
   expect_identical(result$Index[names(original$Index)], original$Index)
   expect_true(all(is.finite(result$Index$bootstrap_variance)))
 })
+
+test_that("generic bootstrap alignment distinguishes independent groups in the same period", {
+  original <- data.frame(period = rep(c("p1", "p2"), each = 2),
+                         type = rep(c("A", "B"), 2), Index = c(100, 200, 120, 240))
+  replicate <- 0L
+  result <- calculate_bootstrap_margins(
+    data.frame(month = rep(c("p1", "p2"), each = 2), type = rep(c("A", "B"), 2)),
+    original, 3, c("month", "type"), function(data) {
+      replicate <<- replicate + 1L
+      output <- original[4:1, ]
+      output$Index <- c(20, 10, 4, 2) * replicate
+      output
+    }, "synthetic", index_variables = c("period", "type")
+  )
+  expect_identical(result[names(original)], original)
+  expect_equal(result$bootstrap_variance, c(4, 16, 100, 400))
+})
