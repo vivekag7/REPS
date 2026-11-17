@@ -650,9 +650,8 @@ test_that("bootstrap options are validated when margins are enabled", {
   for (bad in list(NULL, NA, Inf, -Inf, 0, 1, -2, 2.5, "5", TRUE, 2i, c(2, 3))) {
     expect_error(bootstrap_test_run(margins = TRUE, bootstrap_replicates = bad), "bootstrap_replicates")
   }
-  expect_identical(formals(calculate_hedonic_index)$bootstrap_replicates, 500)
-  expect_identical(formals(calculate_hedonic_index)$confidence_level, 0.95)
-  expect_null(formals(calculate_hedonic_index)$bootstrap_strata)
+  expect_false(any(c("base_value", "bootstrap_replicates", "confidence_level",
+                     "bootstrap_strata") %in% names(formals(calculate_hedonic_index))))
   for (bad in list(NULL, NA, NaN, Inf, -Inf, 0, 1, -0.1, 1.1, "0.95", TRUE, 1i, c(0.8, 0.9))) {
     expect_error(bootstrap_test_run(margins = TRUE, confidence_level = bad), "confidence_level")
   }
@@ -660,6 +659,46 @@ test_that("bootstrap options are validated when margins are enabled", {
     expect_error(bootstrap_test_run(margins = TRUE, bootstrap_strata = bad), "bootstrap_strata")
   }
   expect_error(bootstrap_test_run("hmts", margins = TRUE, resting_points = TRUE), "regular index output")
+})
+
+test_that("hedonic extra bootstrap args retain defaults and custom values", {
+  recorded <- list()
+  local_mocked_bindings(calculate_bootstrap_margins = function(
+    dataset, index_output, bootstrap_replicates, bootstrap_strata,
+    calculate_index_function, method, index_variables = "period",
+    confidence_level = 0.95, parallel = FALSE
+  ) {
+    recorded[[length(recorded) + 1L]] <<- list(
+      replicates = bootstrap_replicates, confidence = confidence_level,
+      strata = bootstrap_strata
+    )
+    index_output
+  })
+  original <- bootstrap_test_run("median")
+  expect_identical(bootstrap_test_run("median", margins = TRUE), original)
+  expect_identical(recorded[[1L]], list(
+    replicates = 500, confidence = 0.95, strata = NULL
+  ))
+  expect_identical(bootstrap_test_run("median", margins = TRUE,
+    bootstrap_replicates = 7, confidence_level = 0.90, bootstrap_strata = "period"), original)
+  expect_identical(recorded[[2L]], list(
+    replicates = 7, confidence = 0.90, strata = "period"
+  ))
+})
+
+test_that("hedonic chaining uses base 100 and rejects base_value", {
+  dataset <- data.frame(period = c("2015Q1", "2015Q2", "2016Q1", "2016Q2"),
+                        price = c(100, 110, 130, 140))
+  run_method <- function(method, data, reference) {
+    periods <- sort(unique(as.character(data$period)))
+    data.frame(period = periods, Index = if (is.null(reference)) c(100, 110)
+               else c(100, 120, 130))
+  }
+  actual <- calculate_single_hedonic_index_method(
+    "fisher", dataset, "period", NULL, TRUE, run_method
+  )
+  expect_equal(actual$Index, c(100, 110, 132, 143))
+  expect_error(bootstrap_test_run(base_value = 200), "base_value")
 })
 
 test_that("bootstrap strata are prepared for boot::boot and preserve stratum sizes", {

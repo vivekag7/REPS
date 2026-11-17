@@ -20,23 +20,20 @@
 #' @param reference_period_pattern One regular expression matching at most one
 #'   period per group. Default `"01$"` matches January in `YYYYMM` periods.
 #' @param chained Logical; link short-term series? Default FALSE.
-#' @param base_value Positive finite starting level for chained series. Default
-#'   100. Unchained indices always use 100.
 #' @param parallel Logical; run multiple methods with the REPS parallel helper
 #'   and bootstrap replicates on snow workers. Default FALSE.
 #' @param index_contribution Logical; calculate leave-one-row/unit-out index and
 #'   period-on-period contribution for a single method. Default FALSE.
-#' @param unit_variable Optional column identifying units excluded together in
-#'   the analyzed period. NULL excludes individual rows.
-#' @param index_contribution_period Period to analyze, defaulting to the latest
-#'   period in the index. Contributions are calculated separately per series.
 #' @param margins Logical; add bootstrap margins around the original index.
 #'   Default FALSE.
-#' @param bootstrap_replicates Number of bootstrap recalculations, at least 2.
-#'   Default 500. Used only when `margins = TRUE`.
-#' @param confidence_level Confidence level strictly between 0 and 1. Default 0.95.
-#' @param bootstrap_strata Optional unique column names for resampling within
-#'   each strata combination, preserving its size. NULL samples the full dataset.
+#' @param ... Additional options:
+#' \itemize{
+#'   \item \code{unit_variable}: Index contribution unit identifier, default NULL.
+#'   \item \code{index_contribution_period}: Contribution period, default latest.
+#'   \item \code{bootstrap_replicates}: Bootstrap repetitions, default 500.
+#'   \item \code{confidence_level}: Confidence level, default 0.95.
+#'   \item \code{bootstrap_strata}: Optional strata columns, default NULL.
+#' }
 #' @return One data frame, or a named list of data frames for multiple methods.
 #'   Each contains character `period`, the grouping identifiers, ratios
 #'   `ratio_numerator` and `ratio_denominator`, `growth_rate`, and `Index`.
@@ -76,29 +73,36 @@ calculate_spar_index <- function(dataset,
                            index_type_variable = NULL,
                            reference_period_pattern = "01$",
                            chained = FALSE,
-                           base_value = 100,
                            parallel = FALSE,
                            index_contribution = FALSE,
-                           unit_variable = NULL,
-                           index_contribution_period = NULL,
                            margins = FALSE,
-                           bootstrap_replicates = 500,
-                           confidence_level = 0.95,
-                           bootstrap_strata = NULL) {
+                           ...) {
   method <- validate_spar_index_methods(method)
+  extra_args <- list(...)
+  options <- list(unit_variable = NULL, index_contribution_period = NULL,
+                  bootstrap_replicates = 500,
+                  confidence_level = 0.95, bootstrap_strata = NULL)
+  if (length(extra_args) && (is.null(names(extra_args)) || anyNA(names(extra_args)) ||
+      any(!nzchar(names(extra_args))) || anyDuplicated(names(extra_args)))) {
+    stop("All SPAR options in `...` must have unique names.", call. = FALSE)
+  }
+  unknown <- setdiff(names(extra_args), names(options))
+  if (length(unknown)) stop("Unknown SPAR argument(s): ", paste(unknown, collapse = ", "), call. = FALSE)
+  options[names(extra_args)] <- extra_args
   validate_spar_index_options(
-    grouping_variables, index_type_variable, chained, base_value,
-    parallel
+    grouping_variables, index_type_variable, chained, parallel
   )
   validate_spar_input(
     dataset, period_variable, dependent_variable, appraisal_variable,
     grouping_variables
   )
   validate_spar_contribution_options(
-    method, dataset, index_contribution, unit_variable, index_contribution_period
+    method, dataset, index_contribution, options$unit_variable,
+    options$index_contribution_period
   )
   validate_bootstrap_margin_options(
-    margins, bootstrap_replicates, confidence_level, bootstrap_strata, dataset
+    margins, options$bootstrap_replicates, options$confidence_level,
+    options$bootstrap_strata, dataset
   )
   input_dataset <- dataset
   if (chained) validate_spar_monthly_periods(dataset[[period_variable]])
@@ -119,7 +123,7 @@ calculate_spar_index <- function(dataset,
       calculate_single_spar_index_method(
         method_name, dataset, period_variable, dependent_variable,
         appraisal_variable, grouping_variables, index_type_variable,
-        reference_period_pattern, chained, base_value
+        reference_period_pattern, chained
       )
     },
     parallel = parallel && length(method) > 1L,
@@ -129,18 +133,19 @@ calculate_spar_index <- function(dataset,
     for (i in seq_along(method)) {
       method_name <- method[i]
       result[[i]] <- calculate_bootstrap_margins(
-        input_dataset, result[[i]], bootstrap_replicates, bootstrap_strata,
+        input_dataset, result[[i]], options$bootstrap_replicates,
+        options$bootstrap_strata,
         calculate_index_function = function(sample_data) {
           calculate_spar_index(
             dataset = sample_data, method = method_name, period_variable = period_variable,
             dependent_variable = dependent_variable, appraisal_variable = appraisal_variable,
             grouping_variables = grouping_variables, index_type_variable = index_type_variable,
             reference_period_pattern = reference_period_pattern, chained = chained,
-            base_value = base_value, parallel = FALSE, index_contribution = FALSE, margins = FALSE
+            parallel = FALSE, index_contribution = FALSE, margins = FALSE
           )
         },
         method = method_name, index_variables = c("period", grouping_variables),
-        confidence_level = confidence_level, parallel = parallel
+        confidence_level = options$confidence_level, parallel = parallel
       )
     }
   }
@@ -153,13 +158,15 @@ calculate_spar_index <- function(dataset,
         )
         calculate_single_spar_index_method(
           method, prepared, period_variable, dependent_variable, appraisal_variable,
-          grouping_variables, index_type_variable, reference_period_pattern, chained, base_value
+          grouping_variables, index_type_variable, reference_period_pattern,
+          chained
         )
       }
       contribution <- calculate_spar_index_contribution(
         input_dataset, result[[1L]], period_variable, grouping_variables,
         if (chained) index_type_variable else grouping_variables,
-        recalculate, unit_variable, index_contribution_period, parallel
+        recalculate, options$unit_variable, options$index_contribution_period,
+        parallel
       )
       return(list(Index = result[[1L]], Index_contribution = contribution))
     }
@@ -229,15 +236,14 @@ run_spar_index_method <- function(method, dataset, period_variable,
 calculate_single_spar_index_method <- function(method, dataset, period_variable,
                                                dependent_variable, appraisal_variable,
                                                grouping_variables, index_type_variable,
-                                               reference_period_pattern, chained,
-                                               base_value) {
+                                               reference_period_pattern, chained) {
   result <- run_spar_index_method(
     method, dataset, period_variable, dependent_variable,
     appraisal_variable, grouping_variables, reference_period_pattern
   )
   if (chained) {
     result <- chain_spar_index(
-      result, period_variable, index_type_variable, base_value, reference_period_pattern
+      result, period_variable, index_type_variable, reference_period_pattern
     )
   } else {
     result$Index <- 100 * result$growth_rate

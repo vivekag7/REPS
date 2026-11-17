@@ -134,8 +134,6 @@ test_that("SPAR chains each independent series using hand-calculated levels", {
     expect_equal(a$chain_long, c(1, 1, 1.2, 1.2))
     expect_equal(a$growth_factor, c(1, 1.2, 3, 132 / 360))
     expect_equal(a$chaining_true_false, c(FALSE, FALSE, TRUE, FALSE))
-    expect_equal(spar_test_run(dataset, method, chained = TRUE,
-      index_type_variable = "type", base_value = 200)$Index, 2 * result$Index)
     expect_equal(spar_test_run(dataset[nrow(dataset):1, ], method,
       chained = TRUE, index_type_variable = "type"), result)
   }
@@ -239,12 +237,18 @@ test_that("SPAR validates every supplied option including inactive chain options
     expect_error(spar_test_run(parallel = bad), "parallel")
     expect_error(spar_test_run(chained = bad), "chained")
   }
-  for (bad in list(NA_real_, 0, -1, Inf, 1i, c(100, 200), "100", NULL)) {
-    expect_error(spar_test_run(base_value = bad), "base_value")
-  }
+  expect_error(spar_test_run(base_value = 200), "Unknown SPAR argument")
   expect_error(spar_test_run(chained = TRUE), "index_type_variable")
   expect_error(spar_test_run(index_type_variable = "missing"), "index_type_variable")
   expect_error(spar_test_run(chained = TRUE, index_type_variable = "price"), "index_type_variable")
+})
+
+test_that("SPAR extra options preserve defaults and reject unknown names", {
+  expect_identical(spar_test_run(), spar_test_run(
+    unit_variable = NULL, index_contribution_period = NULL,
+    bootstrap_replicates = 500, confidence_level = 0.95, bootstrap_strata = NULL
+  ))
+  expect_error(spar_test_run(unexpected_option = 3), "Unknown SPAR argument")
 })
 
 test_that("sequential and parallel multi-method SPAR results agree", {
@@ -279,9 +283,9 @@ test_that("disabled SPAR margins preserve results and RNG state", {
   seed <- .Random.seed
   expect_identical(spar_test_run(dataset, supported_spar_index_methods(), margins = FALSE), original)
   expect_identical(.Random.seed, seed)
-  expect_identical(formals(calculate_spar_index)$bootstrap_replicates, 500)
-  expect_identical(formals(calculate_spar_index)$confidence_level, 0.95)
-  expect_null(formals(calculate_spar_index)$bootstrap_strata)
+  expect_false(any(c("base_value", "unit_variable", "index_contribution_period",
+                     "bootstrap_replicates", "confidence_level", "bootstrap_strata") %in%
+                   names(formals(calculate_spar_index))))
   expect_error(spar_test_run(margins = NA), "margins")
   expect_error(spar_test_run(margins = 1), "margins")
   for (bad in list(1, 2.5, NA, "5")) {
@@ -300,10 +304,10 @@ test_that("every SPAR method supports grouped direct and chained bootstrap margi
   for (chained in c(FALSE, TRUE)) {
     for (method in supported_spar_index_methods()) {
       original <- spar_test_run(dataset, method, chained = chained,
-                                index_type_variable = "type", base_value = 200)
+                                index_type_variable = "type")
       set.seed(82)
       result <- spar_test_run(dataset, method, chained = chained,
-        index_type_variable = "type", base_value = 200, margins = TRUE, bootstrap_replicates = 5,
+        index_type_variable = "type", margins = TRUE, bootstrap_replicates = 5,
         bootstrap_strata = c("month", "vintage", "type"))
       expect_identical(result[names(original)], original)
       expect_named(result, c(names(original), "bootstrap_variance", "lower_margin", "upper_margin"))
@@ -336,7 +340,7 @@ test_that("multi-method SPAR margins are reproducible and samples preserve group
   run <- function() real_hub(
     dataset, supported_spar_index_methods(), "month", "price", "appraisal",
     c("vintage", "type"), index_type_variable = "type", chained = TRUE,
-    base_value = 200, margins = TRUE, bootstrap_replicates = 3, bootstrap_strata = strata
+    margins = TRUE, bootstrap_replicates = 3, bootstrap_strata = strata
   )
   set.seed(84)
   first <- run()
@@ -349,7 +353,6 @@ test_that("multi-method SPAR margins are reproducible and samples preserve group
     expect_identical(args$margins, FALSE)
     expect_identical(args$index_contribution, FALSE)
     expect_identical(args$chained, TRUE)
-    expect_identical(args$base_value, 200)
     expect_equal(table(args$dataset[strata]), table(dataset[strata]))
   }
 })

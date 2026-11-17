@@ -141,7 +141,9 @@ Add `margins = TRUE` for bootstrap margins around the original index, with
 `c("period", "appraisal_year", "property_type")` to retain those group sizes.
 Bootstrap resampling is delegated to `boot::boot()`. With `parallel = TRUE`,
 replicates run on a snow cluster (up to four workers). Call `set.seed()` beforehand
-for reproducible results.
+for reproducible results. Optional `unit_variable`,
+`index_contribution_period`, and bootstrap settings are passed through `...`.
+`plot_price_index()` draws a confidence band when margin columns are present.
 
 ```{r bootstrap-margins, eval=FALSE}
 set.seed(123)

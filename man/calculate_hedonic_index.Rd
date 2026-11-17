@@ -17,9 +17,6 @@ calculate_hedonic_index(
   index_contribution = FALSE,
   parallel = FALSE,
   margins = FALSE,
-  bootstrap_replicates = 500,
-  confidence_level = 0.95,
-  bootstrap_strata = NULL,
   ...
 )
 }
@@ -55,15 +52,7 @@ where useful, and bootstrap replicates use snow workers. Default is FALSE.}
 margins around the original index.
 Default FALSE. Requires regular index output.}
 
-\item{bootstrap_replicates}{Number of row-bootstrap samples, at least 2.
-Default 500. Used only when \code{margins = TRUE}.}
-
-\item{confidence_level}{Confidence level strictly between 0 and 1. Default 0.95.}
-
-\item{bootstrap_strata}{Optional unique column names for resampling within
-each strata combination, preserving its size. NULL samples the full dataset.}
-
-\item{...}{Additional method-specific arguments passed to the underlying functions:
+\item{...}{Additional method-specific, chaining and bootstrap arguments:
 \itemize{
 \item \code{periods_in_year}: (Required for Repricing) Number of periods per year (e.g. 12 for months, 4 for quarters)
 \item \code{number_preliminary_periods}: (Optional for HMTS) Number of preliminary periods. Default = 3
@@ -73,6 +62,9 @@ each strata combination, preserving its size. NULL samples the full dataset.}
 \item \code{window_length}: (Optional for Rolling Time Dummy) Window size in number of periods. Default = 5
 \item \code{unit_variable}: (Optional for index contribution) Unit column to exclude as groups. Default = NULL
 \item \code{index_contribution_period}: (Optional for index contribution) Period to analyze. Default = latest period
+\item \code{bootstrap_replicates}: Bootstrap repetitions; default = 500.
+\item \code{confidence_level}: Confidence level between 0 and 1; default = 0.95.
+\item \code{bootstrap_strata}: Optional strata columns; default = NULL.
 }}
 }
 \value{

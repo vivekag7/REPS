@@ -25,12 +25,7 @@
 #' @param margins Logical; add bootstrap variance and normal-approximation
 #'   margins around the original index.
 #'   Default FALSE. Requires regular index output.
-#' @param bootstrap_replicates Number of row-bootstrap samples, at least 2.
-#'   Default 500. Used only when `margins = TRUE`.
-#' @param confidence_level Confidence level strictly between 0 and 1. Default 0.95.
-#' @param bootstrap_strata Optional unique column names for resampling within
-#'   each strata combination, preserving its size. NULL samples the full dataset.
-#' @param ... Additional method-specific arguments passed to the underlying functions:
+#' @param ... Additional method-specific, chaining and bootstrap arguments:
 #' \itemize{
 #'   \item \code{periods_in_year}: (Required for Repricing) Number of periods per year (e.g. 12 for months, 4 for quarters)
 #'   \item \code{number_preliminary_periods}: (Optional for HMTS) Number of preliminary periods. Default = 3
@@ -40,6 +35,9 @@
 #'   \item \code{window_length}: (Optional for Rolling Time Dummy) Window size in number of periods. Default = 5
 #'   \item \code{unit_variable}: (Optional for index contribution) Unit column to exclude as groups. Default = NULL
 #'   \item \code{index_contribution_period}: (Optional for index contribution) Period to analyze. Default = latest period
+#'   \item \code{bootstrap_replicates}: Bootstrap repetitions; default = 500.
+#'   \item \code{confidence_level}: Confidence level between 0 and 1; default = 0.95.
+#'   \item \code{bootstrap_strata}: Optional strata columns; default = NULL.
 #' }
 #'
 #' @return A data.frame (or list for HMTS with resting_points = TRUE; named list if multiple methods are used; or list with Index and Index_contribution when index_contribution = TRUE)
@@ -80,12 +78,17 @@ calculate_hedonic_index <- function(dataset,
                                     index_contribution = FALSE,
                                     parallel = FALSE,
                                     margins = FALSE,
-                                    bootstrap_replicates = 500,
-                                    confidence_level = 0.95,
-                                    bootstrap_strata = NULL,
                                     ...) {
   method <- validate_hedonic_index_methods(method)
   extra_args <- list(...)
+  options <- list(bootstrap_replicates = 500,
+                  confidence_level = 0.95, bootstrap_strata = NULL)
+  supplied <- intersect(names(extra_args), names(options))
+  options[supplied] <- extra_args[supplied]
+  extra_args[supplied] <- NULL
+  if ("base_value" %in% names(extra_args)) {
+    stop("`base_value` is not supported; indices use base 100.", call. = FALSE)
+  }
   extra_args$parallel <- parallel
 
   validate_hedonic_index_options(
@@ -105,7 +108,8 @@ calculate_hedonic_index <- function(dataset,
     require_explanatory_variables = requires_explanatory_variables
   )
   validate_bootstrap_margin_options(
-    margins, bootstrap_replicates, confidence_level, bootstrap_strata, dataset
+    margins, options$bootstrap_replicates, options$confidence_level,
+    options$bootstrap_strata, dataset
   )
   if (margins && isTRUE(extra_args$resting_points)) {
     stop("`margins = TRUE` requires regular index output; `resting_points = TRUE` is not supported.",
@@ -166,12 +170,13 @@ calculate_hedonic_index <- function(dataset,
     for (i in seq_along(method)) {
       method_name <- method[i]
       result[[i]] <- calculate_bootstrap_margins(
-        dataset, result[[i]], bootstrap_replicates, bootstrap_strata,
+        dataset, result[[i]], options$bootstrap_replicates,
+        options$bootstrap_strata,
         calculate_index_function = function(sample_data) {
           do.call(calculate_hedonic_index,
                   c(list(dataset = sample_data, method = method_name), bootstrap_args))
         },
-        method = method_name, confidence_level = confidence_level,
+        method = method_name, confidence_level = options$confidence_level,
         parallel = parallel
       )
     }

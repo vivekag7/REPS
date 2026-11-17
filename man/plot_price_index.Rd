@@ -8,7 +8,7 @@ plot_price_index(index_output, title = NULL)
 }
 \arguments{
 \item{index_output}{A data.frame or named list of data.frames containing
-\code{period} and \code{Index} columns.}
+\code{period} and \code{Index} columns; optionally \code{lower_margin} and \code{upper_margin}.}
 
 \item{title}{Optional plot title}
 }
@@ -22,6 +22,7 @@ Static price index plot using base R graphics with grid lines and external legen
 Supports single index data.frames and named lists of methods from
 \code{calculate_hedonic_index()} or \code{calculate_spar_index()}. Each frame must have one
 row per period. Filter grouped SPAR output to one series before plotting.
+Optional bootstrap margins are drawn as translucent confidence bands.
 X-axis shows only first period of each year with rotated labels to avoid clutter.
 }
 \author{

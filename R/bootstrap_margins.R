@@ -109,8 +109,13 @@ calculate_bootstrap_margins <- function(dataset, index_output, bootstrap_replica
       validate_bootstrap_index_output(output, index_variables)
       output
     }, error = function(error) {
-      # Warnings from snow workers are not propagated to the parent process.
-      if (!use_snow) {
+      # Preserve the error message in each snow worker for the parent process.
+      if (use_snow) {
+        options(.reps_bootstrap_errors = c(
+          getOption(".reps_bootstrap_errors", character()),
+          conditionMessage(error)
+        ))
+      } else {
         warning(
           "Bootstrap replicate ", replicate_number, " for method '", method,
           "' failed: ", conditionMessage(error),
@@ -147,17 +152,38 @@ calculate_bootstrap_margins <- function(dataset, index_output, bootstrap_replica
   if (!is.null(strata)) boot_args$strata <- strata
 
   if (use_snow) {
+    # In development, workers must load the same source version as the caller.
+    # getwd() is not reliable inside devtools/testthat worker processes.
+    source_path <- tryCatch(getNamespaceInfo("REPS", "path"),
+                            error = function(e) "")
+    if (!file.exists(file.path(source_path, "R", "bootstrap_margins.R"))) {
+      source_path <- ""
+    }
+
+    # Starting a PSOCK cluster can consume RNG state. Preserve it so equal
+    # set.seed() calls yield identical bootstrap draws in both modes.
+    had_seed <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+    if (had_seed) seed <- get(".Random.seed", envir = .GlobalEnv)
     cluster <- parallel::makeCluster(n_cores)
     on.exit(parallel::stopCluster(cluster), add = TRUE)
-    # Use the same worker package setup as the existing REPS parallel helper.
-    parallel::clusterEvalQ(cluster, {
-      if (requireNamespace("pkgload", quietly = TRUE) && file.exists("DESCRIPTION")) {
-        pkgload::load_all(getwd(), export_all = TRUE, quiet = TRUE)
-      } else if (requireNamespace("REPS", quietly = TRUE)) {
+    if (had_seed) {
+      assign(".Random.seed", seed, envir = .GlobalEnv)
+    } else if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
+      rm(".Random.seed", envir = .GlobalEnv)
+    }
+
+    parallel::clusterCall(cluster, function(path) {
+      if (nzchar(path)) {
+        if (!requireNamespace("pkgload", quietly = TRUE)) {
+          stop("The 'pkgload' package is required on snow workers when testing REPS from source.")
+        }
+        pkgload::load_all(path, export_all = TRUE, quiet = TRUE)
+      } else {
         library(REPS)
       }
+      options(.reps_bootstrap_errors = character())
       NULL
-    })
+    }, source_path)
     boot_args$parallel <- "snow"
     boot_args$ncpus <- n_cores
     boot_args$cl <- cluster
@@ -167,14 +193,23 @@ calculate_bootstrap_margins <- function(dataset, index_output, bootstrap_replica
 
   bootstrap <- do.call(boot::boot, boot_args)
   # The final statistic element is a numeric failed-recalculation flag.
-  # This lets us report failures from snow workers on the parent process.
   failed <- sum(bootstrap$t[, n_index_rows + 1L] > 0)
-  if (use_snow && failed > 0L) {
-    warning(
-      failed, " bootstrap replicate(s) for method '", method,
-      "' failed on snow workers; their index values were set to NA.",
-      call. = FALSE
-    )
+  if (use_snow) {
+    worker_errors <- unlist(parallel::clusterCall(cluster, function() {
+      messages <- getOption(".reps_bootstrap_errors", character())
+      options(.reps_bootstrap_errors = NULL)
+      messages
+    }), use.names = FALSE)
+    if (failed > 0L) {
+      details <- if (length(worker_errors)) {
+        paste0(" Example error: ", worker_errors[[1L]])
+      } else ""
+      warning(
+        failed, " bootstrap replicate(s) for method '", method,
+        "' failed on snow workers; their index values were set to NA.",
+        details, call. = FALSE
+      )
+    }
   }
   values <- t(bootstrap$t[, seq_len(n_index_rows), drop = FALSE])
 

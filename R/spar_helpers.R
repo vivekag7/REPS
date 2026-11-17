@@ -14,7 +14,7 @@ validate_spar_column_names <- function(value, argument, scalar = FALSE) {
 #' @keywords internal
 #' @noRd
 validate_spar_index_options <- function(grouping_variables, index_type_variable,
-                                        chained, base_value, parallel) {
+                                        chained, parallel) {
   for (argument in c("chained", "parallel")) {
     value <- get(argument)
     if (!is.logical(value) || length(value) != 1L || is.na(value)) {
@@ -27,10 +27,6 @@ validate_spar_index_options <- function(grouping_variables, index_type_variable,
     if (!all(index_type_variable %in% grouping_variables)) {
       stop("Every `index_type_variable` must occur in `grouping_variables`.", call. = FALSE)
     }
-  }
-  if (!is.numeric(base_value) || is.complex(base_value) || length(base_value) != 1L ||
-      !is.finite(base_value) || base_value <= 0) {
-    stop("`base_value` must be one positive finite number.", call. = FALSE)
   }
 }
 
@@ -223,7 +219,7 @@ validate_spar_chain_data <- function(dataset, period_variable, grouping_variable
 #' @keywords internal
 #' @noRd
 chain_spar_index <- function(result, period_variable, index_type_variable,
-                              base_value, reference_period_pattern) {
+                              reference_period_pattern) {
   if (!nrow(result)) {
     result$chaining_true_false <- logical()
     for (column in c("growth_rate_long", "yoy_change", "chain_long", "growth_factor", "Index")) {
@@ -250,7 +246,7 @@ chain_spar_index <- function(result, period_variable, index_type_variable,
     ]
     .x$yoy_change <- ifelse(reference, .x$growth_rate_long, 1)
     .x$chain_long <- cumprod(.x$yoy_change)
-    .x$Index <- base_value * .x$growth_rate * .x$chain_long
+    .x$Index <- 100 * .x$growth_rate * .x$chain_long
     .x$growth_factor <- .x$Index / dplyr::lag(.x$Index)
     .x$growth_factor[1L] <- 1
     .x

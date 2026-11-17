@@ -5,14 +5,15 @@
 #' Supports single index data.frames and named lists of methods from
 #' `calculate_hedonic_index()` or `calculate_spar_index()`. Each frame must have one
 #' row per period. Filter grouped SPAR output to one series before plotting.
+#' Optional bootstrap margins are drawn as translucent confidence bands.
 #' X-axis shows only first period of each year with rotated labels to avoid clutter.
 #'
 #' @author Vivek Gajadhar
 #' @param index_output A data.frame or named list of data.frames containing
-#'   `period` and `Index` columns.
+#'   `period` and `Index` columns; optionally `lower_margin` and `upper_margin`.
 #' @param title Optional plot title
 #' @return None. Draws plots in the active graphics device.
-#' @importFrom graphics axis grid legend lines par plot text
+#' @importFrom graphics axis grid legend lines par plot polygon text
 #' @export
 plot_price_index <- function(index_output, title = NULL) {
 
@@ -40,6 +41,43 @@ plot_price_index <- function(index_output, title = NULL) {
         !any(is.finite(data$Index))) {
       stop("Each plot series must contain periods and finite numeric index values.")
     }
+    if (all(c("lower_margin", "upper_margin") %in% names(data)) &&
+        (!is.numeric(data$lower_margin) || !is.numeric(data$upper_margin))) {
+      stop("Bootstrap margin columns must be numeric.")
+    }
+  }
+
+  valid_margins <- function(data) {
+    if (!all(c("lower_margin", "upper_margin") %in% names(data))) {
+      return(rep(FALSE, nrow(data)))
+    }
+    is.finite(data$lower_margin) & is.finite(data$upper_margin) &
+      data$lower_margin <= data$upper_margin
+  }
+
+  range_with_margins <- function(data) {
+    good <- valid_margins(data)
+    values <- data$Index
+    if (any(good)) {
+      values <- c(values, data$lower_margin[good], data$upper_margin[good])
+    }
+    range(values[is.finite(values)])
+  }
+
+  draw_margins <- function(x, data, color) {
+    good <- which(valid_margins(data))
+    if (length(good) < 2L) return(invisible(NULL))
+    segments <- split(good, cumsum(c(1L, as.integer(diff(good) != 1L))))
+    for (rows in segments) {
+      if (length(rows) < 2L) next
+      graphics::polygon(
+        c(x[rows], rev(x[rows])),
+        c(data$lower_margin[rows], rev(data$upper_margin[rows])),
+        col = grDevices::adjustcolor(color, alpha.f = 0.2),
+        border = NA
+      )
+    }
+    invisible(NULL)
   }
 
   if (is.null(title)) {
@@ -62,12 +100,14 @@ plot_price_index <- function(index_output, title = NULL) {
     plot(
       x, df$Index,
       type = "n",
+      ylim = range_with_margins(df),
       xaxt = "n",
       xlab = "",
       ylab = "Index",
       main = title
     )
     grid(col = "grey90", lty = "dotted")
+    draw_margins(x, df, cb_palette[1])
     lines(x, df$Index, type = "b", pch = 19, col = cb_palette[1])
     axis(1, at = break_indices, labels = FALSE)
     text(
@@ -108,7 +148,7 @@ plot_price_index <- function(index_output, title = NULL) {
     x <- 1:length(period_levels)
     breaks <- get_year_start_periods(period_levels)
     break_indices <- match(breaks, period_levels)
-    y_range <- range(combined$Index, na.rm = TRUE)
+    y_range <- range(unlist(lapply(index_output, range_with_margins)))
 
     plot(
       NA,
@@ -125,10 +165,12 @@ plot_price_index <- function(index_output, title = NULL) {
     method_colors <- cb_palette[(seq_along(methods) - 1) %% length(cb_palette) + 1]
     for (i in seq_along(methods)) {
       method_name <- methods[i]
-      df <- combined[combined$method == method_name, ]
+      df <- index_output[[method_name]]
       df <- df[order(df$period), ]
+      coordinates <- match(as.character(df$period), period_levels)
+      draw_margins(coordinates, df, method_colors[i])
       lines(
-        match(as.character(df$period), period_levels),
+        coordinates,
         df$Index,
         type = "b",
         pch = 19,

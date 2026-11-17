@@ -14,15 +14,10 @@ calculate_spar_index(
   index_type_variable = NULL,
   reference_period_pattern = "01$",
   chained = FALSE,
-  base_value = 100,
   parallel = FALSE,
   index_contribution = FALSE,
-  unit_variable = NULL,
-  index_contribution_period = NULL,
   margins = FALSE,
-  bootstrap_replicates = 500,
-  confidence_level = 0.95,
-  bootstrap_strata = NULL
+  ...
 )
 }
 \arguments{
@@ -50,31 +45,23 @@ period per group. Default \code{"01$"} matches January in \code{YYYYMM} periods.
 
 \item{chained}{Logical; link short-term series? Default FALSE.}
 
-\item{base_value}{Positive finite starting level for chained series. Default
-100. Unchained indices always use 100.}
-
 \item{parallel}{Logical; run multiple methods with the REPS parallel helper
 and bootstrap replicates on snow workers. Default FALSE.}
 
 \item{index_contribution}{Logical; calculate leave-one-row/unit-out index and
 period-on-period contribution for a single method. Default FALSE.}
 
-\item{unit_variable}{Optional column identifying units excluded together in
-the analyzed period. NULL excludes individual rows.}
-
-\item{index_contribution_period}{Period to analyze, defaulting to the latest
-period in the index. Contributions are calculated separately per series.}
-
 \item{margins}{Logical; add bootstrap margins around the original index.
 Default FALSE.}
 
-\item{bootstrap_replicates}{Number of bootstrap recalculations, at least 2.
-Default 500. Used only when \code{margins = TRUE}.}
-
-\item{confidence_level}{Confidence level strictly between 0 and 1. Default 0.95.}
-
-\item{bootstrap_strata}{Optional unique column names for resampling within
-each strata combination, preserving its size. NULL samples the full dataset.}
+\item{...}{Additional options:
+\itemize{
+\item \code{unit_variable}: Index contribution unit identifier, default NULL.
+\item \code{index_contribution_period}: Contribution period, default latest.
+\item \code{bootstrap_replicates}: Bootstrap repetitions, default 500.
+\item \code{confidence_level}: Confidence level, default 0.95.
+\item \code{bootstrap_strata}: Optional strata columns, default NULL.
+}}
 }
 \value{
 One data frame, or a named list of data frames for multiple methods.
