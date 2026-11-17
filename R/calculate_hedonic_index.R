@@ -5,7 +5,7 @@
 #' For comparison, `"median"` provides an unadjusted median-price baseline
 #' using only price and period observations, without explanatory variables.
 #'
-#' @author Kai Cheung, Vivek Gajadhar
+#' @author Vivek Gajadhar
 #' @param method One or more of: "fisher", "laspeyres", "paasche", "hmts",
 #'   "timedummy", "rolling_timedummy", "repricing", "median".
 #' @param dataset Data frame with input data
@@ -20,12 +20,13 @@
 #' @param number_of_observations Logical, whether to show number of observations (default = TRUE)
 #' @param chained Logical. If TRUE, calculates a chained index using the Annual Overlap Method. Default is FALSE.
 #' @param index_contribution Logical. If TRUE, calculates an index-contribution table for one method. Default is FALSE.
-#' @param parallel Logical. If TRUE, independent calculations are parallelized where useful. Default is FALSE.
+#' @param parallel Logical. If TRUE, independent calculations are parallelized
+#'   where useful, and bootstrap replicates use snow workers. Default is FALSE.
 #' @param margins Logical; add bootstrap variance and normal-approximation
 #'   margins around the original index.
 #'   Default FALSE. Requires regular index output.
 #' @param bootstrap_replicates Number of row-bootstrap samples, at least 2.
-#'   Default 999. Used only when `margins = TRUE`.
+#'   Default 500. Used only when `margins = TRUE`.
 #' @param confidence_level Confidence level strictly between 0 and 1. Default 0.95.
 #' @param bootstrap_strata Optional unique column names for resampling within
 #'   each strata combination, preserving its size. NULL samples the full dataset.
@@ -79,7 +80,7 @@ calculate_hedonic_index <- function(dataset,
                                     index_contribution = FALSE,
                                     parallel = FALSE,
                                     margins = FALSE,
-                                    bootstrap_replicates = 999,
+                                    bootstrap_replicates = 500,
                                     confidence_level = 0.95,
                                     bootstrap_strata = NULL,
                                     ...) {
@@ -160,6 +161,8 @@ calculate_hedonic_index <- function(dataset,
       reference_period = reference_period, number_of_observations = number_of_observations,
       chained = chained, index_contribution = FALSE, margins = FALSE
     ), extra_args)
+    # Avoid nested worker creation inside bootstrap workers.
+    bootstrap_args$parallel <- FALSE
     for (i in seq_along(method)) {
       method_name <- method[i]
       result[[i]] <- calculate_bootstrap_margins(
@@ -168,7 +171,8 @@ calculate_hedonic_index <- function(dataset,
           do.call(calculate_hedonic_index,
                   c(list(dataset = sample_data, method = method_name), bootstrap_args))
         },
-        method = method_name, confidence_level = confidence_level
+        method = method_name, confidence_level = confidence_level,
+        parallel = parallel
       )
     }
   }

@@ -22,8 +22,8 @@
 #' @param chained Logical; link short-term series? Default FALSE.
 #' @param base_value Positive finite starting level for chained series. Default
 #'   100. Unchained indices always use 100.
-#' @param parallel Logical; run multiple methods with the existing REPS parallel
-#'   helper. Default FALSE.
+#' @param parallel Logical; run multiple methods with the REPS parallel helper
+#'   and bootstrap replicates on snow workers. Default FALSE.
 #' @param index_contribution Logical; calculate leave-one-row/unit-out index and
 #'   period-on-period contribution for a single method. Default FALSE.
 #' @param unit_variable Optional column identifying units excluded together in
@@ -33,7 +33,7 @@
 #' @param margins Logical; add bootstrap margins around the original index.
 #'   Default FALSE.
 #' @param bootstrap_replicates Number of bootstrap recalculations, at least 2.
-#'   Default 999. Used only when `margins = TRUE`.
+#'   Default 500. Used only when `margins = TRUE`.
 #' @param confidence_level Confidence level strictly between 0 and 1. Default 0.95.
 #' @param bootstrap_strata Optional unique column names for resampling within
 #'   each strata combination, preserving its size. NULL samples the full dataset.
@@ -82,7 +82,7 @@ calculate_spar_index <- function(dataset,
                            unit_variable = NULL,
                            index_contribution_period = NULL,
                            margins = FALSE,
-                           bootstrap_replicates = 999,
+                           bootstrap_replicates = 500,
                            confidence_level = 0.95,
                            bootstrap_strata = NULL) {
   method <- validate_spar_index_methods(method)
@@ -136,11 +136,11 @@ calculate_spar_index <- function(dataset,
             dependent_variable = dependent_variable, appraisal_variable = appraisal_variable,
             grouping_variables = grouping_variables, index_type_variable = index_type_variable,
             reference_period_pattern = reference_period_pattern, chained = chained,
-            base_value = base_value, parallel = parallel, index_contribution = FALSE, margins = FALSE
+            base_value = base_value, parallel = FALSE, index_contribution = FALSE, margins = FALSE
           )
         },
         method = method_name, index_variables = c("period", grouping_variables),
-        confidence_level = confidence_level
+        confidence_level = confidence_level, parallel = parallel
       )
     }
   }

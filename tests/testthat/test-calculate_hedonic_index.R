@@ -650,6 +650,7 @@ test_that("bootstrap options are validated when margins are enabled", {
   for (bad in list(NULL, NA, Inf, -Inf, 0, 1, -2, 2.5, "5", TRUE, 2i, c(2, 3))) {
     expect_error(bootstrap_test_run(margins = TRUE, bootstrap_replicates = bad), "bootstrap_replicates")
   }
+  expect_identical(formals(calculate_hedonic_index)$bootstrap_replicates, 500)
   expect_identical(formals(calculate_hedonic_index)$confidence_level, 0.95)
   expect_null(formals(calculate_hedonic_index)$bootstrap_strata)
   for (bad in list(NULL, NA, NaN, Inf, -Inf, 0, 1, -0.1, 1.1, "0.95", TRUE, 1i, c(0.8, 0.9))) {
@@ -661,32 +662,38 @@ test_that("bootstrap options are validated when margins are enabled", {
   expect_error(bootstrap_test_run("hmts", margins = TRUE, resting_points = TRUE), "regular index output")
 })
 
-test_that("bootstrap supports full-dataset and single or combined strata sampling", {
-  dataset <- data.frame(period = c("a", "a", "a", "b", "b", "b", "b", "c"),
-                        region = c("x", "x", "y", "x", "x", "y", NA, "z"), id = 1:8)
-  names(dataset)[1] <- "month"
-  set.seed(70)
-  whole <- sample_bootstrap_rows(dataset)
-  set.seed(70)
-  expect_equal(whole$id, sample.int(nrow(dataset), nrow(dataset), replace = TRUE))
-  set.seed(70)
-  expect_identical(sample_bootstrap_rows(dataset, NULL), whole)
+test_that("bootstrap strata are prepared for boot::boot and preserve stratum sizes", {
+  dataset <- data.frame(
+    month = c("a", "a", "a", "b", "b", "b", "b", "c"),
+    region = c("x", "x", "y", "x", "x", "y", NA, "z"),
+    id = 1:8
+  )
+
+  expect_null(make_bootstrap_strata(dataset, NULL))
+
+  month_strata <- make_bootstrap_strata(dataset, "month")
+  expect_identical(month_strata, factor(dataset$month, exclude = NULL))
+
+  combined <- make_bootstrap_strata(dataset, c("month", "region"))
+  expected_combined <- interaction(
+    factor(dataset$month, exclude = NULL),
+    factor(dataset$region, exclude = NULL),
+    drop = TRUE,
+    lex.order = TRUE
+  )
+  expect_identical(combined, expected_combined)
+
   set.seed(73)
-  sample <- sample_bootstrap_rows(dataset, "month")
-  set.seed(73)
-  expected <- c(sample.int(3, 3, replace = TRUE), 3L + sample.int(4, 4, replace = TRUE), 8L)
-  expect_equal(sample$id, expected)
-  expect_true(anyDuplicated(sample$id) > 0)
-  for (i in 1:3) {
-    sample <- sample_bootstrap_rows(dataset, "month")
-    expect_equal(nrow(sample), nrow(dataset))
-    expect_equal(table(sample$month), table(dataset$month))
-    expect_equal(sample$id[sample$month == "c"], 8L)
-    combined <- sample_bootstrap_rows(dataset, c("month", "region"))
-    expect_equal(table(combined[c("month", "region")], useNA = "ifany"),
-                 table(dataset[c("month", "region")], useNA = "ifany"))
-    expect_equal(combined$id[combined$month == "c"], 8L)
-  }
+  bootstrap <- boot::boot(
+    data = dataset,
+    statistic = function(data, indices) {
+      as.numeric(table(factor(data$month[indices], levels = c("a", "b", "c"))))
+    },
+    R = 4,
+    strata = month_strata
+  )
+  expected_counts <- matrix(rep(c(3, 4, 1), 4), nrow = 4, byrow = TRUE)
+  expect_equal(bootstrap$t, expected_counts)
 })
 
 test_that("bootstrap values align with period labels including reordered and missing periods", {
@@ -772,7 +779,7 @@ test_that("bootstrap calls the same hub with settings preserved and margins disa
     dataset = bootstrap_test_data(), method = "laspeyres", period_variable = "period",
     dependent_variable = "price", numerical_variables = "area", categorical_variables = NULL,
     reference_period = "2020Q2", number_of_observations = FALSE, imputation = TRUE,
-    parallel = TRUE, margins = TRUE, bootstrap_replicates = 2, bootstrap_strata = "period"
+    parallel = FALSE, margins = TRUE, bootstrap_replicates = 2, bootstrap_strata = "period"
   )
   expect_length(seen, 2L)
   for (args in seen) {
@@ -786,7 +793,7 @@ test_that("bootstrap calls the same hub with settings preserved and margins disa
     expect_identical(args$reference_period, "2020Q2")
     expect_identical(args$number_of_observations, FALSE)
     expect_identical(args$chained, FALSE)
-    expect_identical(args$parallel, TRUE)
+    expect_identical(args$parallel, FALSE)
     expect_identical(args$imputation, TRUE)
     expect_equal(table(args$dataset$period), table(bootstrap_test_data()$period))
   }
@@ -822,29 +829,62 @@ test_that("generic bootstrap alignment distinguishes independent groups in the s
   expect_equal(result$bootstrap_variance, c(4, 16, 100, 400))
 })
 
-test_that("both hubs use the generic sampler with NULL or configured strata", {
-  real_sampler <- sample_bootstrap_rows
+test_that("both hubs route NULL and configured strata through the generic boot engine", {
+  real_strata <- make_bootstrap_strata
   calls <- list()
-  local_mocked_bindings(sample_bootstrap_rows = function(dataset, bootstrap_strata = NULL) {
-    calls[[length(calls) + 1L]] <<- list(strata = bootstrap_strata)
-    real_sampler(dataset, bootstrap_strata)
+  local_mocked_bindings(make_bootstrap_strata = function(dataset, bootstrap_strata = NULL) {
+    calls[length(calls) + 1L] <<- list(bootstrap_strata)
+    real_strata(dataset, bootstrap_strata)
   })
-  dataset <- data.frame(month = rep(c(202101, 202102), each = 6),
+
+  dataset <- data.frame(
+    month = rep(c(202101, 202102), each = 6),
     price = c(100, 120, 150, 190, 220, 280, 110, 130, 160, 200, 230, 290),
-    appraisal = 100, vintage = 2019, type = "A", region = rep(c("north", "south"), 6))
+    appraisal = 100,
+    vintage = 2019,
+    type = "A",
+    region = rep(c("north", "south"), 6)
+  )
+
   for (strata in list(NULL, "month", c("month", "region"))) {
     for (hub in c("hedonic", "spar")) {
       calls <- list()
       set.seed(87)
+
       if (hub == "hedonic") {
-        calculate_hedonic_index(dataset, "median", "month", "price",
-          margins = TRUE, bootstrap_replicates = 2, bootstrap_strata = strata)
+        calculate_hedonic_index(
+          dataset, "median", "month", "price",
+          margins = TRUE,
+          bootstrap_replicates = 2,
+          bootstrap_strata = strata
+        )
       } else {
-        calculate_spar_index(dataset, "arithmetic", "month", "price", "appraisal",
-          c("vintage", "type"), margins = TRUE, bootstrap_replicates = 2, bootstrap_strata = strata)
+        calculate_spar_index(
+          dataset, "arithmetic", "month", "price", "appraisal",
+          c("vintage", "type"),
+          margins = TRUE,
+          bootstrap_replicates = 2,
+          bootstrap_strata = strata
+        )
       }
-      expect_length(calls, 2L)
-      for (call in calls) expect_identical(call$strata, strata)
+
+      expect_length(calls, 1L)
+      expect_identical(calls[[1L]], strata)
     }
   }
+})
+
+
+test_that("snow bootstrap agrees with sequential bootstrap for median", {
+  if (resolve_parallel_cores(TRUE, 5) < 2L) skip("Fewer than two cores available")
+
+  run <- function(parallel) bootstrap_test_run(
+    "median", margins = TRUE, bootstrap_replicates = 5,
+    bootstrap_strata = "period", parallel = parallel
+  )
+  set.seed(172)
+  sequential <- run(FALSE)
+  set.seed(172)
+  snow <- run(TRUE)
+  expect_equal(snow, sequential, tolerance = 1e-10)
 })

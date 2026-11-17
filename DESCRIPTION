@@ -33,6 +33,7 @@ Roxygen: list(markdown = TRUE)
 Depends:
     R (>= 4.4.0)
 Imports:
+    boot,
     dplyr,
     stats,
     KFAS,

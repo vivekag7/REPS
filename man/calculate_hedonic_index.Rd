@@ -17,7 +17,7 @@ calculate_hedonic_index(
   index_contribution = FALSE,
   parallel = FALSE,
   margins = FALSE,
-  bootstrap_replicates = 999,
+  bootstrap_replicates = 500,
   confidence_level = 0.95,
   bootstrap_strata = NULL,
   ...
@@ -48,14 +48,15 @@ for hedonic methods. Optional for median; ignored by that method.}
 
 \item{index_contribution}{Logical. If TRUE, calculates an index-contribution table for one method. Default is FALSE.}
 
-\item{parallel}{Logical. If TRUE, independent calculations are parallelized where useful. Default is FALSE.}
+\item{parallel}{Logical. If TRUE, independent calculations are parallelized
+where useful, and bootstrap replicates use snow workers. Default is FALSE.}
 
 \item{margins}{Logical; add bootstrap variance and normal-approximation
 margins around the original index.
 Default FALSE. Requires regular index output.}
 
 \item{bootstrap_replicates}{Number of row-bootstrap samples, at least 2.
-Default 999. Used only when \code{margins = TRUE}.}
+Default 500. Used only when \code{margins = TRUE}.}
 
 \item{confidence_level}{Confidence level strictly between 0 and 1. Default 0.95.}
 
@@ -110,5 +111,5 @@ Tbl_indices <- REPS::calculate_hedonic_index(
 )
 }
 \author{
-Kai Cheung, Vivek Gajadhar
+Vivek Gajadhar
 }

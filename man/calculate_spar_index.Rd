@@ -20,7 +20,7 @@ calculate_spar_index(
   unit_variable = NULL,
   index_contribution_period = NULL,
   margins = FALSE,
-  bootstrap_replicates = 999,
+  bootstrap_replicates = 500,
   confidence_level = 0.95,
   bootstrap_strata = NULL
 )
@@ -53,8 +53,8 @@ period per group. Default \code{"01$"} matches January in \code{YYYYMM} periods.
 \item{base_value}{Positive finite starting level for chained series. Default
 100. Unchained indices always use 100.}
 
-\item{parallel}{Logical; run multiple methods with the existing REPS parallel
-helper. Default FALSE.}
+\item{parallel}{Logical; run multiple methods with the REPS parallel helper
+and bootstrap replicates on snow workers. Default FALSE.}
 
 \item{index_contribution}{Logical; calculate leave-one-row/unit-out index and
 period-on-period contribution for a single method. Default FALSE.}
@@ -69,7 +69,7 @@ period in the index. Contributions are calculated separately per series.}
 Default FALSE.}
 
 \item{bootstrap_replicates}{Number of bootstrap recalculations, at least 2.
-Default 999. Used only when \code{margins = TRUE}.}
+Default 500. Used only when \code{margins = TRUE}.}
 
 \item{confidence_level}{Confidence level strictly between 0 and 1. Default 0.95.}
 

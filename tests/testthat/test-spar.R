@@ -279,6 +279,7 @@ test_that("disabled SPAR margins preserve results and RNG state", {
   seed <- .Random.seed
   expect_identical(spar_test_run(dataset, supported_spar_index_methods(), margins = FALSE), original)
   expect_identical(.Random.seed, seed)
+  expect_identical(formals(calculate_spar_index)$bootstrap_replicates, 500)
   expect_identical(formals(calculate_spar_index)$confidence_level, 0.95)
   expect_null(formals(calculate_spar_index)$bootstrap_strata)
   expect_error(spar_test_run(margins = NA), "margins")
@@ -368,4 +369,22 @@ test_that("SPAR confidence levels use the same generic variance and margin calcu
   expect_true(any(narrower$lower_margin > default$lower_margin))
   expect_true(all(narrower$lower_margin >= default$lower_margin))
   expect_true(all(narrower$upper_margin <= default$upper_margin))
+})
+
+
+test_that("snow bootstrap agrees with sequential bootstrap for SPAR", {
+  if (resolve_parallel_cores(TRUE, 5) < 2L) skip("Fewer than two cores available")
+
+  run <- function(parallel) spar_test_run(
+    spar_margin_test_data(), "arithmetic", chained = TRUE,
+    index_type_variable = "type", margins = TRUE,
+    bootstrap_replicates = 5,
+    bootstrap_strata = c("month", "vintage", "type"),
+    parallel = parallel
+  )
+  set.seed(173)
+  sequential <- run(FALSE)
+  set.seed(173)
+  snow <- run(TRUE)
+  expect_equal(snow, sequential, tolerance = 1e-10)
 })
