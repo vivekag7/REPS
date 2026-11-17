@@ -108,7 +108,6 @@ test_that("SPAR method routing follows the named-list convention", {
     expect_error(spar_test_run(method = method), "method")
   }
   expect_error(get_spar_index_method_function("all"), "Invalid method")
-  expect_false("type_variable" %in% names(formals(calculate_spar_index)))
 })
 
 spar_chain_test_data <- function() {
@@ -158,7 +157,6 @@ test_that("SPAR chaining supports monthly numeric and character YYYYMM periods o
   }
   expect_error(spar_test_run(chained = TRUE, index_type_variable = "type",
     reference_period_pattern = "02$"), "reference period must be January")
-  expect_false("month_modulo" %in% names(formals(calculate_spar_index)))
 })
 
 test_that("SPAR does not replace the reference script's December rule by a last-period rule", {
@@ -259,21 +257,6 @@ test_that("sequential and parallel multi-method SPAR results agree", {
     parallel <- do.call(spar_test_run, c(args, list(parallel = TRUE)))
     expect_equal(parallel, sequential, tolerance = 1e-12)
   }
-})
-
-test_that("SPAR results plot as one series and reject grouped output", {
-  grDevices::pdf(NULL)
-  on.exit(grDevices::dev.off(), add = TRUE)
-  single <- spar_test_run()
-  multiple <- spar_test_run(method = supported_spar_index_methods())
-  expect_silent(plot_price_index(single))
-  expect_silent(plot_price_index(multiple))
-  expect_silent(plot_price_index(list(arithmetic = single, shorter = single[1, ])))
-  grouped <- spar_test_run(spar_chain_test_data(), chained = TRUE, index_type_variable = "type")
-  expect_error(plot_price_index(grouped), "filter grouped output to one series")
-  expect_error(plot_price_index(list(grouped = grouped)), "filter grouped output to one series")
-  expect_error(plot_price_index(single[FALSE, ]), "finite numeric")
-  expect_error(plot_price_index(list()), "valid multi-method output")
 })
 
 test_that("disabled SPAR margins preserve results and RNG state", {

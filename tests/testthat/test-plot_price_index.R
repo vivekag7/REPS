@@ -56,3 +56,17 @@ test_that("plot_price_index supports complete and partial confidence bands", {
   df$lower_margin <- "invalid"
   expect_error(plot_price_index(df), "must be numeric")
 })
+
+
+test_that("plot_price_index checks grouped and invalid inputs", {
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  df <- data.frame(period = c("202401", "202402"), Index = c(100, 110),
+                   type = c("A", "A"))
+  expect_silent(plot_price_index(df))
+  grouped <- rbind(df, transform(df, type = "B"))
+  expect_error(plot_price_index(grouped), "filter grouped output to one series")
+  expect_error(plot_price_index(list(grouped = grouped)), "filter grouped output to one series")
+  expect_error(plot_price_index(df[FALSE, ]), "finite numeric")
+  expect_error(plot_price_index(list()), "valid multi-method output")
+})
